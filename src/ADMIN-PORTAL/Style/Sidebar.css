@@ -1,0 +1,751 @@
+/* ========================================
+   SIDEBAR RESPONSIVE STYLES
+   ======================================== */
+
+/* Sidebar Container - Desktop */
+.sidebar-container {
+  width: 70px;
+  min-height: 100vh;
+  background-color: #0f2a44;
+  transition: width 0.3s ease-in-out;
+  z-index: 1000;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.sidebar-container.hovered {
+  width: 220px;
+}
+
+/* Profile Section */
+.profile-section {
+  padding: 10px 0;
+  text-align: center;
+  margin-bottom: 5px;
+}
+
+.profile-section p {
+  margin: 0;
+  transition: all 0.3s ease;
+}
+
+.profile-title {
+  margin-top: 8px;
+  color: #ffc107;
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.profile-icon {
+  font-weight: bold;
+  font-size: 1rem;
+  color: white;
+}
+
+/* Sidebar Scroll Container */
+.admin-sidebar-scroll {
+  flex: 1;
+  width: 100%;
+  max-height: calc(100vh - 150px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(192, 213, 214, 1) transparent;
+}
+
+/* WebKit Scrollbar Styles */
+.admin-sidebar-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.admin-sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+}
+
+.admin-sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Navigation Items */
+.sidebar-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  text-decoration: none;
+  padding: 8px 0;
+  transition: all 0.3s ease;
+  border-radius: 6px;
+}
+
+.sidebar-nav-item.active {
+  background-color: #ffc107;
+}
+
+.sidebar-nav-item .nav-icon {
+  font-size: 20px;
+  min-width: 20px;
+  color: white;
+}
+
+.sidebar-nav-item .nav-text {
+  font-weight: bold;
+  flex-grow: 1;
+  color: white;
+}
+
+/* Menu Toggle Items */
+.menu-toggle-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+  padding: 8px 0;
+  transition: all 0.3s ease;
+}
+
+.menu-toggle-item .toggle-icon {
+  color: white;
+  font-size: 20px;
+  min-width: 20px;
+}
+
+.menu-toggle-item .toggle-text {
+  color: white;
+  font-weight: bold;
+  flex-grow: 1;
+}
+
+.menu-toggle-item .chevron-icon {
+  color: white;
+  transition: transform 0.3s ease;
+}
+
+.menu-toggle-item .chevron-icon.rotated {
+  transform: rotate(180deg);
+}
+
+/* Submenu Styles */
+.submenu-container {
+  display: flex;
+  flex-direction: column;
+  color: #f8f9fa;
+  margin-top: 8px;
+}
+
+.submenu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  margin-left: 1rem;
+  margin-right: 0.75rem;
+  margin-bottom: 4px;
+  font-size: 13px;
+  text-decoration: none;
+  color: white;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.submenu-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.submenu-item.active {
+  background-color: #ffc107;
+  color: white;
+}
+
+.submenu-item span {
+  font-weight: bold;
+}
+
+/* Logout Button */
+.logout-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  color: white;
+  margin-top: 3rem;
+  margin-left: 0.75rem;
+  margin-right: 0.75rem;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 13px;
+  text-decoration: none;
+  background-color: #3d5272;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.logout-button:hover {
+  background-color: #4a627d;
+}
+
+.logout-button .logout-icon {
+  font-size: 20px;
+  color: red;
+}
+
+.logout-button .logout-text {
+  margin-left: 8px;
+  color: #dc3545;
+}
+
+/* ========================================
+   BOTTOM NAVBAR (MOBILE) STYLES
+   ======================================== */
+
+.bottom-navbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #1B3763;
+  z-index: 1000;
+  padding: 8px 0;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.bottom-navbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  font-size: 10px;
+  padding: 5px 10px;
+  transition: all 0.2s ease;
+}
+
+.bottom-navbar-item .nav-icon {
+  font-size: 18px;
+  margin-bottom: 2px;
+}
+
+.bottom-navbar-item .nav-label {
+  font-weight: bold;
+  font-size: 9px;
+}
+
+.bottom-navbar-item.active .nav-icon {
+  color: #ffc107;
+}
+
+.bottom-navbar-item.active .nav-label {
+  color: #ffc107;
+}
+
+/* ========================================
+   NAVBAR RESPONSIVE STYLES
+   ======================================== */
+
+.admin-navbar {
+  height: 60px;
+  z-index: 999;
+  padding-left: 15px;
+  padding-right: 15px;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-left: 70px;
+  transition: margin-left 0.3s ease-in-out;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-welcome-text {
+  margin-bottom: 0;
+  color: #212529;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.navbar-welcome-text .welcome-label {
+  color: #ec9d0a;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navbar-year-selector {
+  margin-right: 12px;
+}
+
+.navbar-notification {
+  font-size: 20px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.navbar-notification:hover {
+  color: #ec9d0a;
+}
+
+.navbar-profile-section {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  border: none;
+  padding: 4px 8px;
+  margin-left: 12px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.navbar-profile-section:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.navbar-profile-image {
+  width: 30px;
+  height: 30px;
+  object-fit: cover;
+  border: 2px solid #dee2e6;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.navbar-profile-info {
+  text-align: right;
+  margin-right: 4px;
+}
+
+.navbar-profile-name {
+  margin-bottom: 0;
+  color: #787486;
+  font-size: 12px;
+}
+
+.navbar-chevron {
+  margin-left: 8px;
+  font-size: 14px;
+  transition: transform 0.2s ease;
+}
+
+.navbar-chevron.rotated {
+  transform: rotate(180deg);
+}
+
+/* ========================================
+   RESPONSIVE BREAKPOINTS
+   ======================================== */
+
+/* Extra Small Devices (Portrait Phones, less than 576px) */
+@media (max-width: 575.98px) {
+  .sidebar-container {
+    display: none !important;
+  }
+
+  .navbar-container {
+    margin-left: 0 !important;
+    padding: 0 10px;
+  }
+
+  .navbar-welcome-text {
+    font-size: 11px;
+  }
+
+  .navbar-year-selector {
+    margin-right: 6px;
+  }
+
+  .navbar-profile-section {
+    margin-left: 6px;
+    padding: 4px;
+  }
+
+  .navbar-profile-image {
+    width: 26px;
+    height: 26px;
+  }
+
+  .navbar-right {
+    gap: 4px;
+  }
+
+  .bottom-navbar {
+    display: flex !important;
+  }
+
+  /* Add bottom padding to main content to prevent overlap with bottom navbar */
+  .main-content {
+    padding-bottom: 70px !important;
+  }
+}
+
+/* Small Devices (Landscape Phones, 576px and up) */
+@media (min-width: 576px) and (max-width: 767.98px) {
+  .sidebar-container {
+    display: none !important;
+  }
+
+  .navbar-container {
+    margin-left: 0 !important;
+    padding: 0 12px;
+  }
+
+  .navbar-welcome-text {
+    font-size: 11.5px;
+  }
+
+  .navbar-year-selector {
+    margin-right: 8px;
+  }
+
+  .navbar-profile-section {
+    margin-left: 8px;
+  }
+
+  .navbar-profile-image {
+    width: 28px;
+    height: 28px;
+  }
+
+  .bottom-navbar {
+    display: flex !important;
+  }
+
+  .main-content {
+    padding-bottom: 70px !important;
+  }
+}
+
+/* Medium Devices (Tablets, 768px and up) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .sidebar-container {
+    width: 70px;
+  }
+
+  .sidebar-container.hovered {
+    width: 200px;
+  }
+
+  .navbar-container {
+    margin-left: 70px !important;
+  }
+
+  .navbar-welcome-text {
+    font-size: 12px;
+  }
+
+  .bottom-navbar {
+    display: none !important;
+  }
+
+  .navbar-year-selector {
+    margin-right: 10px;
+  }
+
+  .navbar-profile-section {
+    margin-left: 10px;
+  }
+}
+
+/* Large Devices (Desktops, 992px and up) */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .sidebar-container {
+    width: 70px;
+  }
+
+  .sidebar-container.hovered {
+    width: 220px;
+  }
+
+  .navbar-container {
+    margin-left: 70px !important;
+  }
+
+  .bottom-navbar {
+    display: none !important;
+  }
+}
+
+/* Extra Large Devices (Large Desktops, 1200px and up) */
+@media (min-width: 1200px) {
+  .sidebar-container {
+    width: 70px;
+  }
+
+  .sidebar-container.hovered {
+    width: 220px;
+  }
+
+  .navbar-container {
+    margin-left: 70px !important;
+  }
+
+  .bottom-navbar {
+    display: none !important;
+  }
+}
+
+/* ========================================
+   ADDITIONAL RESPONSIVE UTILITIES
+   ======================================== */
+
+/* Hide sidebar on mobile */
+@media (max-width: 767.98px) {
+  .d-md-flex {
+    display: none !important;
+  }
+
+  .d-md-none {
+    display: flex !important;
+  }
+}
+
+/* Show sidebar on desktop */
+@media (min-width: 768px) {
+  .d-md-flex {
+    display: flex !important;
+  }
+
+  .d-md-none {
+    display: none !important;
+  }
+}
+
+/* ========================================
+   ORIENTATION SPECIFIC STYLES
+   ======================================== */
+
+/* Portrait Mode */
+@media (orientation: portrait) and (max-width: 767.98px) {
+  .bottom-navbar-item {
+    padding: 6px 8px;
+  }
+
+  .bottom-navbar-item .nav-icon {
+    font-size: 16px;
+  }
+
+  .bottom-navbar-item .nav-label {
+    font-size: 8px;
+  }
+}
+
+/* Landscape Mode */
+@media (orientation: landscape) and (max-width: 767.98px) {
+  .admin-navbar {
+    height: 50px;
+  }
+
+  .navbar-welcome-text {
+    font-size: 10px;
+  }
+
+  .navbar-profile-image {
+    width: 24px;
+    height: 24px;
+  }
+
+  .bottom-navbar {
+    padding: 4px 0;
+  }
+
+  .bottom-navbar-item {
+    padding: 3px 6px;
+  }
+
+  .bottom-navbar-item .nav-icon {
+    font-size: 16px;
+  }
+
+  .bottom-navbar-item .nav-label {
+    font-size: 8px;
+  }
+}
+
+/* ========================================
+   TOUCH DEVICE OPTIMIZATION
+   ======================================== */
+
+@media (hover: none) and (pointer: coarse) {
+  /* Increase touch targets for mobile */
+  .sidebar-nav-item,
+  .menu-toggle-item,
+  .submenu-item,
+  .bottom-navbar-item {
+    min-height: 44px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .navbar-profile-section {
+    min-height: 44px;
+    padding: 8px 12px;
+  }
+
+  /* Prevent hover states on touch devices */
+  .sidebar-nav-item:hover,
+  .submenu-item:hover,
+  .navbar-profile-section:hover {
+    background-color: transparent;
+  }
+}
+
+/* ========================================
+   ACCESSIBILITY ENHANCEMENTS
+   ======================================== */
+
+/* Focus styles for keyboard navigation */
+.sidebar-nav-item:focus,
+.menu-toggle-item:focus,
+.submenu-item:focus,
+.logout-button:focus,
+.bottom-navbar-item:focus,
+.navbar-profile-section:focus {
+  outline: 2px solid #ffc107;
+  outline-offset: 2px;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-container,
+  .sidebar-nav-item,
+  .menu-toggle-item,
+  .submenu-item,
+  .navbar-container,
+  .navbar-chevron,
+  .chevron-icon {
+    transition: none !important;
+  }
+}
+
+/* ========================================
+   PRINT STYLES
+   ======================================== */
+
+@media print {
+  .sidebar-container,
+  .bottom-navbar,
+  .admin-navbar {
+    display: none !important;
+  }
+
+  .navbar-container {
+    margin-left: 0 !important;
+  }
+}
+
+/* ========================================
+   HIGH CONTRAST MODE
+   ======================================== */
+
+@media (prefers-contrast: high) {
+  .sidebar-container {
+    border-right: 2px solid white;
+  }
+
+  .sidebar-nav-item.active,
+  .submenu-item.active {
+    border: 2px solid white;
+  }
+
+  .bottom-navbar {
+    border-top: 2px solid white;
+  }
+}
+
+/* ========================================
+   DARK MODE SUPPORT (IF NEEDED)
+   ======================================== */
+
+@media (prefers-color-scheme: dark) {
+  /* Add dark mode styles if needed in the future */
+  /* Currently the sidebar has a dark theme by default */
+}
+
+/* ========================================
+   CUSTOM UTILITIES
+   ======================================== */
+
+/* Smooth scrolling for sidebar */
+.admin-sidebar-scroll {
+  scroll-behavior: smooth;
+}
+
+/* Prevent text selection on interactive elements */
+.sidebar-nav-item,
+.menu-toggle-item,
+.submenu-item,
+.logout-button,
+.bottom-navbar-item {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Cursor pointer for interactive elements */
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Transition utilities */
+.transition-all {
+  transition: all 0.3s ease;
+}
+
+.transition-transform {
+  transition: transform 0.3s ease;
+}
+
+/* ========================================
+   Z-INDEX MANAGEMENT
+   ======================================== */
+
+.sidebar-container {
+  z-index: 1000;
+}
+
+.admin-navbar {
+  z-index: 999;
+}
+
+.bottom-navbar {
+  z-index: 1000;
+}
+
+/* Dropdown and modals should be above navbar */
+.dropdown-menu,
+.modal {
+  z-index: 1050;
+}
+
+/* ========================================
+   PERFORMANCE OPTIMIZATIONS
+   ======================================== */
+
+/* Use GPU acceleration for animations */
+.sidebar-container,
+.navbar-container,
+.chevron-icon,
+.navbar-chevron {
+  will-change: transform;
+}
+
+/* Prevent layout shifts */
+.sidebar-nav-item .nav-icon,
+.menu-toggle-item .toggle-icon {
+  flex-shrink: 0;
+}

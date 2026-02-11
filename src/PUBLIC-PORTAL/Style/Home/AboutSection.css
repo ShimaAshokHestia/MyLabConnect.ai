@@ -1,0 +1,51 @@
+.about-section {
+  background: #f7f8fa;
+}
+
+/* Left side */
+.about-label {
+  color: #e8b500;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.about-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0f2a55;
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+.about-text-wrapper p {
+  font-size: 13px;
+  color: #555;
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+
+/* Stats */
+.about-stat-card {
+  background: #ffffff;
+  border-radius: 12px;
+}
+
+.stat-number {
+  font-size: 33px;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.stat-number.primary {
+  color: #0f2a55;
+}
+
+.stat-number.secondary {
+  color: #e8b500;
+}
+
+.stat-label {
+  color: #555;
+  font-weight: 500;
+  font-size: 15px;
+}

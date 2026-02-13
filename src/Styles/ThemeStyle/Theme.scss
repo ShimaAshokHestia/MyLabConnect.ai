@@ -1,0 +1,196 @@
+// ============================================
+// Theme Configuration for Bootstrap
+// ============================================
+
+// Custom Color Variables
+$primary: #ef0d50;
+$primary-hover: #d60b45;
+$primary-light: #ff2464;
+$primary-dark: #c00a40;
+
+$secondary: #eb3a70;
+$secondary-hover: #d3356a;
+$secondary-light: #ff4d85;
+$secondary-dark: #c02f5a;
+
+$success: #10b981;
+$warning: #f59e0b;
+$danger: #ef4444;
+$info: #3b82f6;
+
+// Light Theme Colors
+$light-bg: #e1f2f7;
+$light-bg-paper: #ffffff;
+$light-bg-hover: #d4ecf2;
+$light-bg-elevated: #f7fcfe;
+$light-accent: #e5bace;
+$light-accent-light: #f0d4e0;
+$light-accent-dark: #d4a5bc;
+
+// Dark Theme Colors
+$dark-bg: #0f1419;
+$dark-bg-paper: #1a1f26;
+$dark-bg-hover: #242a33;
+$dark-bg-elevated: #2d3440;
+$dark-primary: #ff2464;
+$dark-primary-hover: #ff3d7a;
+
+// Neutral Colors
+$neutral-50: #f8fafc;
+$neutral-100: #f1f5f9;
+$neutral-200: #e2e8f0;
+$neutral-300: #cbd5e1;
+$neutral-400: #94a3b8;
+$neutral-500: #64748b;
+$neutral-600: #475569;
+$neutral-700: #334155;
+$neutral-800: #1e293b;
+$neutral-900: #0f172a;
+
+// Override Bootstrap Variables
+$theme-colors: (
+  "primary": $primary,
+  "secondary": $secondary,
+  "success": $success,
+  "info": $info,
+  "warning": $warning,
+  "danger": $danger,
+  "light": $neutral-100,
+  "dark": $neutral-800,
+);
+
+// Typography
+$font-size-base: 0.875rem; // 14px for compact design
+$font-size-sm: 0.75rem; // 12px
+$font-size-xs: 0.6875rem; // 11px
+$line-height-base: 1.5;
+
+// Spacing
+$spacer: 1rem;
+$spacers: (
+  0: 0,
+  1: $spacer * 0.25,
+  2: $spacer * 0.5,
+  3: $spacer * 0.75,
+  4: $spacer,
+  5: $spacer * 1.5,
+  6: $spacer * 2,
+  7: $spacer * 2.5,
+  8: $spacer * 3,
+);
+
+// Border Radius
+$border-radius: 0.5rem;
+$border-radius-sm: 0.375rem;
+$border-radius-lg: 0.75rem;
+
+// Import Bootstrap
+@import "bootstrap/scss/bootstrap";
+
+// ============================================
+// Custom Theme Styles
+// ============================================
+
+:root {
+  // Light Theme (Default)
+  --theme-bg: #{$light-bg};
+  --theme-bg-paper: #{$light-bg-paper};
+  --theme-bg-hover: #{$light-bg-hover};
+  --theme-bg-elevated: #{$light-bg-elevated};
+  --theme-accent: #{$light-accent};
+  --theme-accent-light: #{$light-accent-light};
+  --theme-accent-dark: #{$light-accent-dark};
+  --theme-text-primary: #{$neutral-900};
+  --theme-text-secondary: #{$neutral-600};
+  --theme-text-disabled: #{$neutral-400};
+  --theme-border: #{$neutral-200};
+  --theme-divider: #{$neutral-100};
+  --theme-primary: #{$primary};
+  --theme-primary-hover: #{$primary-hover};
+  --theme-sidebar-width: 260px;
+  --theme-sidebar-collapsed-width: 70px;
+}
+
+[data-theme="dark"] {
+  // Dark Theme
+  --theme-bg: #{$dark-bg};
+  --theme-bg-paper: #{$dark-bg-paper};
+  --theme-bg-hover: #{$dark-bg-hover};
+  --theme-bg-elevated: #{$dark-bg-elevated};
+  --theme-accent: #{$neutral-700};
+  --theme-accent-light: #{$neutral-600};
+  --theme-accent-dark: #{$neutral-800};
+  --theme-text-primary: #{$neutral-50};
+  --theme-text-secondary: #{$neutral-300};
+  --theme-text-disabled: #{$neutral-500};
+  --theme-border: #{$neutral-700};
+  --theme-divider: #{$neutral-800};
+  --theme-primary: #{$dark-primary};
+  --theme-primary-hover: #{$dark-primary-hover};
+}
+
+// ============================================
+// Global Styles
+// ============================================
+
+body {
+  background-color: var(--theme-bg);
+  color: var(--theme-text-primary);
+  font-size: $font-size-base;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+// Scrollbar Styling
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--theme-bg-paper);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--theme-border);
+  border-radius: 3px;
+  
+  &:hover {
+    background: var(--theme-text-disabled);
+  }
+}
+
+// ============================================
+// Animation Utilities
+// ============================================
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}

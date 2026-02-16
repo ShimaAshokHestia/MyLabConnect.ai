@@ -29,7 +29,7 @@ const KiduSidebar: React.FC<SidebarProps> = ({
   menuItems,
   currentPath,
   logoIcon,
-  logoTitle = 'MyLabConnect',
+  logoTitle = '{my}labconnect.ai',
   logoSubtitle = 'Dental Care Platform',
   onNavigate,
   defaultCollapsed = false,

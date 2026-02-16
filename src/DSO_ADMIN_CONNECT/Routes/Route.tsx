@@ -3,12 +3,13 @@
 // It's just a collection of Route definitions to be used in the main AppRoutes
 
 import { Navigate, Route } from 'react-router-dom';
-import { AdminLayout } from '../Layout/AdminLayout';
+import { DsoAdminLayout } from '../Layout/DsoAdminLayout';
+import HomePage from '../Pages/Home/HomePage';
 
 
 export const dsoadminConnectRoutes = (
   <Route
-    path="/dsoadmin-connect/*" element={<AdminLayout />}
+    path="/dsoadmin-connect/*" element={<DsoAdminLayout />}
     // path="/admin-portal"
     // element={
     //   // <ProtectedRoute allowedRoles={['Staff']}>
@@ -16,9 +17,14 @@ export const dsoadminConnectRoutes = (
     //   // </ProtectedRoute>
     // }
   >
-<Route path="dashboard" element={<div><h1>Admin Dashboard</h1></div>} />
-    <Route path="analytics" element={<div><h1>Analytics</h1></div>} />
-    <Route path="users" element={<div><h1>User Management</h1></div>} />
+<Route index element={<HomePage/>} />
+    <Route path="analytics" element={<div><h5>Analytics</h5></div>} />
+    <Route path="masters" element={<div><h5>User Management</h5></div>} />
+     <Route path="setup" element={<div><h5>User Management</h5></div>} />
+      <Route path="mapping" element={<div><h5>User Management</h5></div>} />
+       <Route path="reports" element={<div><h5>User Management</h5></div>} />
+        <Route path="invoices" element={<div><h5>User Management</h5></div>} />
+         <Route path="proforma-invoice" element={<div><h5>User Management</h5></div>} />
     <Route path="*" element={<Navigate to="dashboard" replace />} />
    
   </Route>

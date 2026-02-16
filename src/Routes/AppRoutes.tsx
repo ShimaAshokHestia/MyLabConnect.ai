@@ -6,6 +6,7 @@ import { practiceConnectRoutes } from '../PRACTICE_CONNECT/Routes/Route';
 import { dsoConnectRoutes } from '../DSO_CONNECT/Routes/Route';
 import { ventorsRoutes } from '../VENTORS/Routes/Route';
 import { labConnectRoutes } from '../LAB_CONNECT/Routes/Route';
+import LoginPage from '../Auth/LoginPage';
 // import Unauthorized from '../PUBLIC-PORTAL/Pages/Unauthorized';
 // import { adminRoutes } from '../ADMIN-PORTAL/Routes/Route';
 /**
@@ -18,6 +19,7 @@ import { labConnectRoutes } from '../LAB_CONNECT/Routes/Route';
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
+        <Route path="/" element={<LoginPage />} />
       {/* Admin Routes */}
       {dsoadminConnectRoutes}
       {/* Practice Connect */}

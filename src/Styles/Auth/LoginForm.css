@@ -1,0 +1,105 @@
+/* ==========================================
+   LOGIN FORM STYLES
+========================================== */
+
+.login-form {
+  width: 100%;
+}
+
+/* ================= LABEL ================= */
+
+.form-label-custom {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--theme-text-primary);
+  transition: color 0.2s ease;
+}
+
+.form-label-custom.focused {
+  color: var(--theme-primary);
+}
+
+/* ================= INPUT ================= */
+
+.form-control-custom {
+  height: 48px;
+  background-color: var(--theme-bg-paper);
+  border: 1px solid var(--theme-border);
+  color: var(--theme-text-primary);
+  transition: all 0.2s ease;
+}
+
+.form-control-custom:focus {
+  border-color: var(--theme-primary);
+  box-shadow: 0 0 0 2px rgba(239, 13, 80, 0.15);
+  background-color: var(--theme-bg-paper);
+  color: var(--theme-text-primary);
+}
+
+/* ================= ICON ================= */
+
+.input-icon {
+  background-color: var(--theme-bg-paper);
+  border: 1px solid var(--theme-border);
+  border-right: none;
+  color: var(--theme-text-secondary);
+}
+
+/* ================= PASSWORD TOGGLE ================= */
+
+.password-toggle-btn {
+  border-left: none;
+  border-color: var(--theme-border);
+  background-color: var(--theme-bg-paper);
+  color: var(--theme-text-secondary);
+}
+
+.password-toggle-btn:hover {
+  background-color: var(--theme-bg-hover);
+  color: var(--theme-text-primary);
+}
+
+/* ================= FORGOT PASSWORD ================= */
+
+.forgot-password-btn {
+  background: none;
+  border: none;
+  font-size: 0.85rem;
+  color: var(--theme-primary);
+  cursor: pointer;
+  padding: 0;
+  transition: opacity 0.2s ease;
+}
+
+.forgot-password-btn:hover {
+  opacity: 0.8;
+}
+
+/* ================= SUBMIT BUTTON ================= */
+
+.login-submit-btn {
+  height: 48px;
+  background: linear-gradient(
+    135deg,
+    var(--theme-primary),
+    var(--theme-primary-hover)
+  );
+  border: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.login-submit-btn:hover {
+  opacity: 0.9;
+}
+
+.login-submit-btn:disabled {
+  opacity: 0.7;
+}
+
+/* ================= ROLE INFO ================= */
+
+.role-info {
+  font-size: 0.8rem;
+  color: var(--theme-text-secondary);
+}

@@ -1,0 +1,76 @@
+/* ==========================================
+   MYD LOGO COMPONENT
+========================================== */
+
+.myd-logo {
+  gap: 10px;
+  transition: all 0.3s ease;
+}
+
+/* ================= ICON ================= */
+
+.logo-icon {
+  width: 36px;
+  height: 36px;
+}
+
+.tooth-svg {
+  width: 36px;
+  height: 36px;
+  position: relative;
+  z-index: 2;
+}
+
+.logo-glow {
+  position: absolute;
+  inset: 0;
+  background: var(--theme-primary);
+  opacity: 0.2;
+  filter: blur(12px);
+  border-radius: 50%;
+  z-index: 1;
+}
+
+/* ================= TEXT ================= */
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.logo-text.collapsed {
+  width: 0;
+  opacity: 0;
+}
+
+.logo-text.expanded {
+  width: auto;
+  opacity: 1;
+}
+
+.logo-main {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--theme-text-primary);
+}
+
+.logo-subtitle {
+  font-size: 9px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--theme-text-secondary);
+}
+
+/* Curly braces */
+.text-muted-brace {
+  color: var(--theme-text-secondary);
+}
+
+/* .ai Highlight */
+.text-primary-dot {
+  color: var(--theme-primary);
+}

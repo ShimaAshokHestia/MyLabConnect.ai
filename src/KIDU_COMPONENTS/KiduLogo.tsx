@@ -1,14 +1,14 @@
 // src/components/MYDLogo.tsx
 
 import React from "react";
-import "./MYDLogo.css";
+import "../Styles/KiduStyles/Logo.css";
 
-interface MYDLogoProps {
+interface KiduLogoLogoProps {
   collapsed?: boolean;
   className?: string;
 }
 
-const KiduLogo: React.FC<MYDLogoProps> = ({
+const KiduLogo: React.FC<KiduLogoLogoProps> = ({
   collapsed = false,
   className = "",
 }) => {

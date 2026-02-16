@@ -1,0 +1,121 @@
+/* ==========================================
+   LOGIN PAGE STYLING
+========================================== */
+
+.login-wrapper {
+  background-color: var(--theme-bg);
+  color: var(--theme-text-primary);
+}
+
+/* ==========================================
+   LEFT SIDE - CAROUSEL
+========================================== */
+
+.login-carousel {
+  overflow: hidden;
+}
+
+.carousel-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+
+.carousel-image.active {
+  opacity: 1;
+  z-index: 1;
+}
+
+.carousel-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(239, 13, 80, 0.4),
+    rgba(239, 13, 80, 0.1)
+  );
+  z-index: 2;
+}
+
+.carousel-logo {
+  position: relative;
+  z-index: 3;
+  padding: 2rem;
+}
+
+.carousel-indicators-custom {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 3;
+}
+
+.indicator {
+  height: 8px;
+  width: 8px;
+  border-radius: 20px;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.indicator.active {
+  width: 28px;
+  background-color: #fff;
+}
+
+/* ==========================================
+   RIGHT SIDE - FORM
+========================================== */
+
+.login-form-section {
+  background-color: var(--theme-bg-paper);
+  transition: background-color 0.3s ease;
+}
+
+.login-form-container {
+  width: 100%;
+  max-width: 380px;
+  position: relative;
+}
+
+.theme-toggle-wrapper {
+  position: absolute;
+  top: -10px;
+  right: 0;
+}
+
+.login-title {
+  font-weight: 600;
+  font-size: 1.6rem;
+  margin-bottom: 4px;
+  color: var(--theme-text-primary);
+}
+
+.login-subtitle {
+  font-size: 0.9rem;
+  color: var(--theme-text-secondary);
+}
+
+.login-footer {
+  font-size: 0.75rem;
+  color: var(--theme-text-secondary);
+}
+
+/* ==========================================
+   Responsive
+========================================== */
+
+@media (max-width: 991px) {
+  .login-form-section {
+    padding: 2rem;
+  }
+}

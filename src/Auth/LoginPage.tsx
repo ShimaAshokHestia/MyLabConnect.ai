@@ -2,24 +2,27 @@
 
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Button } from "react-bootstrap";
-import "./Login.css";
+import "../Styles/Auth/LoginPage.css";
 
-import carousel1 from "@/assets/login-carousel-1.jpg";
-import carousel2 from "@/assets/login-carousel-2.jpg";
-import carousel3 from "@/assets/login-carousel-3.jpg";
-import carousel4 from "@/assets/login-carousel-4.jpg";
-import carousel5 from "@/assets/login-carousel-5.jpg";
+import carousel1 from "../../public/Images/login-carousel-1.jpg";
+import carousel2 from "../../public/Images/login-carousel-2.jpg";
+import carousel3 from "../../public/Images/login-carousel-3.jpg";
+// import carousel4 from "../../public/Images/login-carousel-4.jpg";
+// import carousel5 from "@/assets/login-carousel-5.jpg";
+import KiduLogo from "../KIDU_COMPONENTS/KiduLogo";
+import { ThemeToggle } from "../ThemeProvider/ThemeProvider";
+import LoginForm from "./LoginForm";
 
 const carouselImages: string[] = [
   carousel1,
   carousel2,
   carousel3,
-  carousel4,
-  carousel5,
+  // carousel4,
+  // carousel5,
 ];
 
-const Login: React.FC = () => {
-  const [showForgotPassword, setShowForgotPassword] = useState<boolean>(false);
+const LoginPage: React.FC = () => {
+  const [_showForgotPassword, setShowForgotPassword] = useState<boolean>(false);
   const [currentSlide, setCurrentSlide] = useState<number>(0);
 
   useEffect(() => {
@@ -54,7 +57,7 @@ const Login: React.FC = () => {
 
             {/* Logo */}
             <div className="carousel-logo animate-fade-in">
-              <MYDLogo />
+              <KiduLogo />
             </div>
 
             {/* Indicators */}
@@ -80,7 +83,7 @@ const Login: React.FC = () => {
 
               {/* Mobile Logo */}
               <div className="d-lg-none text-center mb-4">
-                <MYDLogo />
+                <KiduLogo />
               </div>
 
               {/* Theme Toggle */}
@@ -112,12 +115,12 @@ const Login: React.FC = () => {
       </Container>
 
       {/* Forgot Password Modal */}
-      <ForgotPasswordModal
+      {/* <ForgotPasswordModal
         open={showForgotPassword}
         onOpenChange={setShowForgotPassword}
-      />
+      /> */}
     </div>
   );
 };
 
-export default Login;
+export default LoginPage;

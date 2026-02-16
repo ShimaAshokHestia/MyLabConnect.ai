@@ -121,11 +121,11 @@ const HomePage: React.FC = () => {
   };
 
   // Handle case row click
-  const handleCaseClick = (caseItem: Case) => {
-    console.log('Case clicked:', caseItem);
-    // Navigate to case details or open modal
-    // navigate(`/cases/${caseItem.id}`);
-  };
+  // const handleCaseClick = (caseItem: Case) => {
+  //   console.log('Case clicked:', caseItem);
+  //   // Navigate to case details or open modal
+  //   // navigate(`/cases/${caseItem.id}`);
+  // };
 
   // Statistics cards configuration
   const statsCards: StatCardProps[] = [

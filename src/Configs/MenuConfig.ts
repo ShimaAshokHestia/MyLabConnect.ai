@@ -91,7 +91,7 @@ export const labMenuConfig: MenuItem[] = [
       },
       { 
         title: 'Doctor', 
-        url: '/dashboard/masters/doctor', 
+        url: '/dsoadmin-connect/masters/doctor', 
         icon: UserCog 
       },
       { 

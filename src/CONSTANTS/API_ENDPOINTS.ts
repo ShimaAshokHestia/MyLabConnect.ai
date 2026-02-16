@@ -1,6 +1,6 @@
 // src/constants/apiEndpoints.ts
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://sreenathganga-001-site10.jtempurl.com/swagger/index.html/api';
 
 export const API_ENDPOINTS = {
   AUTH: {
@@ -26,7 +26,16 @@ export const API_ENDPOINTS = {
   },
  
 
-  //------------------------PUBLIC MODULE----------------------------------------
+  //------------------------DSO - Connect ----------------------------------------
+
+  DSODoctor: {
+    GET_ALL: `${API_BASE_URL}/DSOMaster`,
+    GET_BY_ID: (id: number) => `${API_BASE_URL}/DSOMaster${id}`,
+    CREATE: `${API_BASE_URL}/DSOMaster`,
+    UPDATE: (id: number) => `${API_BASE_URL}/DSOMaster${id}`,
+    DELETE: (id: number) => `${API_BASE_URL}/DSOMaster${id}`,
+    POST_PAGINATED:`${API_BASE_URL}/DSOProductGroup/getall-paginated`
+  },
  
 
 };

@@ -5,6 +5,7 @@
 import { Navigate, Route } from 'react-router-dom';
 import { DsoAdminLayout } from '../Layout/DsoAdminLayout';
 import HomePage from '../Pages/Home/HomePage';
+import DsoDoctorList from '../Pages/Masters/Doctors/List';
 
 
 export const dsoadminConnectRoutes = (
@@ -29,7 +30,7 @@ export const dsoadminConnectRoutes = (
 
     {/* <Route path="/dsoadmin-connect/masters/lab" element={</>} /> */}
     {/* <Route path="/dsoadmin-connect/masters/practice" element={</>} /> */}
-    {/* <Route path="/dsoadmin-connect/masters/doctor" element={</>} /> */}
+    <Route path="masters/doctor" element={<DsoDoctorList/>} />
     {/* <Route path="/dsoadmin-connect/masters/productGroup" element={</>} /> */}
     {/* <Route path="/dsoadmin-connect/masters/userRoleCreation" element={</>} /> */}
 

@@ -1,6 +1,7 @@
 // // App.tsx
 import { BrowserRouter } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import "./Styles/ThemeStyle/Theme.scss";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import AppRoutes from './Routes/AppRoutes';
 

@@ -19,7 +19,8 @@ import LoginPage from '../Auth/LoginPage';
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
-        <Route path="/" element={<LoginPage />} />
+      {/* Multiple login screen */}
+      <Route path="/" element={<LoginPage />} />
       {/* Admin Routes */}
       {dsoadminConnectRoutes}
       {/* Practice Connect */}

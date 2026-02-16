@@ -24,6 +24,61 @@ export const API_ENDPOINTS = {
     DOWNLOAD: (attachmentId: number) => `${API_BASE_URL}/Attachment/download/${attachmentId}`,
     UPDATE:(id:number)=>`${API_BASE_URL}/Attachment/${id}`
   },
+  COMPANY:{
+   GET_ALL:`${API_BASE_URL}/Company/GetAll/admin-getall-company`,
+   GET_LOOKUP:`${API_BASE_URL}/Company/GetCompanyLookup/admin-lookup-company`,
+   GET_BY_ID:(id:number)=>`${API_BASE_URL}/Company/GetById/${id}`,
+   CREATE:`${API_BASE_URL}/Company/Create`,
+   UPDATE:(id:number)=>`${API_BASE_URL}/Company/Update/${id}`,
+   DELETE:(id:number)=>`${API_BASE_URL}/Company/Delete/${id}`,
+  },
+  CUSTOMER:{
+   GET_ALL:`${API_BASE_URL}/Customer`,
+   CREATE:`${API_BASE_URL}/Customer`,
+   GET_BY_ID:(id:number)=>`${API_BASE_URL}/Customer/${id}`,
+   UPDATE:(id:number)=>`${API_BASE_URL}/Customer/${id}`,
+   DELETE:(id:number)=>`${API_BASE_URL}/Customer/${id}`,
+  },
+  DSO_DENTAL_OFFICE:{
+   GET_ALL:`${API_BASE_URL}/DSODentalOffice`,
+   CREATE:`${API_BASE_URL}/DSODentalOffice`,
+   GET_BY_ID:(id:number)=>`${API_BASE_URL}/DSODentalOffice/${id}`,
+   UPDATE:(id:number)=>`${API_BASE_URL}/DSODentalOffice/${id}`,
+   DELETE:(id:number)=>`${API_BASE_URL}/DSODentalOffice/${id}`,
+   UPDATE_PAGINATION:`${API_BASE_URL}/DSODentalOffice/getall-paginated`,
+  },
+  DSO_DOCTOR:{
+   GET_ALL:`${API_BASE_URL}/DSODoctor`,
+   CREATE:`${API_BASE_URL}/DSODoctor`,
+   GET_BY_ID:(id:number)=>`${API_BASE_URL}/DSODoctor/${id}`,
+   UPDATE:(id:number)=>`${API_BASE_URL}/DSODoctor/${id}`,
+   DELETE:(id:number)=>`${API_BASE_URL}/DSODoctor/${id}`,
+   UPDATE_PAGINATION:`${API_BASE_URL}/DSODoctor/getall-paginated`,
+  },
+  DSO_DOCTOR_DENTAL_OFFICE:{
+   GET_ALL:`${API_BASE_URL}/DSODoctorDentalOffice`,
+   CREATE:`${API_BASE_URL}/DSODoctorDentalOffice`,
+   GET_BY_ID:(id:number)=>`${API_BASE_URL}/DSODoctorDentalOffice/${id}`,
+   UPDATE:(id:number)=>`${API_BASE_URL}/DSODoctorDentalOffice/${id}`,
+   DELETE:(id:number)=>`${API_BASE_URL}/DSODoctorDentalOffice/${id}`,
+   UPDATE_PAGINATION:`${API_BASE_URL}/DSODoctorDentalOffice/getall-paginated`,
+  },
+  DSO_MASTER:{
+   GET_ALL:`${API_BASE_URL}/DSOMaster`,
+   CREATE:`${API_BASE_URL}/DSOMaster`,
+   GET_BY_ID:(id:number)=>`${API_BASE_URL}/DSOMaster/${id}`,
+   UPDATE:(id:number)=>`${API_BASE_URL}/DSOMaster/${id}`,
+   DELETE:(id:number)=>`${API_BASE_URL}/DSOMaster/${id}`,
+   UPDATE_PAGINATION:`${API_BASE_URL}/DSOMaster/getall-paginated`,
+  },
+  DSO_PRODUCT_GROUP:{
+  GET_ALL:`${API_BASE_URL}/DSOProductGroup`,
+  CREATE:`${API_BASE_URL}/DSOProductGroup`,
+  GET_BY_ID:(id:number)=>`${API_BASE_URL}/DSOProductGroup/${id}`,
+  UPDATE:(id:number)=>`${API_BASE_URL}/DSOProductGroup/${id}`,
+  DELETE:(id:number)=>`${API_BASE_URL}/DSOProductGroup/${id}`,
+  UPDATE_PAGINATION:`${API_BASE_URL}/DSOProductGroup/getall-paginated`,
+  },
  
 
   //------------------------DSO - Connect ----------------------------------------

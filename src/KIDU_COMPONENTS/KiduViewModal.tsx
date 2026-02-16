@@ -21,7 +21,7 @@ export interface SelectOption {
   label: string;
 }
 
-export interface KiduViewModalProps {
+export interface    ViewModalProps {
   show: boolean;
   onHide: () => void;
   title: string;
@@ -38,7 +38,7 @@ export interface KiduViewModalProps {
 }
 
 // ==================== COMPONENT ====================
-const KiduViewModal: React.FC<KiduViewModalProps> = ({
+const KiduViewModal: React.FC<ViewModalProps> = ({
   show,
   onHide,
   title,

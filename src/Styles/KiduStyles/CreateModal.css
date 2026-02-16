@@ -1,0 +1,468 @@
+/* ============================================
+   KiduModalCreate - Responsive & Theme-Aware Styles
+   ============================================ */
+
+/* ==================== MODAL CONTAINER ==================== */
+.kidu-modal-content {
+  border-radius: 16px !important;
+  border: none !important;
+  background-color: var(--theme-bg-paper) !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}
+
+.kidu-modal-dialog {
+  margin: 1.75rem auto;
+}
+
+/* ==================== MODAL HEADER ==================== */
+.kidu-modal-header {
+  border-bottom: none !important;
+  padding: 32px 32px 20px 32px;
+  background-color: var(--theme-bg-paper);
+}
+
+.kidu-modal-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--theme-text-primary);
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.kidu-modal-subtitle {
+  font-size: 14px;
+  color: var(--theme-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Close button styling */
+.kidu-modal-header .btn-close {
+  padding: 0.5rem;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.kidu-modal-header .btn-close:hover {
+  opacity: 1;
+}
+
+[data-theme="dark"] .kidu-modal-header .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* ==================== MODAL BODY ==================== */
+.kidu-modal-body {
+  padding: 20px 32px 32px 32px;
+  background-color: var(--theme-bg-paper);
+}
+
+/* ==================== MODAL FOOTER ==================== */
+.kidu-modal-footer {
+  border-top: none !important;
+  padding: 20px 32px 32px 32px;
+  background-color: var(--theme-bg-paper);
+  gap: 12px;
+}
+
+/* ==================== FORM LABELS ==================== */
+.kidu-form-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--theme-text-primary);
+  margin-bottom: 6px;
+  display: block;
+}
+
+.kidu-required-star {
+  color: var(--theme-primary, #ef0d50);
+  margin-left: 2px;
+  font-weight: 600;
+}
+
+/* ==================== FORM INPUTS ==================== */
+.kidu-input,
+.kidu-select,
+.kidu-textarea {
+  border-radius: 8px !important;
+  border: 1px solid var(--theme-border) !important;
+  padding: 10px 12px !important;
+  font-size: 14px !important;
+  background-color: var(--theme-bg-paper) !important;
+  color: var(--theme-text-primary) !important;
+  transition: all 0.2s ease;
+}
+
+.kidu-input::placeholder,
+.kidu-textarea::placeholder {
+  color: var(--theme-text-disabled);
+}
+
+/* Focus states */
+.kidu-input:focus,
+.kidu-select:focus,
+.kidu-textarea:focus {
+  border-color: var(--theme-primary) !important;
+  box-shadow: 0 0 0 0.2rem rgba(239, 13, 80, 0.15) !important;
+  outline: none !important;
+}
+
+/* Invalid states */
+.kidu-input.is-invalid,
+.kidu-select.is-invalid,
+.kidu-textarea.is-invalid {
+  border-color: var(--theme-primary) !important;
+  background-image: none !important;
+}
+
+.kidu-input.is-invalid:focus,
+.kidu-select.is-invalid:focus,
+.kidu-textarea.is-invalid:focus {
+  border-color: var(--theme-primary) !important;
+  box-shadow: 0 0 0 0.2rem rgba(239, 68, 68, 0.15) !important;
+}
+
+/* Disabled states */
+.kidu-input-disabled {
+  background-color: var(--theme-bg-hover) !important;
+  cursor: not-allowed !important;
+  opacity: 0.6;
+}
+
+/* Textarea specific */
+.kidu-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* ==================== INPUT GROUPS (Password, Popup) ==================== */
+.kidu-input-group {
+  display: flex;
+}
+
+.kidu-input-grouped {
+  border-radius: 8px 0 0 8px !important;
+  border: 1px solid var(--theme-border) !important;
+  border-right: none !important;
+  padding: 10px 12px !important;
+  font-size: 14px !important;
+  background-color: var(--theme-bg-paper) !important;
+  color: var(--theme-text-primary) !important;
+  flex: 1;
+}
+
+.kidu-input-grouped:focus {
+  border-color: var(--theme-primary) !important;
+  box-shadow: none !important;
+  z-index: 3;
+}
+
+.kidu-input-btn {
+  border-radius: 0 8px 8px 0 !important;
+  border: 1px solid var(--theme-border) !important;
+  border-left: none !important;
+  background-color: var(--theme-bg-paper) !important;
+  color: var(--theme-text-secondary) !important;
+  padding: 10px 16px !important;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kidu-input-btn:hover {
+  background-color: var(--theme-bg-hover) !important;
+  color: var(--theme-text-primary) !important;
+  border-color: var(--theme-primary) !important;
+}
+
+.kidu-input-btn:focus {
+  box-shadow: none !important;
+  border-color: var(--theme-primary) !important;
+}
+
+/* ==================== CHECKBOXES & RADIO BUTTONS ==================== */
+.form-check-input {
+  border: 1px solid var(--theme-border) !important;
+  background-color: var(--theme-bg-paper) !important;
+}
+
+.form-check-input:checked {
+  background-color: var(--theme-primary) !important;
+  border-color: var(--theme-primary) !important;
+}
+
+.form-check-input:focus {
+  border-color: var(--theme-primary) !important;
+  box-shadow: 0 0 0 0.2rem rgba(239, 13, 80, 0.15) !important;
+}
+
+.form-check-label {
+  color: var(--theme-text-primary);
+  font-size: 14px;
+  margin-left: 8px;
+}
+
+/* ==================== TOGGLE SWITCHES ==================== */
+.form-switch .form-check-input {
+  width: 48px;
+  height: 24px;
+  background-color: var(--theme-border);
+  border: none !important;
+  cursor: pointer;
+}
+
+.form-switch .form-check-input:checked {
+  background-color: var(--theme-primary) !important;
+}
+
+.form-switch .form-check-input:focus {
+  box-shadow: 0 0 0 0.2rem rgba(239, 13, 80, 0.15) !important;
+}
+
+/* ==================== ERROR MESSAGES ==================== */
+.kidu-error-message {
+  color: var(--theme-primary);
+  font-size: 13px;
+  margin-top: 4px;
+  display: block;
+}
+
+/* ==================== BUTTONS ==================== */
+.kidu-btn-cancel {
+  border: 1px solid var(--theme-border) !important;
+  color: var(--theme-text-primary) !important;
+  background-color: var(--theme-bg-paper) !important;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.kidu-btn-cancel:hover {
+  background-color: var(--theme-bg-hover) !important;
+  border-color: var(--theme-text-disabled) !important;
+}
+
+.kidu-btn-cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.kidu-btn-submit {
+  border: none !important;
+  color: white !important;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.kidu-btn-submit:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.kidu-btn-submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.kidu-btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+
+/* Tablets and below (768px) */
+@media (max-width: 768px) {
+  .kidu-modal-header {
+    padding: 24px 24px 16px 24px;
+  }
+
+  .kidu-modal-body {
+    padding: 16px 24px 24px 24px;
+  }
+
+  .kidu-modal-footer {
+    padding: 16px 24px 24px 24px;
+    flex-direction: column-reverse;
+  }
+
+  .kidu-modal-title {
+    font-size: 18px;
+  }
+
+  .kidu-modal-subtitle {
+    font-size: 13px;
+  }
+
+  .kidu-btn-cancel,
+  .kidu-btn-submit {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Stack all fields in single column on mobile */
+  .kidu-modal-body .col-md-6,
+  .kidu-modal-body .col-md-4,
+  .kidu-modal-body .col-md-3,
+  .kidu-modal-body .col-md-2 {
+    width: 100% !important;
+  }
+}
+
+/* Mobile phones (576px and below) */
+@media (max-width: 576px) {
+  .kidu-modal-dialog {
+    margin: 0.5rem;
+    max-width: calc(100% - 1rem);
+  }
+
+  .kidu-modal-header {
+    padding: 20px 20px 12px 20px;
+  }
+
+  .kidu-modal-body {
+    padding: 12px 20px 20px 20px;
+  }
+
+  .kidu-modal-footer {
+    padding: 12px 20px 20px 20px;
+  }
+
+  .kidu-modal-title {
+    font-size: 16px;
+  }
+
+  .kidu-modal-subtitle {
+    font-size: 12px;
+  }
+
+  .kidu-input,
+  .kidu-select,
+  .kidu-textarea,
+  .kidu-input-grouped {
+    font-size: 16px !important; /* Prevent zoom on iOS */
+  }
+
+  .kidu-form-label {
+    font-size: 13px;
+  }
+
+  .kidu-btn-cancel,
+  .kidu-btn-submit {
+    padding: 12px 20px;
+  }
+}
+
+/* Large tablets and small desktops */
+@media (min-width: 769px) and (max-width: 992px) {
+  .kidu-modal-header {
+    padding: 28px 28px 18px 28px;
+  }
+
+  .kidu-modal-body {
+    padding: 18px 28px 28px 28px;
+  }
+
+  .kidu-modal-footer {
+    padding: 18px 28px 28px 28px;
+  }
+}
+
+/* Extra large screens */
+@media (min-width: 1400px) {
+  .kidu-modal-content {
+    max-width: 720px;
+  }
+}
+
+/* ==================== DARK THEME SPECIFIC ==================== */
+[data-theme="dark"] .kidu-modal-content {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2) !important;
+}
+
+[data-theme="dark"] .kidu-input:focus,
+[data-theme="dark"] .kidu-select:focus,
+[data-theme="dark"] .kidu-textarea:focus {
+  box-shadow: 0 0 0 0.2rem rgba(255, 36, 100, 0.25) !important;
+}
+
+[data-theme="dark"] .form-check-input:focus {
+  box-shadow: 0 0 0 0.2rem rgba(255, 36, 100, 0.25) !important;
+}
+
+[data-theme="dark"] .form-switch .form-check-input:focus {
+  box-shadow: 0 0 0 0.2rem rgba(255, 36, 100, 0.25) !important;
+}
+
+/* ==================== ANIMATIONS ==================== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.kidu-modal-content {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* ==================== ACCESSIBILITY ==================== */
+.kidu-input:focus-visible,
+.kidu-select:focus-visible,
+.kidu-textarea:focus-visible,
+.kidu-btn-cancel:focus-visible,
+.kidu-btn-submit:focus-visible {
+  outline: 2px solid var(--theme-primary);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .kidu-input,
+  .kidu-select,
+  .kidu-textarea {
+    border-width: 2px !important;
+  }
+
+  .kidu-btn-cancel,
+  .kidu-btn-submit {
+    border-width: 2px !important;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .kidu-modal-content {
+    animation: none;
+  }
+
+  .kidu-input,
+  .kidu-select,
+  .kidu-textarea,
+  .kidu-btn-cancel,
+  .kidu-btn-submit,
+  .kidu-input-btn {
+    transition: none !important;
+  }
+}
+
+/* ==================== PRINT STYLES ==================== */
+@media print {
+  .kidu-modal-footer {
+    display: none;
+  }
+
+  .kidu-modal-header .btn-close {
+    display: none;
+  }
+}

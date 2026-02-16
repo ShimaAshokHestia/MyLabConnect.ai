@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Form, Button, Row, Col, Image, InputGroup } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import { Form, Button, Row, Col, Modal, InputGroup } from "react-bootstrap";
 import toast, { Toaster } from "react-hot-toast";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { BsSearch } from "react-icons/bs";
 import Swal from 'sweetalert2';
+import "./EditModal.css";
 import KiduValidation from "./KiduValidation";
-import KiduPrevious from "./KiduPrevious";
-import KiduReset from "./KiduReset";
-import KiduSubmit from "./KiduSubmit";
 
 // ==================== TYPES ====================
 export interface FieldRule {
@@ -36,70 +33,62 @@ export interface SelectOption {
 export interface PopupHandler {
   value: string;
   onOpen: () => void;
+  actualValue?: any;
 }
 
-export interface ImageConfig {
-  fieldName: string;
-  defaultImage: string;
-  label?: string;
-  required?: boolean;
-}
-
-export interface KiduCreateProps {
+export interface KiduEditModalProps {
+  show: boolean;
+  onHide: () => void;
   title: string;
   subtitle?: string;
   fields: Field[];
-  onSubmit: (formData: Record<string, any>) => Promise<void> | void;
+  recordId: string | number;
+  onFetch: (id: string | number) => Promise<any>;
+  onUpdate: (id: string | number, formData: Record<string, any>) => Promise<void | any>;
   submitButtonText?: string;
-  showResetButton?: boolean;
-  showBackButton?: boolean;
-  containerStyle?: React.CSSProperties;
-  children?: React.ReactNode;
+  cancelButtonText?: string;
   options?: Record<string, SelectOption[] | string[]>;
   popupHandlers?: Record<string, PopupHandler>;
   loadingState?: boolean;
   successMessage?: string;
   errorMessage?: string;
-  navigateOnSuccess?: string;
-  navigateDelay?: number;
-  imageConfig?: ImageConfig;
+  onSuccess?: () => void;
   themeColor?: string;
+  size?: "sm" | "lg" | "xl";
+  centered?: boolean;
 }
 
 // ==================== COMPONENT ====================
-const KiduCreate: React.FC<KiduCreateProps> = ({
+const KiduEditModal: React.FC<KiduEditModalProps> = ({
+  show,
+  onHide,
   title,
+  subtitle,
   fields,
-  onSubmit,
-  submitButtonText = "Create",
-  showResetButton = true,
-  showBackButton = true,
-  containerStyle = {},
-  children,
+  recordId,
+  onFetch,
+  onUpdate,
+  submitButtonText = "Update",
+  cancelButtonText = "Cancel",
   options = {},
   popupHandlers = {},
   loadingState = false,
-  successMessage = "Created successfully!",
+  successMessage = "Updated successfully!",
   errorMessage,
-  navigateOnSuccess,
-  imageConfig,
-  themeColor = "#882626ff",
+  onSuccess,
+  themeColor = "#ef0d50",
+  size = "lg",
+  centered = true,
 }) => {
-  const navigate = useNavigate();
-
-  // Separate toggle fields from regular fields
-  const regularFields = fields.filter(f => f.rules.type !== "toggle");
-  const toggleFields = fields.filter(f => f.rules.type === "toggle");
-
-  // Initialize form data and errors using fields
+  // Initialize form data and errors
   const initialValues: Record<string, any> = {};
   const initialErrors: Record<string, string> = {};
 
   fields.forEach(f => {
-    if (f.rules.type === "rowbreak") return; // Skip rowbreak fields
+    if (f.rules.type === "rowbreak") return;
 
     if (f.rules.type === "toggle" || f.rules.type === "checkbox") {
-      initialValues[f.name] = f.name === "isActive" ? true : false;
+      initialValues[f.name] = false;
     } else if (f.rules.type === "radio" && options[f.name]?.length) {
       const firstOption = options[f.name][0];
       initialValues[f.name] = typeof firstOption === "object" ? firstOption.value : firstOption;
@@ -109,70 +98,113 @@ const KiduCreate: React.FC<KiduCreateProps> = ({
     initialErrors[f.name] = "";
   });
 
-  // Add image field if configured
-  if (imageConfig) {
-    initialValues[imageConfig.fieldName] = "";
-  }
-
   const [formData, setFormData] = useState<Record<string, any>>(initialValues);
+  const [initialData, setInitialData] = useState<Record<string, any>>(initialValues);
   const [errors, setErrors] = useState<Record<string, string>>(initialErrors);
   const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
 
-  // Image upload states
-  const [previewUrl, setPreviewUrl] = useState<string>(imageConfig?.defaultImage || "");
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  // Check if form has changes
+  const hasChanges = () => {
+    const formDataChanged = JSON.stringify(formData) !== JSON.stringify(initialData);
 
-  // Cleanup blob URLs
-  useEffect(() => {
-    return () => {
-      if (typeof previewUrl === "string" && previewUrl.startsWith("blob:")) {
-        URL.revokeObjectURL(previewUrl);
+    let popupChanged = false;
+    fields.forEach(f => {
+      if (f.rules.type === "popup" && popupHandlers[f.name]) {
+        const currentValue = popupHandlers[f.name].actualValue;
+        const initialValue = initialData[f.name];
+        if (currentValue !== undefined && currentValue !== initialValue) {
+          popupChanged = true;
+        }
       }
-    };
-  }, [previewUrl]);
+    });
 
-  // ==================== HANDLERS ====================
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!imageConfig) return;
-
-    if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-
-      if (!file.type.startsWith('image/')) {
-        toast.error("Please select an image file");
-        return;
-      }
-
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("Image size should be less than 5MB");
-        return;
-      }
-
-      if (typeof previewUrl === "string" && previewUrl.startsWith("blob:")) {
-        URL.revokeObjectURL(previewUrl);
-      }
-
-      const objectUrl = URL.createObjectURL(file);
-      setSelectedFile(file);
-      setPreviewUrl(objectUrl);
-    }
+    return formDataChanged || popupChanged;
   };
 
-  // const fileToBase64 = (file: File): Promise<string> => {
-  //   return new Promise((resolve, reject) => {
-  //     const reader = new FileReader();
-  //     reader.readAsDataURL(file);
-  //     reader.onload = () => {
-  //       const base64String = reader.result as string;
-  //       const base64Data = base64String.split(',')[1];
-  //       resolve(base64Data);
-  //     };
-  //     reader.onerror = error => reject(error);
-  //   });
-  // };
+  // Fetch data when modal opens
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!show || !recordId) return;
 
+      try {
+        setLoading(true);
+        const response = await onFetch(recordId);
+
+        if (!response || !response.isSucess) {
+          throw new Error(response?.customMessage || response?.error || "Failed to load data");
+        }
+
+        const data = response.value;
+
+        const formattedData: Record<string, any> = {};
+        fields.forEach(f => {
+          if (f.rules.type === "rowbreak") return;
+
+          if (f.rules.type === "toggle" || f.rules.type === "checkbox") {
+            const rawValue = data[f.name];
+            if (typeof rawValue === 'boolean') {
+              formattedData[f.name] = rawValue;
+            } else if (typeof rawValue === 'string') {
+              formattedData[f.name] = rawValue.toLowerCase() === 'true' || rawValue === '1';
+            } else if (typeof rawValue === 'number') {
+              formattedData[f.name] = rawValue !== 0;
+            } else {
+              formattedData[f.name] = false;
+            }
+          } else if (f.rules.type === "date") {
+            const dateValue = data[f.name];
+            if (dateValue) {
+              const date = new Date(dateValue);
+              formattedData[f.name] = date.toISOString().split('T')[0];
+            } else {
+              formattedData[f.name] = "";
+            }
+          } else {
+            if (f.rules.type === "select" || f.rules.type === "number") {
+              formattedData[f.name] = data[f.name] !== undefined && data[f.name] !== null ? data[f.name] : "";
+            } else {
+              formattedData[f.name] = data[f.name] || "";
+            }
+          }
+        });
+
+        // Keep any additional data from response
+        Object.keys(data).forEach(key => {
+          if (!(key in formattedData)) {
+            formattedData[key] = data[key];
+          }
+        });
+
+        setFormData(formattedData);
+        setInitialData(formattedData);
+
+      } catch (error: any) {
+        console.error("Failed to load data:", error);
+        toast.error(`Error loading data: ${error.message}`);
+        onHide();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [show, recordId]);
+
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!show) {
+      setFormData(initialValues);
+      setInitialData(initialValues);
+      setErrors(initialErrors);
+      setTouchedFields({});
+      setIsSubmitting(false);
+    }
+  }, [show]);
+
+  // ==================== HANDLERS ====================
   const handleChange = (e: React.ChangeEvent<any>) => {
     const { name, value, type, checked } = e.target;
 
@@ -190,7 +222,6 @@ const KiduCreate: React.FC<KiduCreateProps> = ({
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: "" }));
     }
-
     if (touchedFields[name]) {
       validateField(name, updatedValue);
     }
@@ -234,7 +265,7 @@ const KiduCreate: React.FC<KiduCreateProps> = ({
     const newErrors: Record<string, string> = {};
 
     fields.forEach(f => {
-      if (f.rules.type === "rowbreak") return; // Skip rowbreak
+      if (f.rules.type === "rowbreak") return;
 
       const rule = f.rules;
       const value = formData[f.name];
@@ -248,7 +279,7 @@ const KiduCreate: React.FC<KiduCreateProps> = ({
             isValid = false;
           }
         }
-        return; // Skip other validations for popup fields
+        return;
       }
 
       if (rule.required) {
@@ -283,8 +314,8 @@ const KiduCreate: React.FC<KiduCreateProps> = ({
       return;
     }
 
-    if (imageConfig?.required && !selectedFile) {
-      toast.error(`Please upload ${imageConfig.label || "an image"}`);
+    if (!hasChanges()) {
+      toast("No changes to update", { icon: "ℹ️" });
       return;
     }
 
@@ -292,14 +323,22 @@ const KiduCreate: React.FC<KiduCreateProps> = ({
     try {
       const submitData = { ...formData };
 
-      // Convert image to File if exists
-      if (imageConfig && selectedFile) {
-        submitData[imageConfig.fieldName] = selectedFile;
-      }
+      // Include popup actual values
+      fields.forEach(f => {
+        if (f.rules.type === "popup" && popupHandlers[f.name]?.actualValue !== undefined) {
+          submitData[f.name] = popupHandlers[f.name].actualValue;
+        }
+      });
 
-      await onSubmit(submitData);
+      const updateResult = await onUpdate(recordId, submitData);
 
-      // Show success alert with SweetAlert2
+      let updatedData = (updateResult && typeof updateResult === 'object') ? updateResult : submitData;
+
+      // Update initial data to reflect changes
+      setInitialData(updatedData);
+      setFormData(updatedData);
+
+      // Show success alert
       await Swal.fire({
         icon: "success",
         title: "Success!",
@@ -310,12 +349,14 @@ const KiduCreate: React.FC<KiduCreateProps> = ({
         confirmButtonText: "OK"
       });
 
-      // Navigate to list page after success
-      if (navigateOnSuccess) {
-        navigate(navigateOnSuccess);
+      // Call onSuccess callback if provided
+      if (onSuccess) {
+        onSuccess();
       }
+
+      // Close modal
+      onHide();
     } catch (err: any) {
-      // ✅ UPDATED ERROR HANDLING - Show actual error message from API
       const errorMsg = err.message || errorMessage || "An error occurred";
 
       // Show error toast
@@ -345,12 +386,11 @@ const KiduCreate: React.FC<KiduCreateProps> = ({
     const fieldPlaceholder = placeholder || `Enter ${rules.label.toLowerCase()}`;
 
     switch (type) {
-
       /* ---------- POPUP ---------- */
       case "popup": {
         const popup = popupHandlers[name];
         return (
-          <InputGroup>
+          <InputGroup className="kidu-input-group">
             <Form.Control
               type="text"
               value={popup?.value || ""}
@@ -358,9 +398,13 @@ const KiduCreate: React.FC<KiduCreateProps> = ({
               readOnly
               isInvalid={!!errors[name]}
               disabled={rules.disabled}
-              style={rules.disabled ? { backgroundColor: "#f5f5f5", cursor: "not-allowed" } : {}}
+              className={`kidu-input-grouped ${rules.disabled ? 'kidu-input-disabled' : ''}`}
             />
-            <Button variant="outline-secondary" onClick={popup?.onOpen}>
+            <Button 
+              variant="outline-secondary" 
+              onClick={popup?.onOpen}
+              className="kidu-input-btn"
+            >
               <BsSearch />
             </Button>
           </InputGroup>
@@ -370,7 +414,7 @@ const KiduCreate: React.FC<KiduCreateProps> = ({
       /* ---------- PASSWORD ---------- */
       case "password":
         return (
-          <InputGroup>
+          <InputGroup className="kidu-input-group">
             <Form.Control
               type={showPasswords[name] ? "text" : "password"}
               name={name}
@@ -381,11 +425,12 @@ const KiduCreate: React.FC<KiduCreateProps> = ({
               onBlur={() => handleBlur(name)}
               isInvalid={!!errors[name]}
               disabled={rules.disabled}
-              style={rules.disabled ? { backgroundColor: "#f5f5f5", cursor: "not-allowed" } : {}}
+              className={`kidu-input-grouped ${rules.disabled ? 'kidu-input-disabled' : ''}`}
             />
             <Button
               variant="outline-secondary"
               onClick={() => togglePasswordVisibility(name)}
+              className="kidu-input-btn"
             >
               {showPasswords[name] ? <FaEyeSlash /> : <FaEye />}
             </Button>
@@ -404,7 +449,7 @@ const KiduCreate: React.FC<KiduCreateProps> = ({
             onBlur={() => handleBlur(name)}
             isInvalid={!!errors[name]}
             disabled={rules.disabled}
-            style={rules.disabled ? { backgroundColor: "#f5f5f5", cursor: "not-allowed" } : {}}
+            className={`kidu-select ${rules.disabled ? 'kidu-input-disabled' : ''}`}
           >
             <option value="">Select {rules.label}</option>
             {fieldOptions.map((opt: any, idx: number) => {
@@ -433,7 +478,7 @@ const KiduCreate: React.FC<KiduCreateProps> = ({
             onBlur={() => handleBlur(name)}
             isInvalid={!!errors[name]}
             disabled={rules.disabled}
-            style={rules.disabled ? { backgroundColor: "#f5f5f5", cursor: "not-allowed" } : {}}
+            className={`kidu-textarea ${rules.disabled ? 'kidu-input-disabled' : ''}`}
           />
         );
 
@@ -475,6 +520,19 @@ const KiduCreate: React.FC<KiduCreateProps> = ({
           />
         );
 
+      /* ---------- TOGGLE ---------- */
+      case "toggle":
+        return (
+          <Form.Check
+            type="switch"
+            id={name}
+            name={name}
+            label={rules.label}
+            checked={!!formData[name]}
+            onChange={handleChange}
+          />
+        );
+
       /* ---------- DATE ---------- */
       case "date":
         return (
@@ -485,6 +543,8 @@ const KiduCreate: React.FC<KiduCreateProps> = ({
             onChange={handleChange}
             onBlur={() => handleBlur(name)}
             isInvalid={!!errors[name]}
+            disabled={rules.disabled}
+            className={`kidu-input ${rules.disabled ? 'kidu-input-disabled' : ''}`}
           />
         );
 
@@ -499,9 +559,9 @@ const KiduCreate: React.FC<KiduCreateProps> = ({
               setFormData(prev => ({ ...prev, [name]: file }));
             }}
             isInvalid={!!errors[name]}
+            className="kidu-input"
           />
         );
-
 
       /* ---------- DEFAULT ---------- */
       default:
@@ -517,12 +577,11 @@ const KiduCreate: React.FC<KiduCreateProps> = ({
             isInvalid={!!errors[name]}
             maxLength={rules.maxLength}
             disabled={rules.disabled}
-            style={rules.disabled ? { backgroundColor: "#f5f5f5", cursor: "not-allowed" } : {}}
+            className={`kidu-input ${rules.disabled ? 'kidu-input-disabled' : ''}`}
           />
         );
     }
   };
-
 
   // ==================== RENDER FIELD ====================
   const renderField = (field: Field, index: number) => {
@@ -533,19 +592,18 @@ const KiduCreate: React.FC<KiduCreateProps> = ({
       return <div key={`rowbreak-${index}`} className="w-100"></div>;
     }
 
-    const colWidth = rules.colWidth || 4;
+    const colWidth = rules.colWidth || 6;
 
     return (
       <Col md={colWidth} className="mb-3" key={name}>
-        <Form.Label className="fw-bold">
+        <Form.Label className="kidu-form-label">
           {rules.label}
-          {rules.required && <span style={{ color: "red", marginLeft: "2px" }}>*</span>}
+          {rules.required && <span className="kidu-required-star">*</span>}
         </Form.Label>
 
         {renderFormControl(field)}
-
         {errors[name] && (
-          <div className="text-danger small mt-1">{errors[name]}</div>
+          <div className="kidu-error-message">{errors[name]}</div>
         )}
       </Col>
     );
@@ -554,161 +612,77 @@ const KiduCreate: React.FC<KiduCreateProps> = ({
   // ==================== RENDER ====================
   return (
     <>
-      <div
-        className="container-fluid px-2 mt-1"
-        style={{ fontFamily: "Urbanist" }}
+      <Modal
+        show={show}
+        onHide={onHide}
+        size={size}
+        centered={centered}
+        backdrop="static"
+        keyboard={false}
+        contentClassName="kidu-modal-content"
+        dialogClassName="kidu-modal-dialog"
       >
-        <div
-          className="shadow-sm rounded p-4"
-          style={{
-            backgroundColor: "white",
-            ...containerStyle
-          }}
-        >
-          {/* HEADER */}
-          <div className="d-flex align-items-center mb-3">
-            {showBackButton && <KiduPrevious />}
-            <h4 className="fw-bold mb-0 ms-2" style={{ color: themeColor }}>
+        <Modal.Header closeButton className="kidu-modal-header">
+          <div>
+            <Modal.Title className="kidu-modal-title">
               {title}
-            </h4>
-          </div>
-
-          <hr />
-
-          <Form onSubmit={handleSubmit}>
-            <Row className="mb-4">
-              {/* Image Upload Section */}
-              {imageConfig && (
-                <Col xs={12}>
-                  <div className="card mb-4">
-                    <div className="card-body">
-                      <h5 className="card-title mb-3">
-                        {imageConfig.label || "Profile Picture"}
-                      </h5>
-
-                      <div className="d-flex align-items-center gap-3">
-                        {/* Image Preview */}
-                        <div>
-                          {previewUrl ? (
-                            <Image
-                              src={previewUrl}
-                              alt={imageConfig.label || "Preview"}
-                              style={{
-                                width: "120px",
-                                height: "120px",
-                                objectFit: "cover",
-                                borderRadius: "8px",
-                                border: "2px solid #dee2e6",
-                              }}
-                              onError={(e: any) => {
-                                e.target.src = imageConfig.defaultImage;
-                              }}
-                            />
-                          ) : (
-                            <div
-                              style={{
-                                width: "120px",
-                                height: "120px",
-                                backgroundColor: "#f8f9fa",
-                                border: "2px dashed #dee2e6",
-                                borderRadius: "8px",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                color: "#6c757d",
-                                fontSize: "14px",
-                              }}
-                            >
-                              No Image
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Actions */}
-                        <div>
-                          <input
-                            type="file"
-                            id={imageConfig.fieldName}
-                            accept="image/*"
-                            onChange={handleFileChange}
-                            style={{ display: "none" }}
-                          />
-
-                          <label
-                            htmlFor={imageConfig.fieldName}
-                            className="btn btn-primary btn-sm mb-2"
-                            style={{ cursor: "pointer", backgroundColor: themeColor, border: "none" }}
-                          >
-                            Select Image
-                          </label>
-
-                          <div className="text-muted small">
-                            Max size: 5MB. Accepted formats: JPG, PNG, GIF
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </Col>
-              )}
-
-              {/* Form Fields Section */}
-              <Col xs={12}>
-                <Row className="g-2">
-                  {regularFields.map((field, index) => renderField(field, index))}
-                </Row>
-              </Col>
-            </Row>
-
-
-            {/* Toggle Switches Section */}
-            {toggleFields.length > 0 && (
-              <Row className="mb-3 mx-1">
-                <Col xs={12}>
-                  <div className="d-flex flex-wrap gap-3">
-                    {toggleFields.map(field => (
-                      <Form.Check
-                        key={field.name}
-                        type="switch"
-                        id={field.name}
-                        name={field.name}
-                        label={field.rules.label}
-                        checked={formData[field.name] || false}
-                        onChange={handleChange}
-                        className="fw-semibold"
-                      />
-                    ))}
-                  </div>
-                </Col>
-              </Row>
+            </Modal.Title>
+            {subtitle && (
+              <p className="kidu-modal-subtitle">
+                {subtitle}
+              </p>
             )}
+          </div>
+        </Modal.Header>
 
-            {/* Custom children content */}
-            {children}
-
-            {/* Action Buttons */}
-            <div className="d-flex justify-content-end gap-2 mt-4">
-              {showResetButton && (
-                <KiduReset
-                  initialValues={initialValues}
-                  setFormData={setFormData}
-                  setErrors={setErrors}
-                />
-              )}
-              <KiduSubmit
-                isSubmitting={isSubmitting}
-                loadingState={loadingState}
-                submitButtonText={submitButtonText}
-                themeColor={themeColor}
-              />
+        <Modal.Body className="kidu-modal-body">
+          {loading ? (
+            <div className="text-center py-4">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+              <p className="mt-2 text-muted">Loading data...</p>
             </div>
-          </Form>
-        </div>
+          ) : (
+            <Form onSubmit={handleSubmit}>
+              <Row>
+                {fields.map((field, index) => renderField(field, index))}
+              </Row>
+            </Form>
+          )}
+        </Modal.Body>
 
-        <Toaster position="top-right" />
-      </div>
+        <Modal.Footer className="kidu-modal-footer">
+          <Button
+            variant="light"
+            onClick={onHide}
+            disabled={isSubmitting}
+            className="kidu-btn-cancel"
+          >
+            {cancelButtonText}
+          </Button>
+          <Button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={isSubmitting || loadingState || !hasChanges() || loading}
+            className="kidu-btn-submit"
+            style={{ backgroundColor: themeColor }}
+          >
+            {isSubmitting || loadingState ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Processing...
+              </>
+            ) : (
+              submitButtonText
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Toaster position="top-right" />
     </>
   );
 };
 
-export default KiduCreate;
+export default KiduEditModal;

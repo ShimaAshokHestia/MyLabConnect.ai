@@ -35,36 +35,45 @@ const DsoProductGroupEditModal: React.FC<Props> = ({
     { name:  "isActive", rules: { type: "toggle", label: "Active", colWidth: 6 }, },
   ];
 
- const handleFetch = async (id: string | number) => {
-  const response = await DSOProductGroupService.getById(id);
+const handleFetch = async (id: string | number) => {
+  const response = await DSOProductGroupService.getById(Number(id));  // ✅ cast to number — fixes id error
 
-  if (response?.isSucess && response.value) {
-    const data = response.value as DSOProductGroup;   // ✅ cast to any — removes field errors
-    if (data.dsoMasterId && data.dsoName) {
+  // ✅ Service returns DSOProductGroup directly, not { isSucess, value }
+  // Wrap it into the shape KiduEditModal expects
+  if (response) {
+    if (response.dsoMasterId && response.dsoName) {
       setSelectedMaster({
-        id:   data.dsoMasterId,
-        name: data.dsoName,
+        id:   response.dsoMasterId,
+        name: response.dsoName,
       });
     }
   }
 
-  return response;
+  // KiduEditModal expects { isSucess: true, value: data }
+  return {
+    isSucess: true,
+    value:    response,
+  };
 };
 
-  const handleUpdate = async (
-    id:       string | number,
-    formData: Record<string, any>,
-  ) => {
-    const payload: DSOProductGroup = {
-      code:        formData.code,
-      name:        formData.name,
-      dsoMasterId: formData.dsoMasterId,   
-      isActive:    formData.isActive ?? true,
-    };
-
-    const response = await DSOProductGroupService.update(id, payload);
-    return response;
+const handleUpdate = async (
+  id:       string | number,
+  formData: Record<string, any>,
+) => {
+  const payload: DSOProductGroup = {
+    code:        formData.code,
+    name:        formData.name,
+    dsoMasterId: formData.dsoMasterId,
+    isActive:    formData.isActive ?? true,
   };
+
+  await DSOProductGroupService.update(Number(id), payload);  // ✅ cast to number — fixes id error
+
+  return {
+    isSucess: true,
+    value:    payload,
+  };
+};
 
   const openMasterPopup = () => {
     const name = window.prompt("Enter DSO Master name (replace with real lookup):");

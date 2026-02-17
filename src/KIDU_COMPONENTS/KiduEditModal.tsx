@@ -338,16 +338,24 @@ const KiduEditModal: React.FC<KiduEditModalProps> = ({
       setInitialData(updatedData);
       setFormData(updatedData);
 
-      // Show success alert
-      await Swal.fire({
-        icon: "success",
-        title: "Success!",
-        text: successMessage,
-        confirmButtonColor: themeColor,
-        timer: 2000,
-        showConfirmButton: true,
-        confirmButtonText: "OK"
-      });
+     // ✅ Fixed — close Bootstrap modal first, then show Swal
+onHide();
+
+await new Promise((resolve) => setTimeout(resolve, 300));
+
+await Swal.fire({
+  icon: "success",
+  title: "Success!",
+  text: successMessage,
+  confirmButtonColor: themeColor,
+  timer: 2000,
+  showConfirmButton: true,
+  confirmButtonText: "OK"
+});
+
+if (onSuccess) {
+  onSuccess();
+}
 
       // Call onSuccess callback if provided
       if (onSuccess) {

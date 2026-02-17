@@ -4,10 +4,10 @@ import DSOProductGroupService from "../../../Services/Masters/DsoProductGroup.se
 import type { DSOProductGroup } from "../../../Types/Masters/DsoProductGroup.types";
 
 interface Props {
-  show:      boolean;
-  onHide:    () => void;
+  show:  boolean;
+  onHide: () => void;
   onSuccess: () => void;
-  recordId:  string | number;
+  recordId: string | number;
 }
 
 const DsoProductGroupEditModal: React.FC<Props> = ({
@@ -18,38 +18,38 @@ const DsoProductGroupEditModal: React.FC<Props> = ({
 }) => {
 
   const fields: Field[] = [
-    { name: "code", rules: { type: "text", label: "Code", required: true, maxLength: 20,  colWidth: 6 } },
+    { name: "code", rules: { type: "text", label: "Code", required: true, maxLength: 20, colWidth: 6 } },
     { name: "name", rules: { type: "text", label: "Name", required: true, maxLength: 100, colWidth: 6 } },
     { name: "dsoMasterId", rules: { type: "number", label: "DSO Master", required: true, colWidth: 6 } },
     { name: "isActive", rules: { type: "toggle", label: "Active", colWidth: 6 } },
   ];
 
-  const handleFetch = async (id: string | number) => {
-    const response = await DSOProductGroupService.getById(Number(id));
-    return {
-      isSucess: true,
-      value:    response,
-    };
+ const handleFetch = async (id: string | number) => {
+  const response = await DSOProductGroupService.getById(Number(id));
+  console.log("getById response:", response);
+  return response;
+};
+
+const handleUpdate = async (
+  id:       string | number,
+  formData: Record<string, any>,
+) => {
+  const payload: DSOProductGroup = {
+    id: Number(id),            
+    code: formData.code,
+    name: formData.name,
+    dsoMasterId: Number(formData.dsoMasterId),
+    isActive: formData.isActive ?? true,
   };
 
-  const handleUpdate = async (
-    id:       string | number,
-    formData: Record<string, any>,
-  ) => {
-    const payload: DSOProductGroup = {
-      code:        formData.code,
-      name:        formData.name,
-      dsoMasterId: Number(formData.dsoMasterId),
-      isActive:    formData.isActive ?? true,
-    };
+  const response = await DSOProductGroupService.update(Number(id), payload);
+  console.log("update response:", response);
 
-    await DSOProductGroupService.update(Number(id), payload);
-
-    return {
-      isSucess: true,
-      value:    payload,
-    };
+  return {
+    isSucess: true,
+    value:    payload,
   };
+};
 
   return (
     <KiduEditModal

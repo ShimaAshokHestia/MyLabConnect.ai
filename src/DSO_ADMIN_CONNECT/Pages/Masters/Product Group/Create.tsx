@@ -20,16 +20,20 @@ const DsoProductGroupCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }
   ];
 
   // ── Submit ────────────────────────────────────────────────────
-  const handleSubmit = async (formData: Record<string, any>) => {
-    const payload: DSOProductGroup = {
-      code:        formData.code,
-      name:        formData.name,
-      dsoMasterId: Number(formData.dsoMasterId),  // ensure number type
-      isActive:    formData.isActive ?? true,
-    };
-
-    await DSOProductGroupService.create(payload);
+ const handleSubmit = async (formData: Record<string, any>) => {
+  console.log("formData:", formData);  // ✅ add this
+  
+  const payload: DSOProductGroup = {
+    code:        formData.code,
+    name:        formData.name,
+    dsoMasterId: Number(formData.dsoMasterId),
+    isActive:    formData.isActive ?? true,
   };
+
+  console.log("payload:", payload);  // ✅ add this
+  
+  await DSOProductGroupService.create(payload);
+};
 
   // ── Render ────────────────────────────────────────────────────
   return (

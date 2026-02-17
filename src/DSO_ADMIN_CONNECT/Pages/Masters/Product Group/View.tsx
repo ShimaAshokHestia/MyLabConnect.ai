@@ -23,13 +23,11 @@ const DsoProductGroupViewModal: React.FC<Props> = ({
   recordId,
 }) => {
 
-  const handleFetch = async (id: string | number) => {
-    const response = await DSOProductGroupService.getById(Number(id));
-    return {
-      isSucess: true,
-      value:    response,
-    };
-  };
+const handleFetch = async (id: string | number) => {
+  const response = await DSOProductGroupService.getById(Number(id));
+  // ✅ return directly — already has { isSucess: true, value: {...} }
+  return response;
+};
 
   return (
     <KiduViewModal

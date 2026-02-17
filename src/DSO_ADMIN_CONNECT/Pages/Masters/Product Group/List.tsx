@@ -5,6 +5,7 @@ import type { KiduColumn } from "../../../../KIDU_COMPONENTS/KiduServerTable";
 import DsoProductGroupCreateModal from "./Create";
 import DsoProductGroupEditModal from "./Edit";
 import DsoProductGroupViewModal from "./View";
+import Swal from "sweetalert2";
 
 const columns: KiduColumn[] = [
     { key: "code", label: "Code", enableSorting: true, enableFiltering: true },
@@ -26,7 +27,7 @@ const DsoProductGroupList: React.FC = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const tableKeyRef = useRef(0);
     const [tableKey, setTableKey] = useState(0);
-    
+
     const [showEditModal, setShowEditModal] = useState(false);
     const [editRecordId, setEditRecordId] = useState<string | number>("");
 
@@ -76,8 +77,23 @@ const DsoProductGroupList: React.FC = () => {
                 onEditClick={handleEditClick}
                 onViewClick={handleViewClick}
                 showActions={true}
-                onDeleteClick={(row) => {
-                    console.log("Delete", row);
+                onDeleteClick={async (row: any) => {
+                    const result = await Swal.fire({
+                        title: "Are you sure?",
+                        text: "This record will be permanently deleted.",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#ef0d50",
+                        cancelButtonColor: "#6c757d",
+                        confirmButtonText: "Yes, delete it!",
+                        cancelButtonText: "Cancel",
+                    });
+
+                    if (result.isConfirmed) {
+                        await DSOProductGroupService.delete(row.id);
+                        tableKeyRef.current += 1;
+                        setTableKey(tableKeyRef.current);
+                    }
                 }}
                 rowKey="id"
                 showSearch={true}

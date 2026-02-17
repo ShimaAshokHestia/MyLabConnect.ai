@@ -33,17 +33,17 @@ const DsoProductGroupCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }
   const fields: Field[] = [
     { name: "code", rules: { type: "text", label: "Code", required: true, maxLength: 20, colWidth: 6 } },
     { name: "name", rules: { type: "text", label: "Name", required: true, maxLength: 100, colWidth: 6 } },
-    { name: "dsoMasterId", rules: { type: "popup", label: "DSO Master", required: true, colWidth: 6 } },
+    { name: "dsoMasterId", rules: { type: "number", label: "DSO Master", required: true, colWidth: 6 } },
     { name: "isActive", rules: { type: "toggle", label: "Active", colWidth: 6 } },
   ];
 
  const handleSubmit = async (formData: Record<string, any>) => {
-  if (!selectedMaster) throw new Error("Please select DSO Master");
+  //if (!selectedMaster) throw new Error("Please select DSO Master");
 
   const payload: DSOProductGroup = {
     code: formData.code,
     name: formData.name,
-    dsoMasterId: selectedMaster.id,
+    dsoMasterId: formData.dsoMasterId,
     isActive: formData.isActive ?? true,
   };
 

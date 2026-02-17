@@ -1,89 +1,75 @@
-import React, { useCallback } from "react";
-import { Container } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useRef } from "react";
 import KiduServerTableList from "../../../../KIDU_COMPONENTS/KiduServerTableList";
-import type { KiduColumn, TableRequestParams, TableResponse } from "../../../../KIDU_COMPONENTS/KiduServerTable";
-import type { DSOProductGroup } from "../../../Types/Masters/DsoProductGroup.types";
 import DSOProductGroupService from "../../../Services/Masters/DsoProductGroup.services";
+import type { KiduColumn } from "../../../../KIDU_COMPONENTS/KiduServerTable";
+import DsoProductGroupCreateModal from "./Create";
 
 const columns: KiduColumn[] = [
-  { key: "code", label: "Code", enableSorting: true, enableFiltering: true, minWidth: 120 },
-  { key: "name", label: "Name", enableSorting: true, enableFiltering: true, minWidth: 200 },
-  { key: "dsoName", label: "DSO Name", enableSorting: true, enableFiltering: true, minWidth: 200 },
-  { key: "isActive", label: "Active", enableSorting: true, enableFiltering: true, type: "checkbox", width: 100 },
-  { key: "createdAt", label: "Created Date", enableSorting: true, enableFiltering: true, type: "date", filterType: "date", minWidth: 150 },
+  { key: "code",       label: "Code",       enableSorting: true,  enableFiltering: true },
+  { key: "name",       label: "Name",       enableSorting: true,  enableFiltering: true },
+  { key: "dsoMaster",  label: "DSO Master", enableSorting: true,  enableFiltering: true },
+  { key: "isActive",   label: "Status",     type: "badge",        enableFiltering: true,
+    filterType: "select", filterOptions: ["Active", "Inactive"],
+    render: (value) => (
+      <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>
+        {value ? "Active" : "Inactive"}
+      </span>
+    ),
+  },
 ];
 
 const DsoProductGroupList: React.FC = () => {
-  const navigate = useNavigate();
 
-  const fetchProductGroups = useCallback(
-    async (params: TableRequestParams): Promise<TableResponse<DSOProductGroup>> => {
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
-      const payload: DSOProductGroup = {
-        pageNumber:     params.pageNumber,
-        pageSize:       params.pageSize,
-        searchTerm:     params.searchTerm ?? "",
-        sortBy:         params.sortBy ?? "",
-        sortDescending: params.sortDescending ?? false,
-        showDeleted:    false,
-        showInactive:   true,
-        code: params.code as string | undefined,
-        name: params.name as string | undefined,
-        dsoName: params.dsoName as string | undefined,
-        dsoMasterId: params.dsoMasterId as number | undefined,
-      };
+  const tableKeyRef = useRef(0);
+  const [tableKey, setTableKey] = useState(0);
 
-      const response = await DSOProductGroupService.getPaginated(payload);
+  const handleAddClick = () => {
+    setShowCreateModal(true);
+  };
 
-      return {
-        data: response.data,
-        total: response.totalCount,
-        totalPages: Math.ceil(response.totalCount / params.pageSize),
-      };
-    },
-    []
-  );
+  const handleModalHide = () => {
+    setShowCreateModal(false);
+  };
 
-  const handleDelete = useCallback(async (group: DSOProductGroup) => {
-    if (!window.confirm(`Delete "${group.name}" (${group.code})?`)) return;
-    await DSOProductGroupService.delete(group.id!);
-    navigate(0);
-  }, [navigate]);
+  const handleCreateSuccess = () => {
+    setShowCreateModal(false);
+    tableKeyRef.current += 1;
+    setTableKey(tableKeyRef.current);
+  };
 
   return (
-    <Container fluid className="py-4">
-      <KiduServerTableList<DSOProductGroup>
+    <>
+      <KiduServerTableList
+        key={tableKey}                 
         title="DSO Product Groups"
-        subtitle="Manage product groups associated with DSO Masters"
+        subtitle="Manage product group master data"
         columns={columns}
-        paginatedFetchService={fetchProductGroups}
-        rowKey="id"
-        showSearch
-        showFilters
-        showColumnToggle
-        showDensityToggle
-        showExport
-        showFullscreen
-        showAddButton
-        showActions
-        showPagination
-        showRowsPerPage
-        showCheckboxes
-        showSelectionToggle
+        fetchService={() => DSOProductGroupService.getAll()}
+        showAddButton={true}
         addButtonLabel="Add Product Group"
-        onAddClick={() => navigate("/dso-product-groups/add")}
-        onViewClick={(row) => navigate(`/dso-product-groups/view/${row.id}`)}
-        onEditClick={(row) => navigate(`/dso-product-groups/edit/${row.id}`)}
-        onDeleteClick={handleDelete}
-        rowsPerPageOptions={[10, 25, 50, 100]}
-        defaultRowsPerPage={25}
-        defaultDensity="comfortable"
-        stickyHeader
-        highlightOnHover
-        striped
+        onAddClick={handleAddClick}
+        showActions={true}
+        onDeleteClick={(row) => {
+          // replace with your delete service + confirmation
+          console.log("Delete", row);
+        }}
+        rowKey="id"
+        showSearch={true}
+        showFilters={true}
+        showExport={true}
+        showColumnToggle={true}
+        defaultRowsPerPage={10}
+        highlightOnHover={true}
+        striped={false}
       />
-    </Container>
+      <DsoProductGroupCreateModal
+        show={showCreateModal}
+        onHide={handleModalHide}
+        onSuccess={handleCreateSuccess}
+      />
+    </>
   );
 };
 

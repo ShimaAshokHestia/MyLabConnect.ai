@@ -36,6 +36,7 @@ export const dsoadminConnectRoutes = (
     {/* <Route path="/dsoadmin-connect/masters/practice" element={</>} /> */}
     <Route path="masters/doctor-list" element={<DsoDoctorList/>} />
     <Route path="masters/productGroup-list" element={<DsoProductGroupList/>} />
+
     {/* <Route path="/dsoadmin-connect/masters/userRoleCreation" element={</>} /> */}
 
     {/* <Route path="/dsoadmin-connect/setup/practiceManagerLogin" element={</>} /> */}

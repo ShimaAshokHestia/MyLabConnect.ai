@@ -1,6 +1,6 @@
 /**
  * KiduServerTableList.tsx
- * ─────────────────────────────────────────────────────────────────
+ * ─────────────────────────────
  * Wrapper around KiduServerTable that adds support for both:
  *   • Non-paginated services  (fetchService)   → client-side pagination
  *   • Paginated services      (paginatedFetchService) → server-side pagination
@@ -9,16 +9,16 @@
  *   1. `cachedData` moved into a `useRef` so it survives re-renders.
  *   2. Dead props (`enableMultiSort`, `enableRowSelection`) removed.
  *   3. All KiduServerTable props are forwarded (modal, bulk-delete, etc.).
- * ─────────────────────────────────────────────────────────────────
+ * ─────────────────────────────
  */
 
 import  { useRef } from "react";
 
 import KiduServerTable, { type KiduServerTableProps, type TableRequestParams, type TableResponse } from "./KiduServerTable";
 
-// ─────────────────────────────────────────────────────────────────
+// ──────────────────────────
 // Props
-// ─────────────────────────────────────────────────────────────────
+// ──────────────────────────
 
 /**
  * All KiduServerTable props are supported EXCEPT `fetchData`
@@ -31,7 +31,7 @@ import KiduServerTable, { type KiduServerTableProps, type TableRequestParams, ty
  */
 export interface KiduServerTableListProps<T>
   extends Omit<KiduServerTableProps<T>, "fetchData"> {
-  // ── Service ────────────────────────────────────────────────────
+  // ── Service ─────────────────────────────
   /** Non-paginated: returns the full array; list handles pagination client-side */
   fetchService?: () => Promise<T[]>;
   /** Paginated: server already pages the data */
@@ -40,9 +40,9 @@ export interface KiduServerTableListProps<T>
   transformData?: (data: T[]) => T[];
 }
 
-// ─────────────────────────────────────────────────────────────────
+// ──────────────────────
 // Component
-// ─────────────────────────────────────────────────────────────────
+// ──────────────────────
 
 function KiduServerTableList<T extends Record<string, any>>({
   fetchService,
@@ -60,7 +60,7 @@ function KiduServerTableList<T extends Record<string, any>>({
 
   const fetchData = async (params: TableRequestParams): Promise<TableResponse<T>> => {
     try {
-      // ── Paginated path ─────────────────────────────────────────
+      // ── Paginated path ─────────────────────────
       if (paginatedFetchService) {
         const result = await paginatedFetchService(params);
         if (transformData && result.data) {
@@ -127,8 +127,8 @@ function KiduServerTableList<T extends Record<string, any>>({
       const end   = start + params.pageSize;
 
       return {
-        data:       filteredData.slice(start, end),
-        total:      filteredData.length,
+        data: filteredData.slice(start, end),
+        total: filteredData.length,
         totalPages: Math.ceil(filteredData.length / params.pageSize),
       };
 

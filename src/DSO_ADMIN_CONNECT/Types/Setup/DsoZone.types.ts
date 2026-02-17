@@ -1,31 +1,21 @@
 import type { AuditTrails } from "../../../Types/Auditlog.types";
 
-export interface DSODoctor {
-  // Core Identity Fields
+export interface DSOZone {
+  // Core fields
   id?: number;
-  firstName?: string;
-  lastName?: string;
-  fullName?: string;
-  doctorCode?: string;
-  licenseNo?: string;
+  name?: string;
   
-  // Contact Information
-  email?: string;
-  phoneNumber?: string;
-  address?: string;
-  
-  // Professional Information
-  info?: string; // Specialty/Additional info
+  // DSO Master relationship
   dsoMasterId?: number;
   dsoName?: string;
   
-  // Audit Fields
+  // Audit fields
   createdAt?: string;
   updatedAt?: string | null;
   isDeleted?: boolean;
   isActive?: boolean;
   
-  // Pagination/Filtering Fields
+  // Pagination/Filtering fields
   pageNumber?: number;
   pageSize?: number;
   searchTerm?: string;
@@ -34,6 +24,6 @@ export interface DSODoctor {
   showDeleted?: boolean;
   showInactive?: boolean;
   
-  // Optional Audit Trail
+  // Optional audit trail
   auditlog?: AuditTrails[];
 }

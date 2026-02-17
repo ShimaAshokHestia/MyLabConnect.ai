@@ -127,7 +127,7 @@ export const labMenuConfig: MenuItem[] = [
       },
       { 
         title: 'Zone', 
-        url: '/dashboard/setup/zone', 
+        url: '/dashboard/setup/zone-list', 
         icon: MapPin 
       },
     ],

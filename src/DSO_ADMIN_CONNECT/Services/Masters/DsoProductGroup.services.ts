@@ -20,12 +20,12 @@ export default class DSOProductGroupService {
     }
 
     // 🔹 Get By Id
-  static async getById(id: number): Promise<any> {  // ✅ change return type to any
-  return await HttpService.callApi<any>(
-    API_ENDPOINTS.DSO_PRODUCT_GROUP.GET_BY_ID(id),
-    "GET"
-  );
-}
+    static async getById(id: number): Promise<any> { 
+        return await HttpService.callApi<any>(
+            API_ENDPOINTS.DSO_PRODUCT_GROUP.GET_BY_ID(id),
+            "GET"
+        );
+    }
 
     // 🔹 Create
     static async create(data: DSOProductGroup): Promise<DSOProductGroup> {

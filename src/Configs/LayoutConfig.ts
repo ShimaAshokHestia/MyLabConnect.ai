@@ -60,7 +60,7 @@ export const dsoadminConnectConfig = {
                 { title: 'Practice Manager Login', url: '/dsoadmin-connect/setup/practice-manager', icon: UserCog },
                 { title: 'DSO – User Login', url: '/dsoadmin-connect/setup/dso-user', icon: Users },
                 { title: 'Lab Products Rate', url: '/dsoadmin-connect/setup/lab-products-rate', icon: DollarSign },
-                { title: 'Zone', url: '/dsoadmin-connect/setup/zone', icon: MapPin },
+                { title: 'Zone', url: '/dsoadmin-connect/setup/zone-list', icon: MapPin },
             ],
         },
         {

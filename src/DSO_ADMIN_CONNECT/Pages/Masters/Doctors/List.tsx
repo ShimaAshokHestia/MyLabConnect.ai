@@ -1,88 +1,177 @@
-import React, { useCallback } from "react";
-import { Container } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useRef } from "react";
 import KiduServerTableList from "../../../../KIDU_COMPONENTS/KiduServerTableList";
-import type { KiduColumn, TableRequestParams, TableResponse } from "../../../../KIDU_COMPONENTS/KiduServerTable";
-import type { DSODoctor, DSODoctorPaginatedRequest } from "../../../Types/Masters/DsoDoctor.types";
+import type { KiduColumn } from "../../../../KIDU_COMPONENTS/KiduServerTable";
+import DSODoctorCreateModal from "./Create";
+import DSODoctorEditModal from "./Edit";
+import DSODoctorViewModal from "./View";
+import Swal from "sweetalert2";
 import DSODoctorService from "../../../Services/Masters/DsoDoctor.services";
 
 const columns: KiduColumn[] = [
-  { key: "code", label: "Code", enableSorting: true, enableFiltering: true, minWidth: 120 },
-  { key: "name", label: "Name", enableSorting: true, enableFiltering: true, minWidth: 200 },
-  { key: "dsoName", label: "DSO Name", enableSorting: true, enableFiltering: true, minWidth: 200 },
-  { key: "isActive", label: "Active", enableSorting: true, enableFiltering: true, type: "checkbox", width: 100 },
-  { key: "createdAt", label: "Created Date", enableSorting: true, enableFiltering: true, type: "date", filterType: "date", minWidth: 150 },
+    { 
+        key: "doctorCode", 
+        label: "Doctor Code", 
+        enableSorting: true, 
+        enableFiltering: true 
+    },
+    { 
+        key: "fullName", 
+        label: "Doctor Name", 
+        enableSorting: true, 
+        enableFiltering: true 
+    },
+    { 
+        key: "email", 
+        label: "Email", 
+        enableSorting: true, 
+        enableFiltering: true 
+    },
+    { 
+        key: "phoneNumber", 
+        label: "Phone", 
+        enableSorting: true, 
+        enableFiltering: true 
+    },
+    { 
+        key: "licenseNo", 
+        label: "License No", 
+        enableSorting: true, 
+        enableFiltering: true 
+    },
+    { 
+        key: "dsoName", 
+        label: "DSO Master", 
+        enableSorting: true, 
+        enableFiltering: true 
+    },
+    {
+        key: "isActive", 
+        label: "Status", 
+        type: "badge", 
+        enableFiltering: true,
+        filterType: "select", 
+        filterOptions: ["Active", "Inactive"],
+        render: (value) => (
+            <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>
+                {value ? "Active" : "Inactive"}
+            </span>
+        ),
+    },
 ];
 
-const DsoDoctorList: React.FC = () => {
-  const navigate = useNavigate();
+const DSODoctorList: React.FC = () => {
+    // Create Modal State
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const tableKeyRef = useRef(0);
+    const [tableKey, setTableKey] = useState(0);
 
-  const fetchDoctors = useCallback(
-    async (params: TableRequestParams): Promise<TableResponse<DSODoctor>> => {
-      const request: DSODoctorPaginatedRequest = {
-        pageNumber: params.pageNumber,
-        pageSize: params.pageSize,
-        searchTerm: params.searchTerm     ?? "",
-        sortBy: params.sortBy         ?? "",
-        sortDescending: params.sortDescending ?? false,
-        showDeleted: false,
-        showInactive: true,
-        code: params.code as string | undefined,
-        name: params.name as string | undefined,
-        dsoName: params.dsoName as string | undefined,
-        dsoMasterId: params.dsoMasterId as number | undefined,
-      };
+    // Edit Modal State
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editRecordId, setEditRecordId] = useState<string | number>("");
 
-      const response = await DSODoctorService.getDoctorsPaginated(request);
-      return {
-        data:       response.data,
-        total:      response.total,
-        totalPages: response.totalPages,
-      };
-    },
-    [] 
-  );
+    // View Modal State
+    const [showViewModal, setShowViewModal] = useState(false);
+    const [viewRecordId, setViewRecordId] = useState<string | number>("");
 
-  const handleDelete = useCallback(async (doctor: DSODoctor) => {
-    if (!window.confirm(`Delete "${doctor.name}" (${doctor.code})?`)) return;
-    await DSODoctorService.deleteDoctor(doctor.id);
-    navigate(0);
-  }, [navigate]);
+    // Handlers
+    const handleAddClick = () => {
+        setShowCreateModal(true);
+    };
 
-  return (
-    <Container fluid className="py-4">
-      <KiduServerTableList<DSODoctor>
-        title="DSO Doctors"
-        subtitle="Manage and view all doctors associated with DSO Masters"
-        columns={columns}
-        paginatedFetchService={fetchDoctors}
-        rowKey="id"
-        showSearch
-        showFilters
-        showColumnToggle
-        showDensityToggle
-        showExport
-        showFullscreen
-        showAddButton
-        showActions
-        showPagination
-        showRowsPerPage
-        showCheckboxes
-        showSelectionToggle
-        addButtonLabel="Add Doctor"
-        onAddClick={() => navigate("/dso-doctors/add")}
-        onViewClick={(doctor) => navigate(`/dso-doctors/view/${doctor.id}`)}
-        onEditClick={(doctor) => navigate(`/dso-doctors/edit/${doctor.id}`)}
-        onDeleteClick={handleDelete}
-        rowsPerPageOptions={[10, 25, 50, 100]}
-        defaultRowsPerPage={25}
-        defaultDensity="comfortable"
-        stickyHeader
-        highlightOnHover
-        striped
-      />
-    </Container>
-  );
+    const handleCreateSuccess = () => {
+        setShowCreateModal(false);
+        tableKeyRef.current += 1;
+        setTableKey(tableKeyRef.current);
+    };
+
+    const handleEditClick = (row: any) => {
+        setEditRecordId(row.id);
+        setShowEditModal(true);
+    };
+
+    const handleEditSuccess = () => {
+        setShowEditModal(false);
+        tableKeyRef.current += 1;
+        setTableKey(tableKeyRef.current);
+    };
+
+    const handleViewClick = (row: any) => {
+        setViewRecordId(row.id);
+        setShowViewModal(true);
+    };
+
+    const handleDeleteClick = async (row: any) => {
+        const result = await Swal.fire({
+            title: "Are you sure?",
+            text: "This doctor will be permanently deleted.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#ef0d50",
+            cancelButtonColor: "#6c757d",
+            confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "Cancel",
+        });
+
+        if (result.isConfirmed) {
+            await DSODoctorService.delete(row.id);
+            tableKeyRef.current += 1;
+            setTableKey(tableKeyRef.current);
+            Swal.fire("Deleted!", "Doctor has been deleted.", "success");
+        }
+    };
+
+    return (
+        <>
+            <KiduServerTableList
+                key={tableKey}
+                title="DSO Doctors"
+                subtitle="Manage doctor master data"
+                columns={columns}
+                fetchService={() => DSODoctorService.getAll()}
+                showAddButton={true}
+                addButtonLabel="Add Doctor"
+                onAddClick={handleAddClick}
+                onEditClick={handleEditClick}
+                onViewClick={handleViewClick}
+                onDeleteClick={handleDeleteClick}
+                showActions={true}
+                rowKey="id"
+                showSearch={true}
+                showFilters={true}
+                showExport={true}
+                showColumnToggle={true}
+                defaultRowsPerPage={10}
+                highlightOnHover={true}
+                striped={false}
+            />
+
+            {/* Create Modal */}
+            <DSODoctorCreateModal
+                show={showCreateModal}
+                onHide={() => setShowCreateModal(false)}
+                onSuccess={handleCreateSuccess}
+            />
+
+            {/* Edit Modal */}
+            {editRecordId && (
+                <DSODoctorEditModal
+                    show={showEditModal}
+                    onHide={() => setShowEditModal(false)}
+                    onSuccess={handleEditSuccess}
+                    recordId={editRecordId}
+                />
+            )}
+
+            {/* View Modal */}
+            {viewRecordId && (
+                <DSODoctorViewModal
+                    show={showViewModal}
+                    onHide={() => setShowViewModal(false)}
+                    recordId={viewRecordId}
+                />
+            )}
+        </>
+    );
 };
 
-export default DsoDoctorList;
+export default DSODoctorList;

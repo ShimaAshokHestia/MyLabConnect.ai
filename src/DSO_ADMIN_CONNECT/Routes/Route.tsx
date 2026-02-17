@@ -11,6 +11,9 @@ import DsoDoctorList from '../Pages/Masters/Doctors/List';
 //DSO Product Group
 import DsoProductGroupList from '../Pages/Masters/Product Group/List';
 
+//DSO Zone
+import DSOZoneList from '../Pages/Setup/Zone/List';
+
 
 export const dsoadminConnectRoutes = (
   <Route
@@ -42,7 +45,7 @@ export const dsoadminConnectRoutes = (
     {/* <Route path="/dsoadmin-connect/setup/practiceManagerLogin" element={</>} /> */}
     {/* <Route path="/dsoadmin-connect/setup/dsoUserLogin" element={</>} /> */}
     {/* <Route path="/dsoadmin-connect/setup/labProductsRate" element={</>} /> */}
-    {/* <Route path="/dsoadmin-connect/setup/zone" element={</>} /> */}
+    <Route path="setup/zone-list" element={<DSOZoneList/>} />
 
     {/* <Route path="/dsoadmin-connect/mapping/prescriptionProduct" element={</>} /> */}
     {/* <Route path="/dsoadmin-connect/mapping/triosDoctor" element={</>} /> */}

@@ -1,142 +1,239 @@
-// src/Services/DSODoctor.service.ts
-
 import { API_ENDPOINTS } from "../../../CONSTANTS/API_ENDPOINTS";
 import HttpService from "../../../Services/Common/HttpService";
-import type { CustomResponse } from "../../../Types/Common/ApiTypes";
-import type { DSODoctor, DSODoctorPaginatedRequest, DSODoctorPaginatedResponse } from "../../Types/Masters/DsoDoctor.types";
+import type { DSODoctor } from "../../Types/Masters/DsoDoctor.types";
 
+export default class DSODoctorService {
 
+    // 🔹 Get All Doctors
+    static async getAll(): Promise<DSODoctor[]> {
+        const response = await HttpService.callApi<any>(
+            API_ENDPOINTS.DSO_DOCTOR.GET_ALL,
+            "GET"
+        );
+        console.log("getAll response:", response);
 
-const DSODoctorService = {
-  /**
-   * Get all DSO doctors (non-paginated)
-   */
-  async getAllDoctors(): Promise<DSODoctor[]> {
-    try {
-      const response = await HttpService.callApi<CustomResponse<DSODoctor[]>>(
-        API_ENDPOINTS.DSODoctor.GET_ALL,
-        "GET"
-      );
-      return response.value || [];
-    } catch (error) {
-      console.error("Error fetching all DSO doctors:", error);
-      return [];
+        // Handle all possible response shapes
+        if (Array.isArray(response)) return response;
+        if (Array.isArray(response?.value)) return response.value;
+        if (Array.isArray(response?.data)) return response.data;
+        if (Array.isArray(response?.items)) return response.items;
+        return [];
     }
-  },
 
-  /**
-   * Get DSO doctor by ID
-   */
-  async getDoctorById(id: number): Promise<DSODoctor> {
-    const response = await HttpService.callApi<CustomResponse<DSODoctor>>(
-      API_ENDPOINTS.DSODoctor.GET_BY_ID(id),
-      "GET"
-    );
-    return response.value;
-  },
+    // 🔹 Get Doctor By Id
+    static async getById(id: number): Promise<DSODoctor> {
+        const response = await HttpService.callApi<any>(
+            API_ENDPOINTS.DSO_DOCTOR.GET_BY_ID(id),
+            "GET"
+        );
+        console.log("getById response:", response);
+        return response;
+    }
 
-  /**
-   * Get paginated DSO doctors
-   * This is the main method used by KiduServerTable
-   */
-  async getDoctorsPaginated(
-    params: DSODoctorPaginatedRequest
-  ): Promise<DSODoctorPaginatedResponse> {
-    try {
-      console.log("📤 Fetching paginated DSO doctors with params:", params);
+    // 🔹 Create New Doctor
+    static async create(data: Partial<DSODoctor>): Promise<DSODoctor> {
+        // Ensure we're sending the right payload structure
+        const payload = {
+            firstName: data.firstName,
+            lastName: data.lastName,
+            fullName: data.firstName && data.lastName ? `${data.firstName} ${data.lastName}` : undefined,
+            email: data.email,
+            phoneNumber: data.phoneNumber,
+            address: data.address,
+            licenseNo: data.licenseNo,
+            doctorCode: data.doctorCode,
+            info: data.info,
+            dsoMasterId: data.dsoMasterId,
+            isActive: data.isActive ?? true,
+            isDeleted: false
+        };
 
-      const response = await HttpService.callApi<CustomResponse<DSODoctor[]>>(
-        API_ENDPOINTS.DSODoctor.POST_PAGINATED,
-        "POST",
-        {
-          pageNumber: params.pageNumber || 1,
-          pageSize: params.pageSize || 10,
-          searchTerm: params.searchTerm || "",
-          sortBy: params.sortBy || "",
-          sortDescending: params.sortDescending || false,
-          showDeleted: params.showDeleted || false,
-          showInactive: params.showInactive ?? true,
-          
-          // Specific filters
-          code: params.code || "",
-          name: params.name || "",
-          dsoMasterId: params.dsoMasterId || 0,
-          dsoName: params.dsoName || "",
+        const response = await HttpService.callApi<any>(
+            API_ENDPOINTS.DSO_DOCTOR.CREATE,
+            "POST",
+            payload
+        );
+        console.log("create response:", response);
+        return response;
+    }
+
+    // 🔹 Update Doctor
+    static async update(id: number, data: Partial<DSODoctor>): Promise<DSODoctor> {
+        // Prepare update payload
+        const payload: Partial<DSODoctor> = {
+            id: id,
+            ...data
+        };
+
+        // If both firstName and lastName are provided, update fullName
+        if (data.firstName && data.lastName) {
+            payload.fullName = `${data.firstName} ${data.lastName}`;
         }
-      );
 
-      console.log("📥 Received response:", {
-        statusCode: response.statusCode,
-        isSuccess: response.isSucess || response.isSuccess,
-        dataCount: response.value?.length || 0,
-      });
-
-      // Extract data from response
-      const doctors = response.value || [];
-      
-      // Calculate total and pages
-      // Note: If your API returns total count separately, use that instead
-      const total = doctors.length;
-      const totalPages = Math.ceil(total / params.pageSize);
-
-      return {
-        data: doctors,
-        total: total,
-        pageNumber: params.pageNumber,
-        pageSize: params.pageSize,
-        totalPages: totalPages,
-      };
-    } catch (error) {
-      console.error("❌ Error fetching paginated DSO doctors:", error);
-      throw error;
+        const response = await HttpService.callApi<any>(
+            API_ENDPOINTS.DSO_DOCTOR.UPDATE(id),
+            "PUT",
+            payload
+        );
+        console.log("update response:", response);
+        return response;
     }
-  },
 
-  /**
-   * Create new DSO doctor
-   */
-  async createDoctor(
-    data: Omit<DSODoctor, "id" | "createdAt" | "updatedAt">
-  ): Promise<DSODoctor> {
-    const response = await HttpService.callApi<CustomResponse<DSODoctor>>(
-      API_ENDPOINTS.DSODoctor.CREATE,
-      "POST",
-      data
-    );
-    return response.value;
-  },
+    // 🔹 Delete Doctor
+    static async delete(id: number): Promise<void> {
+        await HttpService.callApi<void>(
+            API_ENDPOINTS.DSO_DOCTOR.DELETE(id),
+            "DELETE"
+        );
+        console.log(`Doctor with id ${id} deleted successfully`);
+    }
 
-  /**
-   * Update DSO doctor
-   */
-  async updateDoctor(
-    id: number,
-    data: Partial<Omit<DSODoctor, "id" | "createdAt" | "updatedAt">>
-  ): Promise<DSODoctor> {
-    const response = await HttpService.callApi<CustomResponse<DSODoctor>>(
-      API_ENDPOINTS.DSODoctor.UPDATE(id),
-      "PUT",
-      data
-    );
-    return response.value;
-  },
+    // 🔹 Get Paginated Doctors (Server Table)
+    static async getPaginated(payload: Partial<DSODoctor>): Promise<{
+        data: DSODoctor[];
+        totalCount: number;
+        totalPages?: number;
+        currentPage?: number;
+    }> {
+        const response = await HttpService.callApi<any>(
+            API_ENDPOINTS.DSO_DOCTOR.UPDATE_PAGINATION,
+            "POST",
+            payload
+        );
+        console.log("getPaginated response:", response);
 
-  /**
-   * Delete DSO doctor (soft delete)
-   */
-  async deleteDoctor(id: number): Promise<void> {
-    await HttpService.callApi<CustomResponse<void>>(
-      API_ENDPOINTS.DSODoctor.DELETE(id),
-      "DELETE"
-    );
-  },
+        // Handle different response structures
+        return {
+            data: response.data ?? response.items ?? response.results ?? [],
+            totalCount: response.totalCount ?? response.totalRecords ?? response.total ?? 0,
+            totalPages: response.totalPages,
+            currentPage: response.currentPage ?? response.pageNumber
+        };
+    }
 
-  /**
-   * Toggle doctor active status
-   */
-  async toggleDoctorStatus(id: number, isActive: boolean): Promise<DSODoctor> {
-    return this.updateDoctor(id, { isActive });
-  },
-};
+    // 🔹 Search Doctors
+    static async searchDoctors(searchTerm: string): Promise<DSODoctor[]> {
+        const payload = {
+            searchTerm,
+            pageNumber: 1,
+            pageSize: 100,
+            showDeleted: false,
+            showInactive: true
+        };
+        
+        const result = await this.getPaginated(payload);
+        return result.data;
+    }
 
-export default DSODoctorService;
+    // 🔹 Get Doctors by DSO Master
+    static async getByDSOMaster(dsoMasterId: number): Promise<DSODoctor[]> {
+        const payload = {
+            dsoMasterId,
+            pageNumber: 1,
+            pageSize: 100,
+            showDeleted: false,
+            showInactive: true
+        };
+        
+        const result = await this.getPaginated(payload);
+        return result.data;
+    }
+
+    // 🔹 Get Active Doctors Only
+    static async getActiveDoctors(): Promise<DSODoctor[]> {
+        const doctors = await this.getAll();
+        return doctors.filter(doctor => doctor.isActive === true && doctor.isDeleted === false);
+    }
+
+    // 🔹 Toggle Doctor Active Status
+    static async toggleActiveStatus(id: number, currentStatus: boolean): Promise<DSODoctor> {
+        return await this.update(id, { isActive: !currentStatus });
+    }
+
+    // 🔹 Soft Delete Doctor
+    static async softDelete(id: number): Promise<DSODoctor> {
+        return await this.update(id, { isDeleted: true });
+    }
+
+    // 🔹 Restore Soft Deleted Doctor
+    static async restoreDoctor(id: number): Promise<DSODoctor> {
+        return await this.update(id, { isDeleted: false });
+    }
+
+    // 🔹 Get Doctor by License Number
+    static async getByLicenseNo(licenseNo: string): Promise<DSODoctor | null> {
+        const payload = {
+            licenseNo,
+            pageNumber: 1,
+            pageSize: 1,
+            showDeleted: false,
+            showInactive: true
+        };
+        
+        const result = await this.getPaginated(payload);
+        return result.data.length > 0 ? result.data[0] : null;
+    }
+
+    // 🔹 Get Doctor by Doctor Code
+    static async getByDoctorCode(doctorCode: string): Promise<DSODoctor | null> {
+        const payload = {
+            doctorCode,
+            pageNumber: 1,
+            pageSize: 1,
+            showDeleted: false,
+            showInactive: true
+        };
+        
+        const result = await this.getPaginated(payload);
+        return result.data.length > 0 ? result.data[0] : null;
+    }
+
+    // 🔹 Bulk operations
+    static async bulkDelete(ids: number[]): Promise<void> {
+        for (const id of ids) {
+            await this.delete(id);
+        }
+        console.log(`Bulk deleted doctors: ${ids.join(', ')}`);
+    }
+
+    static async bulkSoftDelete(ids: number[]): Promise<void> {
+        for (const id of ids) {
+            await this.softDelete(id);
+        }
+        console.log(`Bulk soft deleted doctors: ${ids.join(', ')}`);
+    }
+
+    static async bulkRestore(ids: number[]): Promise<void> {
+        for (const id of ids) {
+            await this.restoreDoctor(id);
+        }
+        console.log(`Bulk restored doctors: ${ids.join(', ')}`);
+    }
+
+    // 🔹 Get statistics
+    static async getStatistics(): Promise<{
+        total: number;
+        active: number;
+        inactive: number;
+        deleted: number;
+        byDSOMaster: Record<number, number>;
+    }> {
+        const allDoctors = await this.getAll();
+        
+        const stats = {
+            total: allDoctors.length,
+            active: allDoctors.filter(d => d.isActive && !d.isDeleted).length,
+            inactive: allDoctors.filter(d => !d.isActive && !d.isDeleted).length,
+            deleted: allDoctors.filter(d => d.isDeleted).length,
+            byDSOMaster: {} as Record<number, number>
+        };
+
+        allDoctors.forEach(doctor => {
+            if (doctor.dsoMasterId && !doctor.isDeleted) {
+                stats.byDSOMaster[doctor.dsoMasterId] = (stats.byDSOMaster[doctor.dsoMasterId] || 0) + 1;
+            }
+        });
+
+        return stats;
+    }
+}

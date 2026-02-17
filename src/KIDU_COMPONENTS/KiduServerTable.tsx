@@ -75,10 +75,16 @@ export interface TableRequestParams {
   [key: string]:    any;
 }
 
+/**
+ * The table only requires `data` and `total`.
+ * Extra fields returned by your API (e.g. pageNumber, pageSize, totalPages)
+ * are accepted via the index signature and simply ignored.
+ */
 export interface TableResponse<T> {
   data:        T[];
   total:       number;
   totalPages?: number;
+  [key: string]: any; // ← allows pageNumber / pageSize passthrough without type errors
 }
 
 /**
@@ -150,7 +156,7 @@ export interface KiduServerTableProps<T> {
   striped?:            boolean;
 
   // ── Slots ─────────────────────────────────────────────────────
-  customFilters?:    React.ReactNode;
+  customFilters?:     React.ReactNode;
   additionalButtons?: React.ReactNode;
 }
 

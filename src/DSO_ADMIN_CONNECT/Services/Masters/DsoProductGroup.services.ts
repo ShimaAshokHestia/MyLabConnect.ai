@@ -4,63 +4,70 @@ import type { DSOProductGroup } from "../../Types/Masters/DsoProductGroup.types"
 
 export default class DSOProductGroupService {
 
-  // 🔹 Get All
-  static async getAll(): Promise<DSOProductGroup[]> {
-    return await HttpService.callApi<DSOProductGroup[]>(
-      API_ENDPOINTS.DSO_PRODUCT_GROUP.GET_ALL,
-      "GET"
-    );
-  }
+    // 🔹 Get All
+    static async getAll(): Promise<DSOProductGroup[]> {
+        const response = await HttpService.callApi<any>(
+            API_ENDPOINTS.DSO_PRODUCT_GROUP.GET_ALL,
+            "GET"
+        );
+        console.log("getAll response:", response);
 
-  // 🔹 Get By Id
-  static async getById(id: number): Promise<DSOProductGroup> {
-    return await HttpService.callApi<DSOProductGroup>(
-      API_ENDPOINTS.DSO_PRODUCT_GROUP.GET_BY_ID(id),
-      "GET"
-    );
-  }
+        // ✅ handle all possible shapes
+        if (Array.isArray(response)) return response;
+        if (Array.isArray(response?.value)) return response.value;
+        if (Array.isArray(response?.data)) return response.data;
+        return [];
+    }
 
-  // 🔹 Create
-  static async create(data: DSOProductGroup): Promise<DSOProductGroup> {
-    return await HttpService.callApi<DSOProductGroup>(
-      API_ENDPOINTS.DSO_PRODUCT_GROUP.CREATE,
-      "POST",
-      data
-    );
-  }
+    // 🔹 Get By Id
+    static async getById(id: number): Promise<DSOProductGroup> {
+        return await HttpService.callApi<DSOProductGroup>(
+            API_ENDPOINTS.DSO_PRODUCT_GROUP.GET_BY_ID(id),
+            "GET"
+        );
+    }
 
-  // 🔹 Update
-  static async update(id: number, data: DSOProductGroup): Promise<DSOProductGroup> {
-    return await HttpService.callApi<DSOProductGroup>(
-      API_ENDPOINTS.DSO_PRODUCT_GROUP.UPDATE(id),
-      "PUT",
-      data
-    );
-  }
+    // 🔹 Create
+    static async create(data: DSOProductGroup): Promise<DSOProductGroup> {
+        return await HttpService.callApi<DSOProductGroup>(
+            API_ENDPOINTS.DSO_PRODUCT_GROUP.CREATE,
+            "POST",
+            data
+        );
+    }
 
-  // 🔹 Delete
-  static async delete(id: number): Promise<void> {
-    await HttpService.callApi<void>(
-      API_ENDPOINTS.DSO_PRODUCT_GROUP.DELETE(id),
-      "DELETE"
-    );
-  }
+    // 🔹 Update
+    static async update(id: number, data: DSOProductGroup): Promise<DSOProductGroup> {
+        return await HttpService.callApi<DSOProductGroup>(
+            API_ENDPOINTS.DSO_PRODUCT_GROUP.UPDATE(id),
+            "PUT",
+            data
+        );
+    }
 
-  // 🔹 Pagination (Server Table)
-  static async getPaginated(payload: DSOProductGroup): Promise<{
-    data: DSOProductGroup[];
-    totalCount: number;
-  }> {
+    // 🔹 Delete
+    static async delete(id: number): Promise<void> {
+        await HttpService.callApi<void>(
+            API_ENDPOINTS.DSO_PRODUCT_GROUP.DELETE(id),
+            "DELETE"
+        );
+    }
 
-    const response = await HttpService.callApi<any>(
-      API_ENDPOINTS.DSO_PRODUCT_GROUP.UPDATE_PAGINATION,
-      "POST",
-      payload
-    );
+    // 🔹 Pagination (Server Table)
+    static async getPaginated(payload: DSOProductGroup): Promise<{
+        data: DSOProductGroup[];
+        totalCount: number;
+    }> {
 
-    return {
-      data: response.data ?? response.items ?? [],
-      totalCount: response.totalCount ?? response.totalRecords ?? 0,
-    };
-  }
+        const response = await HttpService.callApi<any>(
+            API_ENDPOINTS.DSO_PRODUCT_GROUP.UPDATE_PAGINATION,
+            "POST",
+            payload
+        );
+
+        return {
+            data: response.data ?? response.items ?? [],
+            totalCount: response.totalCount ?? response.totalRecords ?? 0,
+        };
+    }
 }

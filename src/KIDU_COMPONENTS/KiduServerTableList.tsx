@@ -1,24 +1,5 @@
-/**
- * KiduServerTableList.tsx
- * ─────────────────────────────
- * Wrapper around KiduServerTable that adds support for both:
- *   • Non-paginated services  (fetchService)   → client-side pagination
- *   • Paginated services      (paginatedFetchService) → server-side pagination
- *
- * Fixes vs original:
- *   1. `cachedData` moved into a `useRef` so it survives re-renders.
- *   2. Dead props (`enableMultiSort`, `enableRowSelection`) removed.
- *   3. All KiduServerTable props are forwarded (modal, bulk-delete, etc.).
- * ─────────────────────────────
- */
-
 import  { useRef } from "react";
-
 import KiduServerTable, { type KiduServerTableProps, type TableRequestParams, type TableResponse } from "./KiduServerTable";
-
-// ──────────────────────────
-// Props
-// ──────────────────────────
 
 /**
  * All KiduServerTable props are supported EXCEPT `fetchData`
@@ -31,18 +12,10 @@ import KiduServerTable, { type KiduServerTableProps, type TableRequestParams, ty
  */
 export interface KiduServerTableListProps<T>
   extends Omit<KiduServerTableProps<T>, "fetchData"> {
-  // ── Service ─────────────────────────────
-  /** Non-paginated: returns the full array; list handles pagination client-side */
   fetchService?: () => Promise<T[]>;
-  /** Paginated: server already pages the data */
   paginatedFetchService?: (params: TableRequestParams) => Promise<TableResponse<T>>;
-  /** Optional transform applied to every batch of records after fetching */
   transformData?: (data: T[]) => T[];
 }
-
-// ──────────────────────
-// Component
-// ──────────────────────
 
 function KiduServerTableList<T extends Record<string, any>>({
   fetchService,
@@ -51,11 +24,6 @@ function KiduServerTableList<T extends Record<string, any>>({
   ...tableProps
 }: KiduServerTableListProps<T>) {
 
-  /**
-   * Cache for the non-paginated path.
-   * useRef keeps the value across re-renders without causing extra renders,
-   * and prevents re-fetching the full list on every page change.
-   */
   const cachedDataRef = useRef<T[] | null>(null);
 
   const fetchData = async (params: TableRequestParams): Promise<TableResponse<T>> => {

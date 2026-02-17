@@ -224,16 +224,25 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
       const submitData = { ...formData };
       await onSubmit(submitData);
 
-      // Show success alert with SweetAlert2
-      await Swal.fire({
-        icon: "success",
-        title: "Success!",
-        text: successMessage,
-        confirmButtonColor: themeColor,
-        timer: 2000,
-        showConfirmButton: true,
-        confirmButtonText: "OK"
-      });
+    // ✅ Fixed — close modal first, then show Swal
+onHide();  // close Bootstrap modal first
+
+// Small delay to let Bootstrap modal fully unmount before Swal opens
+await new Promise((resolve) => setTimeout(resolve, 300));
+
+await Swal.fire({
+  icon: "success",
+  title: "Success!",
+  text: successMessage,
+  confirmButtonColor: themeColor,
+  timer: 2000,
+  showConfirmButton: true,
+  confirmButtonText: "OK"
+});
+
+if (onSuccess) {
+  onSuccess();
+}
 
       // Call onSuccess callback if provided
       if (onSuccess) {

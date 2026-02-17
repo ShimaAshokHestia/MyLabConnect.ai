@@ -1,23 +1,3 @@
-/**
- * KiduServerTable.tsx
- * ─────────────────────────────────────────────────────────────────
- * Server-driven data table with full feature set.
- *
- * Action modes for Add / Edit / View — pick ONE per action:
- *
- *   1. MODAL  → pass `addModal`, `editModal`, or `viewModal` props
- *               (KiduCreateModal opens automatically)
- *
- *   2. CALLBACK → pass `onAddClick`, `onEditClick`, or `onViewClick`
- *                 (your own handler — open a custom modal, drawer, etc.)
- *
- *   3. NAVIGATE → pass `addRoute`, `editRoute`, or `viewRoute`
- *                 (navigates to route / route/:id)
- *
- * Priority: modal prop > callback > route (for each action separately)
- * ─────────────────────────────────────────────────────────────────
- */
-
 import React, {
   useState, useEffect, useRef, useCallback, useMemo,
 } from "react";
@@ -36,30 +16,20 @@ import {
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-
 import KiduCreateModal, { type KiduCreateModalProps } from "./KiduCreateModal";
 import "../Styles/KiduStyles/ServerTable.css";
 import type { Density, ExportFormat, ToolbarColumnConfig } from "./KiduToolbar";
 import KiduToolbar from "./KiduToolbar";
 
-// ─────────────────────────────────────────────────────────────────
-// Public Types
-// ─────────────────────────────────────────────────────────────────
 
 export interface KiduColumn {
   key:              string;
   label:            string;
   enableSorting?:   boolean;
   enableFiltering?: boolean;
-  /**
-   * Built-in cell renderer. Use `render` for full custom control.
-   * "avatar" → shows coloured initials circle + name text.
-   * "badge"  → auto-colours green/red for Active / Inactive.
-   */
   type?:            "text" | "checkbox" | "image" | "rating" | "date" | "badge" | "currency" | "avatar";
   width?:           number;
   minWidth?:        number;
-  /** Override any built-in renderer */
   render?:          (value: any, row: any) => React.ReactNode;
   filterType?:      "text" | "select" | "date" | "number";
   filterOptions?:   string[];
@@ -75,35 +45,21 @@ export interface TableRequestParams {
   [key: string]:    any;
 }
 
-/**
- * The table only requires `data` and `total`.
- * Extra fields returned by your API (e.g. pageNumber, pageSize, totalPages)
- * are accepted via the index signature and simply ignored.
- */
 export interface TableResponse<T> {
   data:        T[];
   total:       number;
   totalPages?: number;
-  [key: string]: any; // ← allows pageNumber / pageSize passthrough without type errors
+  [key: string]: any; 
 }
 
-/**
- * Props for KiduCreateModal that the table manages for you.
- * Omit `show` and `onHide` — the table handles those.
- */
 export type ManagedModalProps = Omit<KiduCreateModalProps, "show" | "onHide">;
 
 export interface KiduServerTableProps<T> {
-  // ── Header ────────────────────────────────────────────────────
   title?:    string;
   subtitle?: string;
-
-  // ── Data ──────────────────────────────────────────────────────
   columns:   KiduColumn[];
   fetchData: (params: TableRequestParams) => Promise<TableResponse<T>>;
   rowKey?:   keyof T;
-
-  // ── Toolbar visibility ─────────────────────────────────────────
   showSearch?:          boolean;
   showFilters?:         boolean;
   showColumnToggle?:    boolean;
@@ -111,58 +67,33 @@ export interface KiduServerTableProps<T> {
   showExport?:          boolean;
   showFullscreen?:      boolean;
   showAddButton?:       boolean;
-  showActions?:         boolean;   // show the per-row ⋯ menu
+  showActions?:         boolean;  
   showPagination?:      boolean;
   showRowsPerPage?:     boolean;
-  showCheckboxes?:      boolean;   // initial state; user can toggle
-  showSelectionToggle?: boolean;   // show the checkbox-column toggle button
-
-  // ── ADD action ─────────────────────────────────────────────────
+  showCheckboxes?:      boolean;   
+  showSelectionToggle?: boolean;  
   addButtonLabel?: string;
-  /** Open KiduCreateModal with these props (table manages show/onHide) */
   addModal?:       ManagedModalProps;
-  /** Custom callback (modal, drawer, etc.) */
   onAddClick?:     () => void;
-  /** Navigate to this route */
   addRoute?:       string;
-
-  // ── EDIT action ────────────────────────────────────────────────
-  /**
-   * Return KiduCreateModal props for the given row.
-   * Pre-populate `initialValues` inside here if you want edit mode.
-   */
   editModal?:      (row: T) => ManagedModalProps;
   onEditClick?:    (row: T) => void;
-  editRoute?:      string;   // navigates to editRoute/:id
-
-  // ── VIEW action ────────────────────────────────────────────────
+  editRoute?:      string;
   viewModal?:      (row: T) => ManagedModalProps;
   onViewClick?:    (row: T) => void;
-  viewRoute?:      string;   // navigates to viewRoute/:id
-
-  // ── DELETE action ──────────────────────────────────────────────
+  viewRoute?:      string;
   onDeleteClick?:  (row: T) => void;
   onBulkDelete?:   (rows: T[]) => void;
-
-  // ── Row click ──────────────────────────────────────────────────
   onRowClick?:     (row: T) => void;
-
-  // ── Layout ────────────────────────────────────────────────────
   rowsPerPageOptions?: number[];
   defaultRowsPerPage?: number;
   defaultDensity?:     Density;
   stickyHeader?:       boolean;
   highlightOnHover?:   boolean;
   striped?:            boolean;
-
-  // ── Slots ─────────────────────────────────────────────────────
   customFilters?:     React.ReactNode;
   additionalButtons?: React.ReactNode;
 }
-
-// ─────────────────────────────────────────────────────────────────
-// Internal modal state
-// ─────────────────────────────────────────────────────────────────
 
 type ModalKind = "add" | "edit" | "view" | null;
 
@@ -171,10 +102,6 @@ interface ModalState<T> {
   row:   T | null;
   props: ManagedModalProps | null;
 }
-
-// ─────────────────────────────────────────────────────────────────
-// Export helpers
-// ─────────────────────────────────────────────────────────────────
 
 function toExportRows(data: any[], columns: KiduColumn[]) {
   return data.map((row) => {
@@ -216,9 +143,6 @@ function exportPDF(data: any[], columns: KiduColumn[], filename: string, title: 
   doc.save(`${filename}.pdf`);
 }
 
-// ─────────────────────────────────────────────────────────────────
-// Avatar cell helper
-// ─────────────────────────────────────────────────────────────────
 
 const AVATAR_COLORS = [
   "#ef0d50", "#3b82f6", "#10b981", "#f59e0b",
@@ -235,10 +159,6 @@ function AvatarCell({ name }: { name: string }) {
     </div>
   );
 }
-
-// ─────────────────────────────────────────────────────────────────
-// Built-in cell renderer
-// ─────────────────────────────────────────────────────────────────
 
 function renderCell(col: KiduColumn, value: any, row: any): React.ReactNode {
   if (col.render) return col.render(value, row);
@@ -302,17 +222,12 @@ function renderCell(col: KiduColumn, value: any, row: any): React.ReactNode {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────
-// Main Component
-// ─────────────────────────────────────────────────────────────────
-
 function KiduServerTable<T extends Record<string, any>>({
   title    = "Data Table",
   subtitle,
   columns: initialColumns,
   fetchData,
   rowKey = "id" as keyof T,
-
   showSearch          = true,
   showFilters         = true,
   showColumnToggle    = true,
@@ -325,31 +240,25 @@ function KiduServerTable<T extends Record<string, any>>({
   showRowsPerPage     = true,
   showCheckboxes      = true,
   showSelectionToggle = true,
-
   addButtonLabel = "Add New",
   addModal,
   onAddClick,
   addRoute,
-
   editModal,
   onEditClick,
   editRoute,
-
   viewModal,
   onViewClick,
   viewRoute,
-
   onDeleteClick,
   onBulkDelete,
   onRowClick,
-
   rowsPerPageOptions = [5, 10, 20, 50, 100],
   defaultRowsPerPage = 10,
   defaultDensity     = "comfortable",
   stickyHeader       = true,
   highlightOnHover   = true,
   striped            = false,
-
   customFilters,
   additionalButtons,
 }: KiduServerTableProps<T>) {
@@ -357,7 +266,6 @@ function KiduServerTable<T extends Record<string, any>>({
   const navigate = useNavigate();
   const tableRef = useRef<HTMLDivElement>(null);
 
-  // ── Data state ─────────────────────────────────────────────────
   const [data,        setData]        = useState<T[]>([]);
   const [total,       setTotal]       = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -365,7 +273,6 @@ function KiduServerTable<T extends Record<string, any>>({
   const [loading,     setLoading]     = useState(false);
   const [error,       setError]       = useState<string | null>(null);
 
-  // ── Search ─────────────────────────────────────────────────────
   const [searchTerm,      setSearchTerm]      = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
@@ -374,12 +281,10 @@ function KiduServerTable<T extends Record<string, any>>({
     return () => clearTimeout(t);
   }, [searchTerm]);
 
-  // ── Sorting / Filtering ────────────────────────────────────────
   const [sorting,       setSorting]       = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
   const [filtersOpen,   setFiltersOpen]   = useState(false);
 
-  // ── Column / UI state ──────────────────────────────────────────
   const [columns,          setColumns]          = useState<KiduColumn[]>(initialColumns);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [density,          setDensity]          = useState<Density>(defaultDensity);
@@ -388,12 +293,10 @@ function KiduServerTable<T extends Record<string, any>>({
   const [isFullscreen,     setIsFullscreen]     = useState(false);
   const [draggedCol,       setDraggedCol]       = useState<string | null>(null);
 
-  // ── Modal state ────────────────────────────────────────────────
   const [modal, setModal] = useState<ModalState<T>>({ kind: null, row: null, props: null });
 
   const closeModal = () => setModal({ kind: null, row: null, props: null });
 
-  // ── Data loading ───────────────────────────────────────────────
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
@@ -419,7 +322,6 @@ function KiduServerTable<T extends Record<string, any>>({
   useEffect(() => { loadData(); }, [loadData]);
   useEffect(() => { setCurrentPage(1); }, [debouncedSearch, columnFilters, rowsPerPage]);
 
-  // ── Computed ───────────────────────────────────────────────────
   const totalPages     = Math.ceil(total / rowsPerPage);
   const visibleCols    = columns.filter((c) => !columnVisibility[c.key]);
   const activeFilters  = Object.values(columnFilters).filter(Boolean).length;
@@ -430,7 +332,6 @@ function KiduServerTable<T extends Record<string, any>>({
     spacious:     "kidu-density-spacious",
   };
 
-  // ── Selection helpers ──────────────────────────────────────────
   const allSelected  = data.length > 0 && data.every((r) => selectedRows.has(r[rowKey]));
   const someSelected = data.some((r) => selectedRows.has(r[rowKey]));
 
@@ -447,7 +348,6 @@ function KiduServerTable<T extends Record<string, any>>({
     setSelectedRows(next);
   }
 
-  // ── Column helpers ─────────────────────────────────────────────
   const toggleColVisibility = (key: string) =>
     setColumnVisibility((p) => ({ ...p, [key]: !p[key] }));
 
@@ -469,7 +369,6 @@ function KiduServerTable<T extends Record<string, any>>({
     });
   };
 
-  // ── Export ─────────────────────────────────────────────────────
   const handleExport = (format: ExportFormat) => {
     const filename    = `${title.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}`;
     const exportData  = selectedRows.size > 0
@@ -482,35 +381,27 @@ function KiduServerTable<T extends Record<string, any>>({
     if (format === "pdf")   exportPDF(exportData, columns, filename, title);
   };
 
-  // ── Fullscreen ─────────────────────────────────────────────────
   const toggleFullscreen = () => {
     if (!isFullscreen) tableRef.current?.requestFullscreen?.();
     else               document.exitFullscreen?.();
     setIsFullscreen((p) => !p);
   };
 
-  // ── Action resolvers ───────────────────────────────────────────
-  /**
-   * ADD: priority → addModal > onAddClick > addRoute
-   */
+
   function handleAdd() {
     if (addModal)     { setModal({ kind: "add",  row: null, props: addModal }); return; }
     if (onAddClick)   { onAddClick(); return; }
     if (addRoute)     { navigate(addRoute); }
   }
 
-  /**
-   * EDIT: priority → editModal(row) > onEditClick(row) > editRoute/id
-   */
+  
   function handleEdit(row: T) {
     if (editModal)    { setModal({ kind: "edit", row, props: editModal(row) }); return; }
     if (onEditClick)  { onEditClick(row); return; }
     if (editRoute)    { navigate(`${editRoute}/${row[rowKey]}`); }
   }
 
-  /**
-   * VIEW: priority → viewModal(row) > onViewClick(row) > viewRoute/id
-   */
+ 
   function handleView(row: T) {
     if (viewModal)    { setModal({ kind: "view", row, props: viewModal(row) }); return; }
     if (onViewClick)  { onViewClick(row); return; }

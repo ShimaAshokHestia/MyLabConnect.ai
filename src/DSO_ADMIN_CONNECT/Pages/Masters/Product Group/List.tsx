@@ -5,10 +5,10 @@ import type { KiduColumn } from "../../../../KIDU_COMPONENTS/KiduServerTable";
 import DsoProductGroupCreateModal from "./Create";
 
 const columns: KiduColumn[] = [
-  { key: "code",       label: "Code",       enableSorting: true,  enableFiltering: true },
-  { key: "name",       label: "Name",       enableSorting: true,  enableFiltering: true },
-  { key: "dsoMaster",  label: "DSO Master", enableSorting: true,  enableFiltering: true },
-  { key: "isActive",   label: "Status",     type: "badge",        enableFiltering: true,
+  { key: "code", label: "Code", enableSorting: true, enableFiltering: true },
+  { key: "name", label: "Name", enableSorting: true, enableFiltering: true },
+  { key: "dsoMaster", label: "DSO Master", enableSorting: true, enableFiltering: true },
+  { key: "isActive", label: "Status", type: "badge", enableFiltering: true,
     filterType: "select", filterOptions: ["Active", "Inactive"],
     render: (value) => (
       <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>
@@ -21,7 +21,6 @@ const columns: KiduColumn[] = [
 const DsoProductGroupList: React.FC = () => {
 
   const [showCreateModal, setShowCreateModal] = useState(false);
-
   const tableKeyRef = useRef(0);
   const [tableKey, setTableKey] = useState(0);
 
@@ -52,7 +51,6 @@ const DsoProductGroupList: React.FC = () => {
         onAddClick={handleAddClick}
         showActions={true}
         onDeleteClick={(row) => {
-          // replace with your delete service + confirmation
           console.log("Delete", row);
         }}
         rowKey="id"

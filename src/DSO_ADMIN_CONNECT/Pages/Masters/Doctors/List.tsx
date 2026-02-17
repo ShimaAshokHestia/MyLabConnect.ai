@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import KiduServerTableList from "../../../../KIDU_COMPONENTS/KiduServerTableList";
 import type { KiduColumn, TableRequestParams, TableResponse } from "../../../../KIDU_COMPONENTS/KiduServerTable";
 import type { DSODoctor, DSODoctorPaginatedRequest } from "../../../Types/Masters/DsoDoctor.types";
-import DSODoctorService from "../../../Services/Masters/DsoDoctor.servics";
+import DSODoctorService from "../../../Services/Masters/DsoDoctor.services";
 
 // ─────────────────────────────────────────────────────────────────
 // Column definitions

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Form, Row, Col, Modal, Badge } from "react-bootstrap";
 import toast, { Toaster } from "react-hot-toast";
-import "./ViewModal.css";
+import "../Styles/KiduStyles/ViewModal.css";
 
 // ==================== TYPES ====================
 export interface ViewField {

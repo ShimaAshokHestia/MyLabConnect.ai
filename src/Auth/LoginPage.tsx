@@ -3,22 +3,14 @@
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Button } from "react-bootstrap";
 import "../Styles/Auth/LoginPage.css";
-
-import carousel1 from "../../public/Images/login-carousel-1.jpg";
-import carousel2 from "../../public/Images/login-carousel-2.jpg";
-import carousel3 from "../../public/Images/login-carousel-3.jpg";
-// import carousel4 from "../../public/Images/login-carousel-4.jpg";
-// import carousel5 from "@/assets/login-carousel-5.jpg";
 import KiduLogo from "../KIDU_COMPONENTS/KiduLogo";
 import { ThemeToggle } from "../ThemeProvider/ThemeProvider";
 import LoginForm from "./LoginForm";
 
-const carouselImages: string[] = [
-  carousel1,
-  carousel2,
-  carousel3,
-  // carousel4,
-  // carousel5,
+const carouselImages = [
+  "/Images/login-carousel-1.jpg",
+  "/Images/login-carousel-2.jpg",
+  "/Images/login-carousel-3.jpg",
 ];
 
 const LoginPage: React.FC = () => {

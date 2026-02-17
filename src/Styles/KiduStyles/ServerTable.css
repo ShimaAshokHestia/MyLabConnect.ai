@@ -1,510 +1,851 @@
-/* ============================================
-   KiduServerTable Styles
-   Matching the Kidu Bootstrap Theme
-   ============================================ */
+/* =============================================================
+   ServerTable.css
+   KiduServerTable + KiduToolbar — complete stylesheet
+
+   All colours reference CSS variables from your _theme.scss:
+     --theme-bg, --theme-bg-paper, --theme-bg-hover,
+     --theme-bg-elevated, --theme-text-primary,
+     --theme-text-secondary, --theme-text-disabled,
+     --theme-border, --theme-primary, --theme-primary-hover
+
+   No hardcoded brand colours — dark-mode works automatically.
+   ============================================================= */
 
 
-/* ============================================
-   Table Container
-   ============================================ */
+/* ──────────────────────────────────────────────────────────────
+   OUTER WRAPPER
+   ────────────────────────────────────────────────────────────── */
 
 .kidu-server-table {
-  font-family: 'Urbanist', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  --kidu-primary: #1B3763;
-  --kidu-primary-hover: #152b4f;
-  --kidu-primary-light: #2a4a7f;
-  --kidu-accent: #ef0d50;
-  --kidu-border: #dee2e6;
-  --kidu-bg-hover: #f8f9fa;
-  --kidu-text-primary: #212529;
-  --kidu-text-secondary: #6c757d;
+  background-color : var(--theme-bg-paper);
+  border           : 1px solid var(--theme-border);
+  border-radius    : 0.75rem;
+  overflow         : hidden;
+  display          : flex;
+  flex-direction   : column;
+  font-size        : 0.8125rem;   /* 13 px — compact, matches design */
+  color            : var(--theme-text-primary);
 }
 
-/* ============================================
-   Table Base Styles
-   ============================================ */
-
-.kidu-server-table .table {
-  margin-bottom: 0;
-  border-collapse: separate;
-  border-spacing: 0;
+.kidu-server-table.kidu-fullscreen {
+  position      : fixed;
+  inset         : 0;
+  z-index       : 9999;
+  border-radius : 0;
+  overflow-y    : auto;
 }
 
-.kidu-server-table .table thead th {
-  position: relative;
-  background-color: #f8f9fa;
-  font-weight: 600;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--kidu-primary);
-  border-bottom: 2px solid var(--kidu-primary);
-  white-space: nowrap;
-  user-select: none;
+
+/* ──────────────────────────────────────────────────────────────
+   TOOLBAR
+   ────────────────────────────────────────────────────────────── */
+
+.kidu-toolbar {
+  padding          : 1rem 1.25rem 0.75rem;
+  border-bottom    : 1px solid var(--theme-border);
+  background-color : var(--theme-bg-paper);
 }
 
-.kidu-server-table .table thead th[style*="cursor: pointer"]:hover {
-  background-color: #e9ecef;
+/* Header block (title + subtitle) */
+.kidu-toolbar-header  { margin-bottom : 0.625rem; }
+
+.kidu-toolbar-title {
+  font-size   : 1rem;
+  font-weight : 700;
+  color       : var(--theme-text-primary);
+  margin      : 0 0 0.1rem;
+  line-height : 1.3;
 }
 
-.kidu-server-table .table tbody tr {
-  transition: all 0.2s ease;
+.kidu-toolbar-subtitle {
+  font-size : 0.75rem;
+  color     : var(--theme-text-secondary);
+  margin    : 0;
 }
 
-.kidu-server-table .table tbody tr:hover {
-  background-color: var(--kidu-bg-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+/* Controls row */
+.kidu-toolbar-row {
+  display     : flex;
+  align-items : center;
+  gap         : 0.5rem;
+  flex-wrap   : wrap;
 }
 
-.kidu-server-table .table-striped tbody tr:nth-of-type(odd) {
-  background-color: #ffe8e8;
+/* ── Search ─────────────────────────────────────────────────── */
+
+.kidu-search-wrapper {
+  position  : relative;
+  flex      : 1;
+  min-width : 180px;
+  max-width : 320px;
 }
 
-.kidu-server-table .table-striped tbody tr:nth-of-type(odd):hover {
-  background-color: #ffd6d6;
+.kidu-search-icon {
+  position         : absolute;
+  left             : 0.6rem;
+  top              : 50%;
+  transform        : translateY(-50%);
+  color            : var(--theme-text-disabled);
+  font-size        : 0.7rem;
+  pointer-events   : none;
 }
 
-/* ============================================
-   Responsive Table
-   ============================================ */
-
-.kidu-server-table .table-responsive {
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid var(--kidu-border);
+.kidu-search-input {
+  padding-left  : 2rem   !important;
+  padding-right : 2.25rem !important;
+  height        : 32px;
+  border-radius : 0.5rem        !important;
+  border-color  : var(--theme-border) !important;
+  background-color : var(--theme-bg-elevated) !important;
+  color         : var(--theme-text-primary)   !important;
+  font-size     : 0.8125rem     !important;
+  transition    : border-color 0.15s, box-shadow 0.15s;
 }
+
+.kidu-search-input::placeholder { color: var(--theme-text-disabled); }
+
+.kidu-search-input:focus {
+  border-color : var(--theme-primary) !important;
+  box-shadow   : 0 0 0 3px color-mix(in srgb, var(--theme-primary) 14%, transparent) !important;
+}
+
+.kidu-search-clear {
+  position         : absolute;
+  right            : 0.35rem;
+  top              : 50%;
+  transform        : translateY(-50%);
+  background       : none;
+  border           : none;
+  padding          : 0.15rem 0.3rem;
+  border-radius    : 0.25rem;
+  color            : var(--theme-text-disabled);
+  cursor           : pointer;
+  line-height      : 1;
+  font-size        : 0.7rem;
+  transition       : color 0.1s;
+}
+.kidu-search-clear:hover { color: var(--theme-text-primary); }
+
+/* ── Toolbar actions strip ──────────────────────────────────── */
+
+.kidu-toolbar-actions {
+  display     : flex;
+  align-items : center;
+  gap         : 0.35rem;
+  flex-wrap   : wrap;
+  margin-left : auto;
+}
+
+.kidu-toolbar-divider {
+  width            : 1px;
+  height           : 18px;
+  background-color : var(--theme-border);
+  margin           : 0 0.15rem;
+  flex-shrink      : 0;
+}
+
+/* ── Toolbar buttons ────────────────────────────────────────── */
+
+.kidu-toolbar-btn {
+  display      : inline-flex !important;
+  align-items  : center;
+  gap          : 0.3rem;
+  height       : 32px;
+  padding      : 0 0.65rem !important;
+  border-radius: 0.5rem    !important;
+  border-color : var(--theme-border)          !important;
+  background-color : var(--theme-bg-paper)    !important;
+  color        : var(--theme-text-secondary)  !important;
+  font-size    : 0.75rem   !important;
+  font-weight  : 500;
+  white-space  : nowrap;
+  transition   : all 0.15s ease;
+}
+
+.kidu-toolbar-btn:hover,
+.kidu-toolbar-btn:focus,
+.kidu-toolbar-btn.show {
+  border-color     : var(--theme-primary) !important;
+  color            : var(--theme-primary) !important;
+  background-color : color-mix(in srgb, var(--theme-primary) 6%, transparent) !important;
+}
+
+.kidu-toolbar-btn--active {
+  border-color     : var(--theme-primary) !important;
+  color            : var(--theme-primary) !important;
+  background-color : color-mix(in srgb, var(--theme-primary) 8%, transparent) !important;
+}
+
+/* Hide text labels on very small screens */
+@media (max-width: 640px) { .kidu-btn-label { display: none; } }
+
+.kidu-filter-badge {
+  font-size : 0.6rem  !important;
+  padding   : 0.15em 0.4em !important;
+}
+
+/* ── Add button ─────────────────────────────────────────────── */
+
+.kidu-add-btn {
+  display      : inline-flex  !important;
+  align-items  : center;
+  gap          : 0.3rem;
+  height       : 32px;
+  padding      : 0 0.9rem !important;
+  border-radius: 0.5rem   !important;
+  background-color : var(--theme-primary)       !important;
+  border-color     : var(--theme-primary)       !important;
+  color            : #fff                       !important;
+  font-size        : 0.8125rem !important;
+  font-weight      : 600;
+  white-space      : nowrap;
+  transition       : background-color 0.15s, box-shadow 0.15s;
+}
+.kidu-add-btn:hover {
+  background-color : var(--theme-primary-hover) !important;
+  border-color     : var(--theme-primary-hover) !important;
+  box-shadow       : 0 2px 8px color-mix(in srgb, var(--theme-primary) 35%, transparent);
+}
+
+
+/* ──────────────────────────────────────────────────────────────
+   COLUMN TOGGLE MENU
+   ────────────────────────────────────────────────────────────── */
+
+.kidu-column-menu {
+  min-width        : 220px;
+  padding          : 0.25rem  !important;
+  border-color     : var(--theme-border)    !important;
+  background-color : var(--theme-bg-paper)  !important;
+  box-shadow       : 0 8px 24px rgba(0,0,0,.1) !important;
+  border-radius    : 0.625rem !important;
+}
+
+.kidu-column-menu-header {
+  padding        : 0.3rem 0.75rem;
+  font-size      : 0.675rem;
+  font-weight    : 700;
+  text-transform : uppercase;
+  letter-spacing : 0.07em;
+  color          : var(--theme-text-disabled);
+}
+
+.kidu-column-item {
+  display         : flex;
+  align-items     : center;
+  justify-content : space-between;
+  padding         : 0.275rem 0.5rem;
+  border-radius   : 0.375rem;
+  transition      : background-color 0.1s;
+}
+.kidu-column-item:hover { background-color: var(--theme-bg-hover); }
+
+.kidu-column-item-label {
+  display     : flex;
+  align-items : center;
+  gap         : 0.45rem;
+  cursor      : pointer;
+  flex        : 1;
+  font-size   : 0.8125rem;
+  color       : var(--theme-text-primary);
+  margin      : 0;
+  user-select : none;
+}
+
+.kidu-col-check-icon {
+  width         : 14px;
+  height        : 14px;
+  border-radius : 3px;
+  border        : 1.5px solid var(--theme-border);
+  display       : flex;
+  align-items   : center;
+  justify-content: center;
+  flex-shrink   : 0;
+  transition    : all 0.12s;
+  color         : #fff;
+}
+.kidu-col-check-icon.on {
+  background-color : var(--theme-primary);
+  border-color     : var(--theme-primary);
+}
+
+.kidu-pin-btn {
+  color     : var(--theme-text-disabled) !important;
+  padding   : 0.2rem !important;
+  opacity   : 0.5;
+  transition: opacity 0.12s, color 0.12s;
+}
+.kidu-pin-btn.active,
+.kidu-pin-btn:hover {
+  color   : var(--theme-primary) !important;
+  opacity : 1;
+}
+
+
+/* ──────────────────────────────────────────────────────────────
+   GENERIC DROPDOWN ITEMS
+   ────────────────────────────────────────────────────────────── */
+
+.kidu-dropdown-item {
+  display     : flex  !important;
+  align-items : center;
+  padding     : 0.375rem 0.75rem !important;
+  font-size   : 0.8125rem        !important;
+  color       : var(--theme-text-primary) !important;
+  border-radius : 0.375rem;
+  transition  : background-color 0.1s;
+}
+.kidu-dropdown-item:hover {
+  background-color : var(--theme-bg-hover) !important;
+  color            : var(--theme-text-primary) !important;
+}
+.kidu-dropdown-item.active,
+.kidu-dropdown-item:active {
+  background-color : color-mix(in srgb, var(--theme-primary) 10%, transparent) !important;
+  color            : var(--theme-primary) !important;
+}
+
+/* Actions dropdown */
+.kidu-actions-menu {
+  min-width        : 140px;
+  padding          : 0.25rem !important;
+  border-color     : var(--theme-border)   !important;
+  background-color : var(--theme-bg-paper) !important;
+  box-shadow       : 0 8px 24px rgba(0,0,0,.1) !important;
+  border-radius    : 0.625rem !important;
+}
+
+.kidu-delete-item {
+  color: #ef4444 !important;
+}
+.kidu-delete-item:hover {
+  background-color : #fef2f2 !important;
+  color            : #dc2626 !important;
+}
+[data-theme="dark"] .kidu-delete-item:hover {
+  background-color : rgba(239,68,68,.14) !important;
+}
+
+/* Per-row ⋯ toggle button */
+.kidu-action-toggle {
+  display         : flex  !important;
+  align-items     : center;
+  justify-content : center;
+  width           : 28px;
+  height          : 28px;
+  padding         : 0     !important;
+  color           : var(--theme-text-secondary) !important;
+  border-radius   : 0.375rem;
+  transition      : background-color 0.1s, color 0.1s;
+}
+.kidu-action-toggle::after { display: none !important; }
+.kidu-action-toggle:hover {
+  background-color : var(--theme-bg-hover)  !important;
+  color            : var(--theme-text-primary) !important;
+}
+
+
+/* ──────────────────────────────────────────────────────────────
+   SELECTION BAR
+   ────────────────────────────────────────────────────────────── */
+
+.kidu-selection-bar {
+  display          : flex;
+  align-items      : center;
+  gap              : 0.35rem;
+  padding          : 0.5rem 1.25rem;
+  background-color : color-mix(in srgb, var(--theme-primary) 6%, transparent);
+  border-bottom    : 1px solid color-mix(in srgb, var(--theme-primary) 18%, transparent);
+  flex-wrap        : wrap;
+}
+
+.kidu-sel-count {
+  font-size   : 0.8125rem;
+  font-weight : 600;
+  color       : var(--theme-primary);
+}
+
+.kidu-sel-btn {
+  background  : none;
+  border      : none;
+  font-size   : 0.75rem;
+  color       : var(--theme-text-secondary);
+  cursor      : pointer;
+  padding     : 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  transition  : color 0.1s;
+}
+.kidu-sel-btn:hover { color: var(--theme-primary); }
+
+.kidu-sel-spacer { flex: 1; }
+
+.kidu-sel-action {
+  font-size     : 0.75rem !important;
+  height        : 28px;
+  padding       : 0 0.65rem !important;
+  border-radius : 0.5rem   !important;
+}
+
+
+/* ──────────────────────────────────────────────────────────────
+   FILTER ROW
+   ────────────────────────────────────────────────────────────── */
+
+.kidu-filter-row {
+  display          : flex;
+  flex-wrap        : wrap;
+  align-items      : flex-end;
+  gap              : 0.5rem;
+  padding          : 0.75rem 1.25rem;
+  background-color : var(--theme-bg-elevated);
+  border-bottom    : 1px solid var(--theme-border);
+}
+
+.kidu-filter-field {
+  display       : flex;
+  flex-direction: column;
+  gap           : 0.25rem;
+  min-width     : 120px;
+  flex          : 1;
+}
+
+.kidu-filter-label {
+  font-size      : 0.675rem;
+  font-weight    : 700;
+  text-transform : uppercase;
+  letter-spacing : 0.06em;
+  color          : var(--theme-text-secondary);
+  margin         : 0;
+}
+
+.kidu-filter-input {
+  height           : 30px;
+  font-size        : 0.8rem !important;
+  border-color     : var(--theme-border)    !important;
+  background-color : var(--theme-bg-paper)  !important;
+  color            : var(--theme-text-primary) !important;
+  border-radius    : 0.375rem !important;
+}
+.kidu-filter-input:focus {
+  border-color : var(--theme-primary) !important;
+  box-shadow   : 0 0 0 2px color-mix(in srgb, var(--theme-primary) 14%, transparent) !important;
+}
+
+.kidu-filter-actions { display: flex; align-items: flex-end; }
+
+.kidu-filter-clear-btn {
+  background    : none;
+  border        : none;
+  color         : var(--theme-primary);
+  font-size     : 0.8rem;
+  font-weight   : 500;
+  cursor        : pointer;
+  padding       : 0.25rem 0.5rem;
+  border-radius : 0.25rem;
+  height        : 30px;
+  transition    : background-color 0.1s;
+}
+.kidu-filter-clear-btn:hover {
+  background-color: color-mix(in srgb, var(--theme-primary) 10%, transparent);
+}
+
+.kidu-custom-filters { width: 100%; }
+
+
+/* ──────────────────────────────────────────────────────────────
+   TABLE SCROLL WRAPPER
+   ────────────────────────────────────────────────────────────── */
+
+.kidu-table-scroll {
+  overflow-x : auto;
+  overflow-y : auto;
+  flex       : 1;
+}
+
+/* Thin scrollbar */
+.kidu-table-scroll::-webkit-scrollbar        { width: 5px; height: 5px; }
+.kidu-table-scroll::-webkit-scrollbar-track  { background: var(--theme-bg-paper); }
+.kidu-table-scroll::-webkit-scrollbar-thumb  { background: var(--theme-border); border-radius: 3px; }
+.kidu-table-scroll::-webkit-scrollbar-thumb:hover { background: var(--theme-text-disabled); }
+
+
+/* ──────────────────────────────────────────────────────────────
+   TABLE BASE
+   ────────────────────────────────────────────────────────────── */
+
+.kidu-table {
+  width           : 100%;
+  border-collapse : separate;
+  border-spacing  : 0;
+  table-layout    : auto;
+}
+
+.kidu-striped .kidu-tr:nth-child(even) {
+  background-color: var(--theme-bg-elevated);
+}
+
+/* ── Head ───────────────────────────────────────────────────── */
+
+.kidu-thead-sticky {
+  position : sticky;
+  top      : 0;
+  z-index  : 10;
+}
+
+.kidu-th {
+  background-color : var(--theme-bg-elevated);
+  color            : var(--theme-text-secondary);
+  font-size        : 0.675rem;
+  font-weight      : 700;
+  text-transform   : uppercase;
+  letter-spacing   : 0.07em;
+  border-bottom    : 2px solid var(--theme-border);
+  white-space      : nowrap;
+  user-select      : none;
+  position         : relative;
+}
+
+.kidu-th-inner {
+  display     : flex;
+  align-items : center;
+  gap         : 0.35rem;
+}
+
+.kidu-th-label  { flex: 1; }
+
+.kidu-th-sortable {
+  cursor     : pointer;
+  transition : background-color 0.1s;
+}
+.kidu-th-sortable:hover {
+  background-color : var(--theme-bg-hover);
+  color            : var(--theme-text-primary);
+}
+
+.kidu-th-actions { text-align: center; }
+
+/* Pinned columns */
+.kidu-th-pinned-left,
+.kidu-td-pinned-left {
+  position         : sticky;
+  left             : 0;
+  z-index          : 5;
+  background-color : var(--theme-bg-paper);
+  box-shadow       : 2px 0 5px rgba(0,0,0,.06);
+}
+.kidu-th-pinned-right,
+.kidu-td-pinned-right {
+  position         : sticky;
+  right            : 0;
+  z-index          : 5;
+  background-color : var(--theme-bg-paper);
+  box-shadow       : -2px 0 5px rgba(0,0,0,.06);
+}
+
+/* Drag */
+.kidu-th-dragging { opacity: 0.45; }
+
+.kidu-drag-handle {
+  color      : var(--theme-border);
+  font-size  : 0.6rem;
+  cursor     : grab;
+  flex-shrink: 0;
+  opacity    : 0;
+  transition : opacity 0.12s;
+}
+.kidu-th:hover .kidu-drag-handle { opacity: 1; }
+
+/* Sort icons */
+.kidu-sort-icon {
+  color      : var(--theme-text-disabled);
+  font-size  : 0.65rem;
+  flex-shrink: 0;
+}
+.kidu-th-sortable .kidu-sort-icon { color: color-mix(in srgb, var(--theme-primary) 70%, transparent); }
+
+/* Pin indicator */
+.kidu-pin-indicator {
+  font-size : 0.6rem;
+  color     : var(--theme-primary);
+  transform : rotate(-45deg);
+}
+
+/* Checkbox column */
+.kidu-th-checkbox,
+.kidu-td-checkbox { width: 40px; min-width: 40px; }
+
+/* ── Density ────────────────────────────────────────────────── */
+
+.kidu-density-compact      { padding: 0.35rem 0.7rem; }
+.kidu-density-comfortable  { padding: 0.65rem 0.875rem; }
+.kidu-density-spacious     { padding: 1rem   1rem; }
+
+/* ── Body rows ──────────────────────────────────────────────── */
+
+.kidu-tr {
+  border-bottom : 1px solid var(--theme-border);
+  transition    : background-color 0.1s;
+}
+.kidu-tr:last-child { border-bottom: none; }
+
+.kidu-tr-hover:hover    { background-color: var(--theme-bg-hover); }
+.kidu-tr-selected       { background-color: color-mix(in srgb, var(--theme-primary) 6%, transparent) !important; }
+.kidu-tr-clickable      { cursor: pointer; }
+
+.kidu-td {
+  color          : var(--theme-text-primary);
+  vertical-align : middle;
+  font-size      : 0.8125rem;
+  border-bottom  : 1px solid var(--theme-border);
+}
+.kidu-td-actions { text-align: center; }
+
+.kidu-cell-empty { color: var(--theme-text-disabled); }
+
+/* Checkbox */
+.kidu-checkbox {
+  width        : 15px;
+  height       : 15px;
+  accent-color : var(--theme-primary);
+  cursor       : pointer;
+}
+
+
+/* ──────────────────────────────────────────────────────────────
+   BUILT-IN CELL TYPES
+   ────────────────────────────────────────────────────────────── */
+
+/* Avatar */
+.kidu-avatar-cell {
+  display     : flex;
+  align-items : center;
+  gap         : 0.5rem;
+}
+.kidu-avatar {
+  display         : inline-flex;
+  align-items     : center;
+  justify-content : center;
+  width           : 28px;
+  height          : 28px;
+  border-radius   : 50%;
+  font-size       : 0.6rem;
+  font-weight     : 700;
+  color           : #fff;
+  flex-shrink     : 0;
+  letter-spacing  : 0.03em;
+}
+.kidu-avatar-name { font-weight: 500; }
+
+/* Badge */
+.kidu-badge {
+  display       : inline-block;
+  padding       : 0.2em 0.7em;
+  border-radius : 999px;
+  font-size     : 0.7rem;
+  font-weight   : 600;
+  line-height   : 1.4;
+}
+.kidu-badge--active {
+  background-color : #d1fae5;
+  color            : #065f46;
+}
+.kidu-badge--inactive {
+  background-color : #fee2e2;
+  color            : #991b1b;
+}
+.kidu-badge--default {
+  background-color : var(--theme-bg-elevated);
+  color            : var(--theme-text-secondary);
+}
+
+[data-theme="dark"] .kidu-badge--active   { background-color: rgba(16,185,129,.18);  color: #6ee7b7; }
+[data-theme="dark"] .kidu-badge--inactive { background-color: rgba(239, 68,68,.18);  color: #fca5a5; }
+
+/* Image */
+.kidu-table-image {
+  width         : 32px;
+  height        : 32px;
+  object-fit    : cover;
+  border-radius : 0.375rem;
+}
+
+/* Rating */
+.kidu-rating    { display: flex; align-items: center; gap: 1px; }
+.kidu-star      { font-size: 0.875rem; }
+.kidu-star.full { color: #f59e0b; }
+.kidu-star.half { color: #f59e0b; opacity: 0.55; }
+.kidu-star.empty{ color: var(--theme-border); }
+.kidu-rating-val{ font-size: 0.7rem; color: var(--theme-text-secondary); margin-left: 0.25rem; }
+
+
+/* ──────────────────────────────────────────────────────────────
+   LOADING SKELETON
+   ────────────────────────────────────────────────────────────── */
+
+.kidu-skeleton {
+  background      : linear-gradient(
+    90deg,
+    var(--theme-bg-elevated) 25%,
+    var(--theme-bg-hover)    50%,
+    var(--theme-bg-elevated) 75%
+  );
+  background-size : 400% 100%;
+  animation       : kidu-shimmer 1.4s ease infinite;
+  border-radius   : 0.375rem;
+  height          : 13px;
+}
+.kidu-skel-xs { width: 24px; height: 13px; }
+.kidu-skel-md { width: 68%; }
+
+@keyframes kidu-shimmer {
+  0%   { background-position: 100% 50%; }
+  100% { background-position:   0% 50%; }
+}
+
+/* ── Empty / Error ──────────────────────────────────────────── */
+
+.kidu-empty-cell {
+  text-align  : center;
+  padding     : 3rem 1rem !important;
+}
+.kidu-empty-msg   { color: var(--theme-text-secondary); font-size: 0.875rem; margin: 0; }
+.kidu-error-state { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
+.kidu-error-msg   { color: #ef4444; font-size: 0.875rem; margin: 0; }
+
+
+/* ──────────────────────────────────────────────────────────────
+   FOOTER / PAGINATION
+   ────────────────────────────────────────────────────────────── */
+
+.kidu-footer {
+  display          : flex;
+  align-items      : center;
+  justify-content  : space-between;
+  padding          : 0.6rem 1.25rem;
+  border-top       : 1px solid var(--theme-border);
+  background-color : var(--theme-bg-paper);
+  flex-wrap        : wrap;
+  gap              : 0.5rem;
+}
+
+.kidu-footer-left {
+  display     : flex;
+  align-items : center;
+  gap         : 0.75rem;
+}
+
+.kidu-footer-info {
+  font-size : 0.75rem;
+  color     : var(--theme-text-secondary);
+}
+
+.kidu-page-size {
+  display     : flex;
+  align-items : center;
+  gap         : 0.4rem;
+}
+
+.kidu-page-size-select {
+  height           : 28px;
+  padding          : 0 1.5rem 0 0.5rem  !important;
+  font-size        : 0.75rem             !important;
+  border-color     : var(--theme-border) !important;
+  background-color : var(--theme-bg-elevated) !important;
+  color            : var(--theme-text-primary) !important;
+  border-radius    : 0.375rem !important;
+}
+
+/* Page buttons */
+.kidu-pagination {
+  display     : flex;
+  align-items : center;
+  gap         : 0.2rem;
+}
+
+.kidu-page-btn {
+  display         : inline-flex;
+  align-items     : center;
+  justify-content : center;
+  min-width       : 30px;
+  height          : 30px;
+  padding         : 0 0.375rem;
+  border-radius   : 0.5rem;
+  border          : 1px solid var(--theme-border);
+  background-color: var(--theme-bg-paper);
+  color           : var(--theme-text-secondary);
+  font-size       : 0.75rem;
+  font-weight     : 500;
+  cursor          : pointer;
+  transition      : all 0.14s ease;
+  line-height     : 1;
+}
+.kidu-page-btn:hover:not(:disabled) {
+  border-color     : var(--theme-primary);
+  color            : var(--theme-primary);
+  background-color : color-mix(in srgb, var(--theme-primary) 6%, transparent);
+}
+.kidu-page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.kidu-page-btn.kidu-page-active {
+  background-color : var(--theme-primary);
+  border-color     : var(--theme-primary);
+  color            : #fff;
+  font-weight      : 700;
+}
+.kidu-page-btn.kidu-page-active:hover {
+  background-color : var(--theme-primary-hover);
+  border-color     : var(--theme-primary-hover);
+  color            : #fff;
+}
+
+.kidu-page-nav    { font-size: 0.6rem; }
+
+.kidu-page-ellipsis {
+  display         : inline-flex;
+  align-items     : center;
+  justify-content : center;
+  width           : 22px;
+  color           : var(--theme-text-disabled);
+  font-size       : 0.75rem;
+  letter-spacing  : 0.1em;
+}
+
+
+/* ──────────────────────────────────────────────────────────────
+   DARK-MODE DROPDOWN OVERRIDES (Bootstrap)
+   ────────────────────────────────────────────────────────────── */
+
+[data-theme="dark"] .dropdown-menu {
+  background-color : var(--theme-bg-paper) !important;
+  border-color     : var(--theme-border)   !important;
+}
+[data-theme="dark"] .dropdown-item         { color: var(--theme-text-primary) !important; }
+[data-theme="dark"] .dropdown-item:hover   { background-color: var(--theme-bg-hover) !important; }
+[data-theme="dark"] .dropdown-divider      { border-color: var(--theme-border) !important; }
+
+
+/* ──────────────────────────────────────────────────────────────
+   RESPONSIVE
+   ────────────────────────────────────────────────────────────── */
 
 @media (max-width: 768px) {
-  .kidu-server-table .table-responsive {
-    border-radius: 4px;
-  }
-
-  .kidu-server-table .table {
-    font-size: 11px;
-  }
-
-  .kidu-server-table .table thead th {
-    font-size: 10px;
-    padding: 8px 4px !important;
-  }
-
-  .kidu-server-table .table tbody td {
-    padding: 6px 4px !important;
-  }
-
-  /* Hide less important columns on mobile */
-  .kidu-server-table .table th:nth-child(n+5),
-  .kidu-server-table .table td:nth-child(n+5) {
-    display: none;
-  }
-
-  /* Keep actions column visible */
-  .kidu-server-table .table th:last-child,
-  .kidu-server-table .table td:last-child {
-    display: table-cell !important;
-  }
+  .kidu-toolbar          { padding: 0.75rem; }
+  .kidu-toolbar-row      { flex-direction: column; align-items: stretch; }
+  .kidu-search-wrapper   { max-width: 100%; }
+  .kidu-toolbar-actions  { margin-left: 0; justify-content: flex-start; }
+  .kidu-footer           { flex-direction: column; align-items: flex-start; }
 }
 
-/* ============================================
-   Sticky Header
-   ============================================ */
 
-.kidu-server-table .sticky-top {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* ============================================
-   Loading & Empty States
-   ============================================ */
-
-.kidu-server-table .spinner-border {
-  color: var(--kidu-primary);
-}
-
-.kidu-server-table .table tbody tr td[colspan] {
-  background-color: #ffffff !important;
-}
-
-/* ============================================
-   Action Buttons
-   ============================================ */
-
-.kidu-server-table .dropdown-toggle::after {
-  display: none;
-}
-
-.kidu-server-table .dropdown-toggle {
-  padding: 4px 8px;
-  transition: all 0.2s;
-}
-
-.kidu-server-table .dropdown-toggle:hover {
-  background-color: var(--kidu-bg-hover);
-  border-radius: 4px;
-}
-
-.kidu-server-table .dropdown-menu {
-  font-size: 13px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  border: 1px solid var(--kidu-border);
-}
-
-.kidu-server-table .dropdown-item {
-  padding: 8px 16px;
-  transition: all 0.2s;
-}
-
-.kidu-server-table .dropdown-item:hover {
-  background-color: var(--kidu-bg-hover);
-  color: var(--kidu-primary);
-}
-
-.kidu-server-table .dropdown-item.text-danger:hover {
-  background-color: #fee;
-  color: #dc3545;
-}
-
-/* ============================================
-   Toolbar Styles
-   ============================================ */
-
-.kidu-server-table .btn {
-  font-family: 'Urbanist', sans-serif;
-  font-weight: 500;
-  transition: all 0.2s;
-}
-
-.kidu-server-table .btn-outline-primary {
-  border-color: var(--kidu-primary);
-  color: var(--kidu-primary);
-}
-
-.kidu-server-table .btn-outline-primary:hover {
-  background-color: var(--kidu-primary);
-  border-color: var(--kidu-primary);
-  color: white;
-}
-
-.kidu-server-table .btn-primary {
-  background-color: var(--kidu-primary);
-  border-color: var(--kidu-primary);
-}
-
-.kidu-server-table .btn-primary:hover {
-  background-color: var(--kidu-primary-hover);
-  border-color: var(--kidu-primary-hover);
-}
-
-.kidu-server-table .input-group-text {
-  background-color: #f8f9fa;
-  border-color: var(--kidu-border);
-  color: var(--kidu-text-secondary);
-}
-
-.kidu-server-table .form-control:focus {
-  border-color: var(--kidu-primary);
-  box-shadow: 0 0 0 0.2rem rgba(27, 55, 99, 0.15);
-}
-
-.kidu-server-table .form-select:focus {
-  border-color: var(--kidu-primary);
-  box-shadow: 0 0 0 0.2rem rgba(27, 55, 99, 0.15);
-}
-
-/* ============================================
-   Badge Styles
-   ============================================ */
-
-.kidu-server-table .badge {
-  font-weight: 600;
-  font-size: 10px;
-  padding: 4px 8px;
-  border-radius: 12px;
-}
-
-.kidu-server-table .bg-primary {
-  background-color: var(--kidu-primary) !important;
-}
-
-.kidu-server-table .bg-danger {
-  background-color: #dc3545 !important;
-}
-
-/* ============================================
-   Pagination Styles
-   ============================================ */
-
-.kidu-server-table .pagination {
-  margin-bottom: 0;
-}
-
-.kidu-server-table .page-link {
-  color: var(--kidu-primary);
-  border-color: var(--kidu-border);
-  font-size: 13px;
-  padding: 6px 12px;
-  transition: all 0.2s;
-}
-
-.kidu-server-table .page-link:hover {
-  background-color: var(--kidu-bg-hover);
-  border-color: var(--kidu-primary);
-  color: var(--kidu-primary);
-}
-
-.kidu-server-table .page-item.active .page-link {
-  background-color: var(--kidu-primary);
-  border-color: var(--kidu-primary);
-  color: white;
-}
-
-.kidu-server-table .page-item.disabled .page-link {
-  color: var(--kidu-text-secondary);
-  pointer-events: none;
-  background-color: #f8f9fa;
-}
-
-@media (max-width: 576px) {
-  .kidu-server-table .pagination {
-    font-size: 11px;
-  }
-
-  .kidu-server-table .page-link {
-    padding: 4px 8px;
-    font-size: 11px;
-  }
-}
-
-/* ============================================
-   Filter Row Styles
-   ============================================ */
-
-.kidu-server-table .bg-light {
-  background-color: #f8f9fa !important;
-  border: 1px solid var(--kidu-border);
-}
-
-.kidu-server-table .text-muted {
-  color: var(--kidu-text-secondary) !important;
-}
-
-.kidu-server-table .fw-semibold {
-  font-weight: 600;
-}
-
-/* ============================================
-   Custom Cell Types
-   ============================================ */
-
-/* Checkbox cells */
-.kidu-server-table input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  accent-color: var(--kidu-primary);
-}
-
-.kidu-server-table input[type="checkbox"]:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-/* Image cells */
-.kidu-server-table img {
-  transition: transform 0.2s;
-}
-
-.kidu-server-table img:hover {
-  transform: scale(1.1);
-}
-
-/* Rating stars */
-.kidu-server-table .d-flex.align-items-center.gap-1 {
-  justify-content: center;
-}
-
-/* ============================================
-   Print Styles
-   ============================================ */
+/* ──────────────────────────────────────────────────────────────
+   PRINT
+   ────────────────────────────────────────────────────────────── */
 
 @media print {
-  .kidu-server-table .no-print,
-  .kidu-server-table button,
-  .kidu-server-table .btn,
-  .kidu-server-table .dropdown,
-  .kidu-server-table .pagination,
-  .kidu-server-table .input-group,
-  .kidu-server-table .form-control,
-  .kidu-server-table .form-select {
-    display: none !important;
-  }
-
-  .kidu-server-table .table {
-    border: 1px solid #000;
-  }
-
-  .kidu-server-table .table thead th {
-    background-color: #f0f0f0 !important;
-    color: #000 !important;
-    border: 1px solid #000 !important;
-  }
-
-  .kidu-server-table .table tbody td {
-    border: 1px solid #000 !important;
-  }
-
-  .kidu-server-table .table tbody tr:hover {
-    background-color: transparent !important;
-    transform: none !important;
-    box-shadow: none !important;
-  }
-}
-
-/* ============================================
-   Fullscreen Mode
-   ============================================ */
-
-.kidu-server-table:-webkit-full-screen {
-  background-color: white;
-  padding: 20px;
-  overflow-y: auto;
-}
-
-.kidu-server-table:-moz-full-screen {
-  background-color: white;
-  padding: 20px;
-  overflow-y: auto;
-}
-
-.kidu-server-table:fullscreen {
-  background-color: white;
-  padding: 20px;
-  overflow-y: auto;
-}
-
-/* ============================================
-   Custom Scrollbar
-   ============================================ */
-
-.kidu-server-table .table-responsive::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.kidu-server-table .table-responsive::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-.kidu-server-table .table-responsive::-webkit-scrollbar-thumb {
-  background: var(--kidu-primary);
-  border-radius: 4px;
-}
-
-.kidu-server-table .table-responsive::-webkit-scrollbar-thumb:hover {
-  background: var(--kidu-primary-hover);
-}
-
-/* ============================================
-   Animations
-   ============================================ */
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.kidu-server-table .table tbody tr {
-  animation: fadeIn 0.3s ease-out;
-}
-
-/* ============================================
-   Dark Mode Support (Optional)
-   ============================================ */
-
-[data-theme="dark"] .kidu-server-table {
-  --kidu-primary: #ff2464;
-  --kidu-primary-hover: #ff3d7a;
-  --kidu-border: #2d3440;
-  --kidu-bg-hover: #242a33;
-  --kidu-text-primary: #f8fafc;
-  --kidu-text-secondary: #cbd5e1;
-}
-
-[data-theme="dark"] .kidu-server-table .table {
-  color: var(--kidu-text-primary);
-  background-color: #1a1f26;
-}
-
-[data-theme="dark"] .kidu-server-table .table thead th {
-  background-color: #0f1419;
-  color: var(--kidu-text-primary);
-  border-color: var(--kidu-border);
-}
-
-[data-theme="dark"] .kidu-server-table .table tbody tr {
-  background-color: #1a1f26;
-}
-
-[data-theme="dark"] .kidu-server-table .table tbody tr:hover {
-  background-color: var(--kidu-bg-hover);
-}
-
-[data-theme="dark"] .kidu-server-table .bg-light {
-  background-color: #0f1419 !important;
-  border-color: var(--kidu-border);
-}
-
-[data-theme="dark"] .kidu-server-table .form-control,
-[data-theme="dark"] .kidu-server-table .form-select {
-  background-color: #1a1f26;
-  border-color: var(--kidu-border);
-  color: var(--kidu-text-primary);
-}
-
-[data-theme="dark"] .kidu-server-table .dropdown-menu {
-  background-color: #1a1f26;
-  border-color: var(--kidu-border);
-}
-
-[data-theme="dark"] .kidu-server-table .dropdown-item {
-  color: var(--kidu-text-primary);
-}
-
-[data-theme="dark"] .kidu-server-table .dropdown-item:hover {
-  background-color: var(--kidu-bg-hover);
-}
-
-/* ============================================
-   Utility Classes
-   ============================================ */
-
-.kidu-server-table .text-primary {
-  color: var(--kidu-primary) !important;
-}
-
-.kidu-server-table .fw-bold {
-  font-weight: 700;
-}
-
-.kidu-server-table .fw-semibold {
-  font-weight: 600;
-}
-
-.kidu-server-table .small {
-  font-size: 11px;
-}
-
-.kidu-server-table .text-uppercase {
-  text-transform: uppercase;
+  .kidu-toolbar,
+  .kidu-footer,
+  .kidu-selection-bar,
+  .kidu-filter-row,
+  .kidu-action-toggle   { display: none !important; }
+  .kidu-server-table    { border: none; }
 }

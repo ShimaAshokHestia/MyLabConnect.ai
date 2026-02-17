@@ -4,7 +4,7 @@ import toast, { Toaster } from "react-hot-toast";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { BsSearch } from "react-icons/bs";
 import Swal from 'sweetalert2';
-import "./CreateModal.css";
+import "../Styles/KiduStyles/CreateModal.css";
 import KiduValidation from "./KiduValidation";
 
 // ==================== TYPES ====================

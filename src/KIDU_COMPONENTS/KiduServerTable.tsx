@@ -1,511 +1,567 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+/**
+ * KiduServerTable.tsx
+ * ─────────────────────────────────────────────────────────────────
+ * Server-driven data table with full feature set.
+ *
+ * Action modes for Add / Edit / View — pick ONE per action:
+ *
+ *   1. MODAL  → pass `addModal`, `editModal`, or `viewModal` props
+ *               (KiduCreateModal opens automatically)
+ *
+ *   2. CALLBACK → pass `onAddClick`, `onEditClick`, or `onViewClick`
+ *                 (your own handler — open a custom modal, drawer, etc.)
+ *
+ *   3. NAVIGATE → pass `addRoute`, `editRoute`, or `viewRoute`
+ *                 (navigates to route / route/:id)
+ *
+ * Priority: modal prop > callback > route (for each action separately)
+ * ─────────────────────────────────────────────────────────────────
+ */
+
+import React, {
+  useState, useEffect, useRef, useCallback, useMemo,
+} from "react";
+import { Form, Button, Dropdown } from "react-bootstrap";
 import {
-  Container,
-  Row,
-  Col,
-  Button,
-  Form,
-  InputGroup,
-  Pagination,
-  Dropdown,
-  Badge,
-  Spinner,
-  OverlayTrigger,
-  Tooltip,
-} from "react-bootstrap";
-import {
-  FaSearch,
-  FaFilter,
-  FaTimes,
-  FaColumns,
-  FaDownload,
-  FaPlus,
-  FaEdit,
-  FaEye,
-  FaTrash,
-  FaSort,
-  FaSortUp,
-  FaSortDown,
-  FaEllipsisV,
-  FaFileExcel,
-  FaFilePdf,
-  FaFileCsv,
-  FaPrint,
-  FaGripVertical,
-  FaExpand,
-  FaCompress,
-  FaChevronLeft,
-  FaChevronRight,
-  FaCog,
+  FaSort, FaSortUp, FaSortDown,
+  FaEllipsisV, FaEye, FaEdit, FaTrash,
+  FaGripVertical, FaThumbtack,
+  FaChevronLeft, FaChevronRight, FaDownload,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  flexRender,
-  type SortingState,
-  type ColumnDef,
-  type VisibilityState,
+  useReactTable, getCoreRowModel, getSortedRowModel, flexRender,
+  type SortingState, type ColumnDef, type VisibilityState,
 } from "@tanstack/react-table";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import "../Styles/KiduStyles/ServerTable.css";
 
-// ============================================
-// Type Definitions
-// ============================================
+import KiduCreateModal, { type KiduCreateModalProps } from "./KiduCreateModal";
+import "../Styles/KiduStyles/ServerTable.css";
+import type { Density, ExportFormat, ToolbarColumnConfig } from "./KiduToolbar";
+import KiduToolbar from "./KiduToolbar";
+
+// ─────────────────────────────────────────────────────────────────
+// Public Types
+// ─────────────────────────────────────────────────────────────────
 
 export interface KiduColumn {
-  key: string;
-  label: string;
-  enableSorting?: boolean;
+  key:              string;
+  label:            string;
+  enableSorting?:   boolean;
   enableFiltering?: boolean;
-  type?: "text" | "checkbox" | "image" | "rating" | "date" | "badge" | "currency";
-  width?: number;
-  minWidth?: number;
-  render?: (value: any, row: any) => React.ReactNode;
-  filterType?: "text" | "select" | "date" | "number";
-  filterOptions?: string[];
+  /**
+   * Built-in cell renderer. Use `render` for full custom control.
+   * "avatar" → shows coloured initials circle + name text.
+   * "badge"  → auto-colours green/red for Active / Inactive.
+   */
+  type?:            "text" | "checkbox" | "image" | "rating" | "date" | "badge" | "currency" | "avatar";
+  width?:           number;
+  minWidth?:        number;
+  /** Override any built-in renderer */
+  render?:          (value: any, row: any) => React.ReactNode;
+  filterType?:      "text" | "select" | "date" | "number";
+  filterOptions?:   string[];
+  pinned?:          "left" | "right" | false;
 }
 
 export interface TableRequestParams {
-  pageNumber: number;
-  pageSize: number;
-  searchTerm?: string;
-  sortBy?: string;
-  sortDescending?: boolean;
-  showDeleted?: boolean;
-  showInactive?: boolean;
-  [key: string]: any; // For additional custom filters
+  pageNumber:       number;
+  pageSize:         number;
+  searchTerm?:      string;
+  sortBy?:          string;
+  sortDescending?:  boolean;
+  [key: string]:    any;
 }
 
 export interface TableResponse<T> {
-  data: T[];
-  total: number;
-  pageNumber?: number;
-  pageSize?: number;
+  data:        T[];
+  total:       number;
   totalPages?: number;
 }
 
+/**
+ * Props for KiduCreateModal that the table manages for you.
+ * Omit `show` and `onHide` — the table handles those.
+ */
+export type ManagedModalProps = Omit<KiduCreateModalProps, "show" | "onHide">;
+
 export interface KiduServerTableProps<T> {
-  // Core Configuration
-  title?: string;
+  // ── Header ────────────────────────────────────────────────────
+  title?:    string;
   subtitle?: string;
-  columns: KiduColumn[];
+
+  // ── Data ──────────────────────────────────────────────────────
+  columns:   KiduColumn[];
   fetchData: (params: TableRequestParams) => Promise<TableResponse<T>>;
-  rowKey?: keyof T;
+  rowKey?:   keyof T;
 
-  // Feature Toggles
-  showSearch?: boolean;
-  showFilters?: boolean;
-  showColumnToggle?: boolean;
-  showDensityToggle?: boolean;
-  showExport?: boolean;
-  showAddButton?: boolean;
-  showActions?: boolean;
-  showPagination?: boolean;
-  showRowsPerPage?: boolean;
+  // ── Toolbar visibility ─────────────────────────────────────────
+  showSearch?:          boolean;
+  showFilters?:         boolean;
+  showColumnToggle?:    boolean;
+  showDensityToggle?:   boolean;
+  showExport?:          boolean;
+  showFullscreen?:      boolean;
+  showAddButton?:       boolean;
+  showActions?:         boolean;   // show the per-row ⋯ menu
+  showPagination?:      boolean;
+  showRowsPerPage?:     boolean;
+  showCheckboxes?:      boolean;   // initial state; user can toggle
+  showSelectionToggle?: boolean;   // show the checkbox-column toggle button
 
-  // Actions
-  addRoute?: string;
-  editRoute?: string;
-  viewRoute?: string;
-  deleteRoute?: string;
-  onAddClick?: () => void;
-  onEditClick?: (row: T) => void;
-  onViewClick?: (row: T) => void;
-  onDeleteClick?: (row: T) => void;
-  onRowClick?: (row: T) => void;
-
-  // Customization
+  // ── ADD action ─────────────────────────────────────────────────
   addButtonLabel?: string;
+  /** Open KiduCreateModal with these props (table manages show/onHide) */
+  addModal?:       ManagedModalProps;
+  /** Custom callback (modal, drawer, etc.) */
+  onAddClick?:     () => void;
+  /** Navigate to this route */
+  addRoute?:       string;
+
+  // ── EDIT action ────────────────────────────────────────────────
+  /**
+   * Return KiduCreateModal props for the given row.
+   * Pre-populate `initialValues` inside here if you want edit mode.
+   */
+  editModal?:      (row: T) => ManagedModalProps;
+  onEditClick?:    (row: T) => void;
+  editRoute?:      string;   // navigates to editRoute/:id
+
+  // ── VIEW action ────────────────────────────────────────────────
+  viewModal?:      (row: T) => ManagedModalProps;
+  onViewClick?:    (row: T) => void;
+  viewRoute?:      string;   // navigates to viewRoute/:id
+
+  // ── DELETE action ──────────────────────────────────────────────
+  onDeleteClick?:  (row: T) => void;
+  onBulkDelete?:   (rows: T[]) => void;
+
+  // ── Row click ──────────────────────────────────────────────────
+  onRowClick?:     (row: T) => void;
+
+  // ── Layout ────────────────────────────────────────────────────
   rowsPerPageOptions?: number[];
   defaultRowsPerPage?: number;
-  defaultDensity?: "compact" | "comfortable" | "spacious";
-  customFilters?: React.ReactNode;
-  additionalButtons?: React.ReactNode;
+  defaultDensity?:     Density;
+  stickyHeader?:       boolean;
+  highlightOnHover?:   boolean;
+  striped?:            boolean;
 
-  // Advanced Features
-  enableMultiSort?: boolean;
-  enableRowSelection?: boolean;
-  stickyHeader?: boolean;
-  highlightOnHover?: boolean;
-  striped?: boolean;
+  // ── Slots ─────────────────────────────────────────────────────
+  customFilters?:    React.ReactNode;
+  additionalButtons?: React.ReactNode;
 }
 
-type Density = "compact" | "comfortable" | "spacious";
+// ─────────────────────────────────────────────────────────────────
+// Internal modal state
+// ─────────────────────────────────────────────────────────────────
 
-// ============================================
-// Utility Functions
-// ============================================
+type ModalKind = "add" | "edit" | "view" | null;
 
-const exportToExcel = (data: any[], columns: KiduColumn[], filename: string) => {
-  const ws = XLSX.utils.json_to_sheet(
-    data.map((row) => {
-      const obj: any = {};
-      columns.forEach((col) => {
-        if (col.key !== "actions") {
-          obj[col.label] = row[col.key];
-        }
-      });
-      return obj;
-    })
-  );
+interface ModalState<T> {
+  kind:  ModalKind;
+  row:   T | null;
+  props: ManagedModalProps | null;
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Export helpers
+// ─────────────────────────────────────────────────────────────────
+
+function toExportRows(data: any[], columns: KiduColumn[]) {
+  return data.map((row) => {
+    const obj: Record<string, any> = {};
+    columns.filter((c) => c.key !== "actions").forEach((c) => { obj[c.label] = row[c.key]; });
+    return obj;
+  });
+}
+
+function exportExcel(data: any[], columns: KiduColumn[], filename: string) {
+  const ws = XLSX.utils.json_to_sheet(toExportRows(data, columns));
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Data");
   XLSX.writeFile(wb, `${filename}.xlsx`);
-};
+}
 
-const exportToCSV = (data: any[], columns: KiduColumn[], filename: string) => {
-  const ws = XLSX.utils.json_to_sheet(
-    data.map((row) => {
-      const obj: any = {};
-      columns.forEach((col) => {
-        if (col.key !== "actions") {
-          obj[col.label] = row[col.key];
-        }
-      });
-      return obj;
-    })
-  );
+function exportCSV(data: any[], columns: KiduColumn[], filename: string) {
+  const ws  = XLSX.utils.json_to_sheet(toExportRows(data, columns));
   const csv = XLSX.utils.sheet_to_csv(ws);
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = `${filename}.csv`;
-  link.click();
-};
+  const a   = document.createElement("a");
+  a.href     = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
+  a.download = `${filename}.csv`;
+  a.click();
+}
 
-const exportToPDF = (data: any[], columns: KiduColumn[], filename: string, title: string) => {
-  const doc = new jsPDF();
-  const tableColumns = columns.filter((c) => c.key !== "actions").map((c) => c.label);
-  const tableRows = data.map((row) =>
-    columns.filter((c) => c.key !== "actions").map((col) => row[col.key] || "")
-  );
-
+function exportPDF(data: any[], columns: KiduColumn[], filename: string, title: string) {
+  const doc  = new jsPDF();
+  const cols = columns.filter((c) => c.key !== "actions");
   doc.setFontSize(16);
   doc.text(title, 14, 15);
-
   (doc as any).autoTable({
-    head: [tableColumns],
-    body: tableRows,
-    startY: 25,
-    theme: "grid",
-    styles: { fontSize: 8 },
-    headStyles: { fillColor: [27, 55, 99] },
+    head:       [cols.map((c) => c.label)],
+    body:       data.map((row) => cols.map((c) => row[c.key] ?? "")),
+    startY:     25,
+    theme:      "grid",
+    styles:     { fontSize: 8 },
+    headStyles: { fillColor: [239, 13, 80] },
   });
-
   doc.save(`${filename}.pdf`);
-};
+}
 
-// ============================================
+// ─────────────────────────────────────────────────────────────────
+// Avatar cell helper
+// ─────────────────────────────────────────────────────────────────
+
+const AVATAR_COLORS = [
+  "#ef0d50", "#3b82f6", "#10b981", "#f59e0b",
+  "#8b5cf6", "#ec4899", "#14b8a6", "#f97316",
+];
+
+function AvatarCell({ name }: { name: string }) {
+  const initials = name.split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase();
+  const bg       = AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
+  return (
+    <div className="kidu-avatar-cell">
+      <div className="kidu-avatar" style={{ background: bg }}>{initials}</div>
+      <span className="kidu-avatar-name">{name}</span>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Built-in cell renderer
+// ─────────────────────────────────────────────────────────────────
+
+function renderCell(col: KiduColumn, value: any, row: any): React.ReactNode {
+  if (col.render) return col.render(value, row);
+
+  if (value === null || value === undefined || value === "") {
+    return <span className="kidu-cell-empty">—</span>;
+  }
+
+  switch (col.type) {
+    case "avatar":
+      return <AvatarCell name={String(value)} />;
+
+    case "checkbox":
+      return <Form.Check type="checkbox" checked={!!value} disabled readOnly />;
+
+    case "image":
+      return (
+        <img
+          src={String(value)} alt="img"
+          className="kidu-table-image"
+          onError={(e: any) => { e.target.src = "/assets/Images/profile.jpeg"; }}
+        />
+      );
+
+    case "rating": {
+      const r     = Math.min(Math.max(Number(value) || 0, 0), 5);
+      const full  = Math.floor(r);
+      const half  = r - full >= 0.5;
+      const empty = 5 - full - (half ? 1 : 0);
+      return (
+        <div className="kidu-rating">
+          {Array.from({ length: full  }).map((_, i) => <span key={`f${i}`} className="kidu-star full">★</span>)}
+          {half                                      && <span className="kidu-star half">★</span>}
+          {Array.from({ length: empty }).map((_, i) => <span key={`e${i}`} className="kidu-star empty">★</span>)}
+          <span className="kidu-rating-val">({r.toFixed(1)})</span>
+        </div>
+      );
+    }
+
+    case "date": {
+      try {
+        const d = new Date(String(value));
+        if (!isNaN(d.getTime())) return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+      } catch (_) {}
+      return String(value);
+    }
+
+    case "badge": {
+      const val = String(value);
+      const cls = val.toLowerCase() === "active" ? "active"
+                : val.toLowerCase() === "inactive" ? "inactive"
+                : "default";
+      return <span className={`kidu-badge kidu-badge--${cls}`}>{val}</span>;
+    }
+
+    case "currency":
+      return <span>${Number(value).toFixed(2)}</span>;
+
+    default:
+      return <span>{String(value)}</span>;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // Main Component
-// ============================================
+// ─────────────────────────────────────────────────────────────────
 
 function KiduServerTable<T extends Record<string, any>>({
-  title = "Data Table",
+  title    = "Data Table",
   subtitle,
   columns: initialColumns,
   fetchData,
   rowKey = "id" as keyof T,
 
-  showSearch = true,
-  showFilters = true,
-  showColumnToggle = true,
-  showDensityToggle = true,
-  showExport = true,
-  showAddButton = false,
-  showActions = true,
-  showPagination = true,
-  showRowsPerPage = true,
-
-  addRoute,
-  editRoute,
-  viewRoute,
-  deleteRoute,
-  onAddClick,
-  onEditClick,
-  onViewClick,
-  onDeleteClick,
-  onRowClick,
+  showSearch          = true,
+  showFilters         = true,
+  showColumnToggle    = true,
+  showDensityToggle   = true,
+  showExport          = true,
+  showFullscreen      = true,
+  showAddButton       = false,
+  showActions         = true,
+  showPagination      = true,
+  showRowsPerPage     = true,
+  showCheckboxes      = true,
+  showSelectionToggle = true,
 
   addButtonLabel = "Add New",
-  rowsPerPageOptions = [10, 25, 50, 100],
+  addModal,
+  onAddClick,
+  addRoute,
+
+  editModal,
+  onEditClick,
+  editRoute,
+
+  viewModal,
+  onViewClick,
+  viewRoute,
+
+  onDeleteClick,
+  onBulkDelete,
+  onRowClick,
+
+  rowsPerPageOptions = [5, 10, 20, 50, 100],
   defaultRowsPerPage = 10,
-  defaultDensity = "comfortable",
+  defaultDensity     = "comfortable",
+  stickyHeader       = true,
+  highlightOnHover   = true,
+  striped            = false,
+
   customFilters,
   additionalButtons,
-
-  enableMultiSort = false,
-  enableRowSelection = false,
-  stickyHeader = true,
-  highlightOnHover = true,
-  striped = true,
 }: KiduServerTableProps<T>) {
+
   const navigate = useNavigate();
   const tableRef = useRef<HTMLDivElement>(null);
 
-  // ============================================
-  // State Management
-  // ============================================
-
-  const [data, setData] = useState<T[]>([]);
-  const [total, setTotal] = useState(0);
+  // ── Data state ─────────────────────────────────────────────────
+  const [data,        setData]        = useState<T[]>([]);
+  const [total,       setTotal]       = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(defaultRowsPerPage);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loading,     setLoading]     = useState(false);
+  const [error,       setError]       = useState<string | null>(null);
 
-  const [searchTerm, setSearchTerm] = useState("");
+  // ── Search ─────────────────────────────────────────────────────
+  const [searchTerm,      setSearchTerm]      = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [density, setDensity] = useState<Density>(defaultDensity);
-  const [showFilterRow, setShowFilterRow] = useState(false);
-  const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
-  const [selectedRows, setSelectedRows] = useState<Set<any>>(new Set());
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // ============================================
-  // Effects
-  // ============================================
-
-  // Debounce search
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchTerm);
-      setCurrentPage(1);
-    }, 500);
-    return () => clearTimeout(timer);
+    const t = setTimeout(() => { setDebouncedSearch(searchTerm); setCurrentPage(1); }, 300);
+    return () => clearTimeout(t);
   }, [searchTerm]);
 
-  // Fetch data
+  // ── Sorting / Filtering ────────────────────────────────────────
+  const [sorting,       setSorting]       = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
+  const [filtersOpen,   setFiltersOpen]   = useState(false);
+
+  // ── Column / UI state ──────────────────────────────────────────
+  const [columns,          setColumns]          = useState<KiduColumn[]>(initialColumns);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [density,          setDensity]          = useState<Density>(defaultDensity);
+  const [selectionEnabled, setSelectionEnabled] = useState(showCheckboxes);
+  const [selectedRows,     setSelectedRows]     = useState<Set<any>>(new Set());
+  const [isFullscreen,     setIsFullscreen]     = useState(false);
+  const [draggedCol,       setDraggedCol]       = useState<string | null>(null);
+
+  // ── Modal state ────────────────────────────────────────────────
+  const [modal, setModal] = useState<ModalState<T>>({ kind: null, row: null, props: null });
+
+  const closeModal = () => setModal({ kind: null, row: null, props: null });
+
+  // ── Data loading ───────────────────────────────────────────────
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-
-      const params: TableRequestParams = {
-        pageNumber: currentPage,
-        pageSize: rowsPerPage,
-        searchTerm: debouncedSearch,
-        sortBy: sorting[0]?.id,
+      const res = await fetchData({
+        pageNumber:    currentPage,
+        pageSize:      rowsPerPage,
+        searchTerm:    debouncedSearch,
+        sortBy:        sorting[0]?.id,
         sortDescending: sorting[0]?.desc,
         ...columnFilters,
-      };
-
-      const response = await fetchData(params);
-
-      setData(response.data || []);
-      setTotal(response.total || 0);
-    } catch (err: any) {
-      console.error("Error fetching data:", err);
-      setError(err.message || "Failed to load data");
-      setData([]);
-      setTotal(0);
+      });
+      setData(res.data  ?? []);
+      setTotal(res.total ?? 0);
+    } catch (e: any) {
+      setError(e.message ?? "Failed to load data");
+      setData([]); setTotal(0);
     } finally {
       setLoading(false);
     }
   }, [currentPage, rowsPerPage, debouncedSearch, sorting, columnFilters, fetchData]);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => { setCurrentPage(1); }, [debouncedSearch, columnFilters, rowsPerPage]);
 
-  // ============================================
-  // Computed Values
-  // ============================================
+  // ── Computed ───────────────────────────────────────────────────
+  const totalPages     = Math.ceil(total / rowsPerPage);
+  const visibleCols    = columns.filter((c) => !columnVisibility[c.key]);
+  const activeFilters  = Object.values(columnFilters).filter(Boolean).length;
 
-  const totalPages = Math.ceil(total / rowsPerPage);
-
-  const densityClasses = {
-    compact: "py-1 px-2",
-    comfortable: "py-2 px-3",
-    spacious: "py-3 px-4",
+  const densityClass: Record<Density, string> = {
+    compact:      "kidu-density-compact",
+    comfortable:  "kidu-density-comfortable",
+    spacious:     "kidu-density-spacious",
   };
 
-  const densityFontSize = {
-    compact: "11px",
-    comfortable: "13px",
-    spacious: "14px",
+  // ── Selection helpers ──────────────────────────────────────────
+  const allSelected  = data.length > 0 && data.every((r) => selectedRows.has(r[rowKey]));
+  const someSelected = data.some((r) => selectedRows.has(r[rowKey]));
+
+  function toggleRow(id: any) {
+    const next = new Set(selectedRows);
+    next.has(id) ? next.delete(id) : next.add(id);
+    setSelectedRows(next);
+  }
+
+  function togglePage() {
+    const next = new Set(selectedRows);
+    if (allSelected) { data.forEach((r) => next.delete(r[rowKey])); }
+    else             { data.forEach((r) => next.add(r[rowKey]));    }
+    setSelectedRows(next);
+  }
+
+  // ── Column helpers ─────────────────────────────────────────────
+  const toggleColVisibility = (key: string) =>
+    setColumnVisibility((p) => ({ ...p, [key]: !p[key] }));
+
+  const togglePin = (key: string, side: "left" | "right") =>
+    setColumns((p) => p.map((c) => c.key === key ? { ...c, pinned: c.pinned === side ? false : side } : c));
+
+  const handleDragStart = (key: string) => setDraggedCol(key);
+  const handleDragEnd   = () => setDraggedCol(null);
+  const handleDragOver  = (e: React.DragEvent, key: string) => {
+    e.preventDefault();
+    if (!draggedCol || draggedCol === key) return;
+    setColumns((p) => {
+      const arr  = [...p];
+      const from = arr.findIndex((c) => c.key === draggedCol);
+      const to   = arr.findIndex((c) => c.key === key);
+      const [m]  = arr.splice(from, 1);
+      arr.splice(to, 0, m);
+      return arr;
+    });
   };
 
-  // ============================================
-  // Table Columns Definition
-  // ============================================
+  // ── Export ─────────────────────────────────────────────────────
+  const handleExport = (format: ExportFormat) => {
+    const filename    = `${title.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}`;
+    const exportData  = selectedRows.size > 0
+      ? data.filter((r) => selectedRows.has(r[rowKey]))
+      : data;
 
+    if (format === "print") { window.print(); return; }
+    if (format === "excel") exportExcel(exportData, columns, filename);
+    if (format === "csv")   exportCSV(exportData, columns, filename);
+    if (format === "pdf")   exportPDF(exportData, columns, filename, title);
+  };
+
+  // ── Fullscreen ─────────────────────────────────────────────────
+  const toggleFullscreen = () => {
+    if (!isFullscreen) tableRef.current?.requestFullscreen?.();
+    else               document.exitFullscreen?.();
+    setIsFullscreen((p) => !p);
+  };
+
+  // ── Action resolvers ───────────────────────────────────────────
+  /**
+   * ADD: priority → addModal > onAddClick > addRoute
+   */
+  function handleAdd() {
+    if (addModal)     { setModal({ kind: "add",  row: null, props: addModal }); return; }
+    if (onAddClick)   { onAddClick(); return; }
+    if (addRoute)     { navigate(addRoute); }
+  }
+
+  /**
+   * EDIT: priority → editModal(row) > onEditClick(row) > editRoute/id
+   */
+  function handleEdit(row: T) {
+    if (editModal)    { setModal({ kind: "edit", row, props: editModal(row) }); return; }
+    if (onEditClick)  { onEditClick(row); return; }
+    if (editRoute)    { navigate(`${editRoute}/${row[rowKey]}`); }
+  }
+
+  /**
+   * VIEW: priority → viewModal(row) > onViewClick(row) > viewRoute/id
+   */
+  function handleView(row: T) {
+    if (viewModal)    { setModal({ kind: "view", row, props: viewModal(row) }); return; }
+    if (onViewClick)  { onViewClick(row); return; }
+    if (viewRoute)    { navigate(`${viewRoute}/${row[rowKey]}`); }
+  }
+
+  // Decide whether to show actions column
+  const hasActions = showActions && (
+    editModal || editRoute || onEditClick ||
+    viewModal || viewRoute || onViewClick ||
+    onDeleteClick
+  );
+
+  // ── TanStack columns ───────────────────────────────────────────
   const tableColumns = useMemo<ColumnDef<T>[]>(() => {
-    const cols: ColumnDef<T>[] = initialColumns.map((col) => ({
+    const cols: ColumnDef<T>[] = columns.map((col) => ({
       accessorKey: col.key,
-      header: col.label,
+      header:      col.label,
       enableSorting: col.enableSorting !== false,
-      size: col.width,
+      size:    col.width,
       minSize: col.minWidth,
-      cell: ({ getValue, row }) => {
-        const value = getValue();
-
-        if (col.render) {
-          return col.render(value, row.original);
-        }
-
-        if (value === null || value === undefined || value === "") {
-          return <span className="text-muted">-</span>;
-        }
-
-        switch (col.type) {
-          case "checkbox":
-            return (
-              <Form.Check
-                type="checkbox"
-                checked={!!value}
-                disabled
-                style={{ accentColor: "#1B3763" }}
-              />
-            );
-
-          case "image":
-            return (
-              <img
-                src={String(value)}
-                alt="Preview"
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: "50%",
-                  objectFit: "cover",
-                  border: "2px solid #1B3763",
-                }}
-                onError={(e: any) => {
-                  e.target.src = "/assets/Images/profile.jpeg";
-                }}
-              />
-            );
-
-          case "rating":
-            const rating = Math.min(Math.max(Number(value) || 0, 0), 5);
-            const fullStars = Math.floor(rating);
-            const hasHalfStar = rating - fullStars >= 0.5;
-            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-
-            return (
-              <div className="d-flex align-items-center gap-1">
-                {Array.from({ length: fullStars }).map((_, i) => (
-                  <span key={`full-${i}`} style={{ color: "#FFD700", fontSize: "14px" }}>
-                    ★
-                  </span>
-                ))}
-                {hasHalfStar && (
-                  <span style={{ position: "relative", display: "inline-block" }}>
-                    <span style={{ color: "#e0e0e0", fontSize: "14px" }}>★</span>
-                    <span
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        color: "#FFD700",
-                        fontSize: "14px",
-                        width: "50%",
-                        overflow: "hidden",
-                      }}
-                    >
-                      ★
-                    </span>
-                  </span>
-                )}
-                {Array.from({ length: emptyStars }).map((_, i) => (
-                  <span key={`empty-${i}`} style={{ color: "#e0e0e0", fontSize: "14px" }}>
-                    ★
-                  </span>
-                ))}
-                <span className="ms-1 text-muted" style={{ fontSize: "11px" }}>
-                  ({rating.toFixed(1)})
-                </span>
-              </div>
-            );
-
-          case "date":
-            try {
-              const date = new Date(String(value));
-              if (!isNaN(date.getTime())) {
-                return date.toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                });
-              }
-            } catch (e) {
-              // Fall through to default
-            }
-            break;
-
-          case "badge":
-            return (
-              <Badge bg="primary" style={{ backgroundColor: "#1B3763" }}>
-                {String(value)}
-              </Badge>
-            );
-
-          case "currency":
-            return `$${Number(value).toFixed(2)}`;
-
-          default:
-            return String(value);
-        }
-
-        return String(value);
-      },
+      cell: ({ getValue, row }) => renderCell(col, getValue(), row.original),
     }));
 
-    // Add actions column
-    if (showActions && (editRoute || viewRoute || deleteRoute || onEditClick || onViewClick || onDeleteClick)) {
+    if (hasActions) {
       cols.push({
-        id: "actions",
-        header: "Actions",
+        id:            "actions",
+        header:        "Actions",
         enableSorting: false,
         cell: ({ row }) => (
-          <Dropdown onClick={(e) => e.stopPropagation()}>
-            <Dropdown.Toggle
-              variant="link"
-              size="sm"
-              className="text-dark p-0"
-              style={{ border: "none", boxShadow: "none" }}
-            >
+          <Dropdown onClick={(e) => e.stopPropagation()} align="end">
+            <Dropdown.Toggle variant="link" size="sm" className="kidu-action-toggle">
               <FaEllipsisV />
             </Dropdown.Toggle>
 
-            <Dropdown.Menu align="end">
-              {(viewRoute || onViewClick) && (
-                <Dropdown.Item
-                  onClick={() => {
-                    if (onViewClick) onViewClick(row.original);
-                    else if (viewRoute) navigate(`${viewRoute}/${row.original[rowKey]}`);
-                  }}
-                >
+            <Dropdown.Menu className="kidu-actions-menu">
+              {/* View */}
+              {(viewModal || viewRoute || onViewClick) && (
+                <Dropdown.Item className="kidu-dropdown-item" onClick={() => handleView(row.original)}>
                   <FaEye className="me-2" /> View
                 </Dropdown.Item>
               )}
 
-              {(editRoute || onEditClick) && (
-                <Dropdown.Item
-                  onClick={() => {
-                    if (onEditClick) onEditClick(row.original);
-                    else if (editRoute) navigate(`${editRoute}/${row.original[rowKey]}`);
-                  }}
-                >
+              {/* Edit */}
+              {(editModal || editRoute || onEditClick) && (
+                <Dropdown.Item className="kidu-dropdown-item" onClick={() => handleEdit(row.original)}>
                   <FaEdit className="me-2" /> Edit
                 </Dropdown.Item>
               )}
 
-              {(deleteRoute || onDeleteClick) && (
+              {/* Delete */}
+              {onDeleteClick && (
                 <>
                   <Dropdown.Divider />
                   <Dropdown.Item
-                    className="text-danger"
-                    onClick={() => {
-                      if (onDeleteClick) onDeleteClick(row.original);
-                    }}
+                    className="kidu-dropdown-item kidu-delete-item"
+                    onClick={() => onDeleteClick(row.original)}
                   >
                     <FaTrash className="me-2" /> Delete
                   </Dropdown.Item>
@@ -518,537 +574,408 @@ function KiduServerTable<T extends Record<string, any>>({
     }
 
     return cols;
-  }, [initialColumns, showActions, editRoute, viewRoute, deleteRoute, onEditClick, onViewClick, onDeleteClick, navigate, rowKey]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [columns, hasActions, editModal, editRoute, onEditClick, viewModal, viewRoute, onViewClick, onDeleteClick]);
 
-  // ============================================
-  // Table Instance
-  // ============================================
-
+  // ── Table instance ─────────────────────────────────────────────
   const table = useReactTable({
     data,
     columns: tableColumns,
-    state: {
-      sorting,
-      columnVisibility,
-    },
-    onSortingChange: setSorting,
+    state:   { sorting, columnVisibility },
+    onSortingChange:          setSorting,
     onColumnVisibilityChange: setColumnVisibility,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
+    getCoreRowModel:          getCoreRowModel(),
+    getSortedRowModel:        getSortedRowModel(),
     manualPagination: true,
-    manualFiltering: true,
-    manualSorting: true,
-    pageCount: totalPages,
+    manualFiltering:  true,
+    manualSorting:    true,
+    pageCount:        totalPages,
   });
 
-  // ============================================
-  // Event Handlers
-  // ============================================
+  // ── Pagination numbers ─────────────────────────────────────────
+  const pageNumbers = useMemo(() => {
+    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
+    if (currentPage <= 4)                return [1, 2, 3, 4, 5, "…", totalPages];
+    if (currentPage >= totalPages - 3)   return [1, "…", totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    return [1, "…", currentPage - 1, currentPage, currentPage + 1, "…", totalPages];
+  }, [currentPage, totalPages]);
 
-  const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-      tableRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  };
+  function handlePageChange(page: number) {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+    tableRef.current?.scrollIntoView({ behavior: "smooth" });
+  }
 
-  const handleExport = (format: "excel" | "csv" | "pdf") => {
-    const filename = `${title.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}`;
+  // ── Toolbar columns ────────────────────────────────────────────
+  const toolbarCols: ToolbarColumnConfig[] = columns.map((c) => ({
+    key: c.key, label: c.label, pinned: c.pinned,
+  }));
 
-    switch (format) {
-      case "excel":
-        exportToExcel(data, initialColumns, filename);
-        break;
-      case "csv":
-        exportToCSV(data, initialColumns, filename);
-        break;
-      case "pdf":
-        exportToPDF(data, initialColumns, filename, title);
-        break;
-    }
-  };
-
-  const toggleFullscreen = () => {
-    if (!isFullscreen) {
-      tableRef.current?.requestFullscreen?.();
-    } else {
-      document.exitFullscreen?.();
-    }
-    setIsFullscreen(!isFullscreen);
-  };
-
-  // ============================================
-  // Render Pagination
-  // ============================================
-
-  const renderPagination = () => {
-    if (!showPagination || totalPages <= 1) return null;
-
-    const pages: number[] = [];
-    const maxPages = 5;
-
-    if (totalPages <= maxPages) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else if (currentPage <= 3) {
-      for (let i = 1; i <= maxPages; i++) {
-        pages.push(i);
-      }
-    } else if (currentPage >= totalPages - 2) {
-      for (let i = totalPages - maxPages + 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      for (let i = currentPage - 2; i <= currentPage + 2; i++) {
-        pages.push(i);
-      }
-    }
-
-    return (
-      <Pagination size="sm" className="mb-0">
-        <Pagination.First disabled={currentPage === 1} onClick={() => handlePageChange(1)} />
-        <Pagination.Prev disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)} />
-
-        {pages.map((page) => (
-          <Pagination.Item
-            key={page}
-            active={page === currentPage}
-            onClick={() => handlePageChange(page)}
-            style={{
-              backgroundColor: page === currentPage ? "#1B3763" : "transparent",
-              borderColor: "#1B3763",
-              color: page === currentPage ? "white" : "#1B3763",
-            }}
-          >
-            {page}
-          </Pagination.Item>
-        ))}
-
-        <Pagination.Next disabled={currentPage === totalPages} onClick={() => handlePageChange(currentPage + 1)} />
-        <Pagination.Last disabled={currentPage === totalPages} onClick={() => handlePageChange(totalPages)} />
-      </Pagination>
-    );
-  };
-
-  // ============================================
-  // Render Component
-  // ============================================
+  // ─────────────────────────────────────────────────────────────
+  // Render
+  // ─────────────────────────────────────────────────────────────
 
   return (
-    <Container fluid className="kidu-server-table" ref={tableRef}>
-      {/* Header */}
-      <Row className="mb-3 align-items-center">
-        <Col>
-          <h4 className="mb-0 fw-bold" style={{ fontFamily: "Urbanist", color: "#1B3763" }}>
-            {title}
-          </h4>
-          {subtitle && (
-            <p className="text-muted mb-0" style={{ fontFamily: "Urbanist", fontSize: "13px" }}>
-              {subtitle}
-            </p>
-          )}
-        </Col>
-      </Row>
+    <div className={`kidu-server-table ${isFullscreen ? "kidu-fullscreen" : ""}`} ref={tableRef}>
 
-      {/* Toolbar */}
-      <Row className="mb-3 g-2">
-        {/* Search */}
-        {showSearch && (
-          <Col xs={12} md={6} lg={4}>
-            <InputGroup size="sm">
-              <InputGroup.Text>
-                <FaSearch />
-              </InputGroup.Text>
-              <Form.Control
-                type="text"
-                placeholder={`Search ${title.toLowerCase()}...`}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{ fontSize: "13px" }}
-              />
-              {searchTerm && (
-                <Button variant="outline-secondary" size="sm" onClick={() => setSearchTerm("")}>
-                  <FaTimes />
-                </Button>
-              )}
-            </InputGroup>
-          </Col>
-        )}
+      {/* ═══════════════════════════════════════════════════════
+          Toolbar
+      ═══════════════════════════════════════════════════════ */}
+      <KiduToolbar
+        title={title}    subtitle={subtitle}
+        showSearch={showSearch}
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        showFilters={showFilters}
+        activeFilterCount={activeFilters}
+        filtersOpen={filtersOpen}
+        onFiltersToggle={() => setFiltersOpen((p) => !p)}
+        showColumnToggle={showColumnToggle}
+        columns={toolbarCols}
+        columnVisibility={columnVisibility}
+        onColumnVisibilityToggle={toggleColVisibility}
+        onColumnPin={togglePin}
+        showDensityToggle={showDensityToggle}
+        density={density}
+        onDensityChange={setDensity}
+        showSelectionToggle={showSelectionToggle}
+        selectionEnabled={selectionEnabled}
+        onSelectionToggle={() => { setSelectionEnabled((p) => !p); setSelectedRows(new Set()); }}
+        showExport={showExport}
+        onExport={handleExport}
+        showFullscreen={showFullscreen}
+        isFullscreen={isFullscreen}
+        onFullscreenToggle={toggleFullscreen}
+        showAddButton={showAddButton}
+        addButtonLabel={addButtonLabel}
+        onAddClick={handleAdd}
+        additionalButtons={additionalButtons}
+      />
 
-        <Col xs="auto" className="ms-auto d-flex gap-2 flex-wrap">
-          {/* Filters Toggle */}
-          {showFilters && (
-            <Button
-              variant="outline-primary"
-              size="sm"
-              onClick={() => setShowFilterRow(!showFilterRow)}
-              style={{
-                borderColor: "#1B3763",
-                color: "#1B3763",
-                fontSize: "12px",
-              }}
-            >
-              <FaFilter className="me-1" />
-              Filters
-              {Object.values(columnFilters).filter(Boolean).length > 0 && (
-                <Badge bg="danger" className="ms-2">
-                  {Object.values(columnFilters).filter(Boolean).length}
-                </Badge>
-              )}
-            </Button>
-          )}
+      {/* ═══════════════════════════════════════════════════════
+          Selection Bar
+      ═══════════════════════════════════════════════════════ */}
+      {selectedRows.size > 0 && (
+        <div className="kidu-selection-bar">
+          <span className="kidu-sel-count">
+            {selectedRows.size} row{selectedRows.size > 1 ? "s" : ""} selected
+          </span>
 
-          {/* Column Toggle */}
-          {showColumnToggle && (
-            <Dropdown>
-              <Dropdown.Toggle variant="outline-primary" size="sm" style={{ borderColor: "#1B3763", color: "#1B3763", fontSize: "12px" }}>
-                <FaColumns className="me-1" />
-                Columns
-              </Dropdown.Toggle>
-              <Dropdown.Menu>
-                {initialColumns.map((col) => (
-                  <Dropdown.Item
-                    key={col.key}
-                    onClick={() =>
-                      setColumnVisibility((prev) => ({
-                        ...prev,
-                        [col.key]: !prev[col.key],
-                      }))
-                    }
-                  >
-                    <Form.Check
-                      type="checkbox"
-                      label={col.label}
-                      checked={!columnVisibility[col.key]}
-                      onChange={() => {}}
-                      style={{ pointerEvents: "none" }}
-                    />
-                  </Dropdown.Item>
-                ))}
-              </Dropdown.Menu>
-            </Dropdown>
-          )}
+          <button className="kidu-sel-btn" onClick={() => setSelectedRows(new Set(data.map((r) => r[rowKey])))}>
+            Select all ({data.length})
+          </button>
+          <button className="kidu-sel-btn" onClick={togglePage}>
+            {allSelected ? "Deselect page" : "Select page"}
+          </button>
+          <button className="kidu-sel-btn" onClick={() => setSelectedRows(new Set())}>
+            Deselect all
+          </button>
 
-          {/* Density Toggle */}
-          {showDensityToggle && (
-            <Dropdown>
-              <Dropdown.Toggle variant="outline-primary" size="sm" style={{ borderColor: "#1B3763", color: "#1B3763", fontSize: "12px" }}>
-                <FaCog className="me-1" />
-                Density
-              </Dropdown.Toggle>
-              <Dropdown.Menu>
-                {(["compact", "comfortable", "spacious"] as Density[]).map((d) => (
-                  <Dropdown.Item key={d} onClick={() => setDensity(d)} className="text-capitalize">
-                    {density === d && "✓ "}
-                    {d}
-                  </Dropdown.Item>
-                ))}
-              </Dropdown.Menu>
-            </Dropdown>
-          )}
+          <span className="kidu-sel-spacer" />
 
-          {/* Export */}
-          {showExport && (
-            <Dropdown>
-              <Dropdown.Toggle variant="outline-primary" size="sm" style={{ borderColor: "#1B3763", color: "#1B3763", fontSize: "12px" }}>
-                <FaDownload className="me-1" />
-                Export
-              </Dropdown.Toggle>
-              <Dropdown.Menu>
-                <Dropdown.Item onClick={() => handleExport("excel")}>
-                  <FaFileExcel className="me-2 text-success" />
-                  Excel
-                </Dropdown.Item>
-                <Dropdown.Item onClick={() => handleExport("csv")}>
-                  <FaFileCsv className="me-2 text-info" />
-                  CSV
-                </Dropdown.Item>
-                <Dropdown.Item onClick={() => handleExport("pdf")}>
-                  <FaFilePdf className="me-2 text-danger" />
-                  PDF
-                </Dropdown.Item>
-                <Dropdown.Divider />
-                <Dropdown.Item onClick={() => window.print()}>
-                  <FaPrint className="me-2" />
-                  Print
-                </Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown>
-          )}
-
-          {/* Fullscreen */}
-          <Button
-            variant="outline-primary"
-            size="sm"
-            onClick={toggleFullscreen}
-            style={{ borderColor: "#1B3763", color: "#1B3763", fontSize: "12px" }}
-          >
-            {isFullscreen ? <FaCompress /> : <FaExpand />}
+          <Button size="sm" variant="outline-secondary" className="kidu-sel-action" onClick={() => handleExport("csv")}>
+            <FaDownload className="me-1" /> Export selected
           </Button>
 
-          {/* Additional Buttons */}
-          {additionalButtons}
-
-          {/* Add Button */}
-          {showAddButton && (
-            <Button
-              variant="primary"
-              size="sm"
+          {(onBulkDelete || onDeleteClick) && (
+            <Button size="sm" variant="danger" className="kidu-sel-action"
               onClick={() => {
-                if (onAddClick) onAddClick();
-                else if (addRoute) navigate(addRoute);
-              }}
-              style={{
-                backgroundColor: "#1B3763",
-                border: "none",
-                fontSize: "12px",
-                fontWeight: 600,
+                const rows = data.filter((r) => selectedRows.has(r[rowKey]));
+                if (onBulkDelete)                     onBulkDelete(rows);
+                else if (onDeleteClick && rows.length) onDeleteClick(rows[0]);
               }}
             >
-              <FaPlus className="me-1" />
-              {addButtonLabel}
+              <FaTrash className="me-1" /> Delete
             </Button>
           )}
-        </Col>
-      </Row>
+        </div>
+      )}
 
-      {/* Filter Row */}
-      {showFilterRow && (
-        <Row className="mb-3 p-3 bg-light rounded">
-          {initialColumns
-            .filter((col) => col.enableFiltering !== false)
+      {/* ═══════════════════════════════════════════════════════
+          Filter Row
+      ═══════════════════════════════════════════════════════ */}
+      {filtersOpen && (
+        <div className="kidu-filter-row">
+          {visibleCols
+            .filter((c) => c.enableFiltering !== false && c.key !== "actions")
             .map((col) => (
-              <Col xs={12} sm={6} md={4} lg={3} key={col.key} className="mb-2">
-                <Form.Label className="text-muted small fw-semibold">{col.label}</Form.Label>
+              <div key={col.key} className="kidu-filter-field">
+                <label className="kidu-filter-label">{col.label}</label>
+
                 {col.filterType === "select" && col.filterOptions ? (
                   <Form.Select
                     size="sm"
-                    value={columnFilters[col.key] || ""}
-                    onChange={(e) =>
-                      setColumnFilters((prev) => ({
-                        ...prev,
-                        [col.key]: e.target.value,
-                      }))
-                    }
-                    style={{ fontSize: "12px" }}
+                    value={columnFilters[col.key] ?? ""}
+                    onChange={(e) => setColumnFilters((p) => ({ ...p, [col.key]: e.target.value }))}
+                    className="kidu-filter-input"
                   >
                     <option value="">All</option>
-                    {col.filterOptions.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
-                      </option>
-                    ))}
+                    {col.filterOptions.map((o) => <option key={o} value={o}>{o}</option>)}
                   </Form.Select>
                 ) : (
                   <Form.Control
-                    type={col.filterType === "number" ? "number" : col.filterType === "date" ? "date" : "text"}
                     size="sm"
+                    type={col.filterType === "number" ? "number" : col.filterType === "date" ? "date" : "text"}
                     placeholder={`Filter ${col.label}...`}
-                    value={columnFilters[col.key] || ""}
-                    onChange={(e) =>
-                      setColumnFilters((prev) => ({
-                        ...prev,
-                        [col.key]: e.target.value,
-                      }))
-                    }
-                    style={{ fontSize: "12px" }}
+                    value={columnFilters[col.key] ?? ""}
+                    onChange={(e) => setColumnFilters((p) => ({ ...p, [col.key]: e.target.value }))}
+                    className="kidu-filter-input"
                   />
                 )}
-              </Col>
+              </div>
             ))}
-          <Col xs={12} className="d-flex justify-content-end">
-            <Button
-              variant="outline-secondary"
-              size="sm"
-              onClick={() => setColumnFilters({})}
-              style={{ fontSize: "12px" }}
-            >
-              Clear Filters
-            </Button>
-          </Col>
 
-          {customFilters && <Col xs={12}>{customFilters}</Col>}
-        </Row>
-      )}
-
-      {/* Table */}
-      <Row>
-        <Col>
-          <div className="table-responsive" style={{ borderRadius: "8px", overflow: "hidden", border: "1px solid #dee2e6" }}>
-            <table
-              className={`table table-hover mb-0 ${striped ? "table-striped" : ""}`}
-              style={{
-                fontSize: densityFontSize[density],
-                fontFamily: "Urbanist",
-              }}
-            >
-              <thead
-                className={`text-center ${stickyHeader ? "sticky-top" : ""}`}
-                style={{
-                  backgroundColor: "#f8f9fa",
-                  borderBottom: "2px solid #1B3763",
-                }}
-              >
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <tr key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <th
-                        key={header.id}
-                        onClick={header.column.getToggleSortingHandler()}
-                        className={densityClasses[density]}
-                        style={{
-                          cursor: header.column.getCanSort() ? "pointer" : "default",
-                          userSelect: "none",
-                          fontWeight: 600,
-                          fontSize: "12px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.5px",
-                          color: "#1B3763",
-                          verticalAlign: "middle",
-                        }}
-                      >
-                        <div className="d-flex align-items-center justify-content-center gap-2">
-                          {flexRender(header.column.columnDef.header, header.getContext())}
-                          {header.column.getCanSort() && (
-                            <span>
-                              {header.column.getIsSorted() === "asc" ? (
-                                <FaSortUp />
-                              ) : header.column.getIsSorted() === "desc" ? (
-                                <FaSortDown />
-                              ) : (
-                                <FaSort style={{ opacity: 0.3 }} />
-                              )}
-                            </span>
-                          )}
-                        </div>
-                      </th>
-                    ))}
-                  </tr>
-                ))}
-              </thead>
-
-              <tbody className="text-center">
-                {loading ? (
-                  <tr>
-                    <td colSpan={tableColumns.length} className="text-center py-5">
-                      <Spinner animation="border" variant="primary" />
-                      <p className="mt-2 text-muted">Loading data...</p>
-                    </td>
-                  </tr>
-                ) : error ? (
-                  <tr>
-                    <td colSpan={tableColumns.length} className="text-center py-5">
-                      <div className="text-danger">
-                        <p className="fw-bold">Error: {error}</p>
-                        <Button variant="primary" size="sm" onClick={loadData} style={{ backgroundColor: "#1B3763" }}>
-                          Retry
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ) : table.getRowModel().rows.length === 0 ? (
-                  <tr>
-                    <td colSpan={tableColumns.length} className="text-center py-5">
-                      <p className="text-muted mb-0">No records found</p>
-                    </td>
-                  </tr>
-                ) : (
-                  table.getRowModel().rows.map((row) => (
-                    <tr
-                      key={row.id}
-                      onClick={() => onRowClick?.(row.original)}
-                      style={{
-                        cursor: onRowClick ? "pointer" : "default",
-                        transition: "background-color 0.2s",
-                      }}
-                      className={highlightOnHover ? "table-row-hover" : ""}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <td
-                          key={cell.id}
-                          className={densityClasses[density]}
-                          style={{
-                            verticalAlign: "middle",
-                          }}
-                        >
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </td>
-                      ))}
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+          <div className="kidu-filter-actions">
+            <button className="kidu-filter-clear-btn" onClick={() => setColumnFilters({})}>
+              Clear All
+            </button>
           </div>
-        </Col>
-      </Row>
 
-      {/* Footer */}
-      {showPagination && (
-        <Row className="mt-3 align-items-center">
-          <Col xs={12} md={6}>
-            <div className="d-flex align-items-center gap-2 text-muted" style={{ fontSize: "13px", fontFamily: "Urbanist" }}>
-              <span>
-                Showing {(currentPage - 1) * rowsPerPage + 1} -{" "}
-                {Math.min(currentPage * rowsPerPage, total)} of {total}
-              </span>
-              {showRowsPerPage && (
-                <>
-                  <Form.Select
-                    size="sm"
-                    value={rowsPerPage}
-                    onChange={(e) => {
-                      setRowsPerPage(Number(e.target.value));
-                      setCurrentPage(1);
-                    }}
-                    style={{ width: "auto", fontSize: "12px" }}
-                  >
-                    {rowsPerPageOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </Form.Select>
-                  <span>per page</span>
-                </>
-              )}
-            </div>
-          </Col>
-          <Col xs={12} md={6} className="d-flex justify-content-md-end justify-content-center mt-3 mt-md-0">
-            {renderPagination()}
-          </Col>
-        </Row>
+          {customFilters && <div className="kidu-custom-filters">{customFilters}</div>}
+        </div>
       )}
 
-      {/* Custom Styles */}
-      <style>{`
-        .kidu-server-table .table-row-hover:hover {
-          background-color: #f8f9fa !important;
-        }
+      {/* ═══════════════════════════════════════════════════════
+          Table
+      ═══════════════════════════════════════════════════════ */}
+      <div className="kidu-table-scroll">
+        <table className={`kidu-table ${striped ? "kidu-striped" : ""}`}>
 
-        .kidu-server-table .sticky-top {
-          position: sticky;
-          top: 0;
-          z-index: 10;
-        }
+          {/* Head */}
+          <thead className={stickyHeader ? "kidu-thead-sticky" : ""}>
+            {table.getHeaderGroups().map((hg) => (
+              <tr key={hg.id}>
 
-        @media print {
-          .kidu-server-table .no-print {
-            display: none !important;
-          }
-        }
+                {/* Select-all checkbox */}
+                {selectionEnabled && (
+                  <th className={`kidu-th kidu-th-checkbox ${densityClass[density]}`}>
+                    <input
+                      type="checkbox"
+                      className="kidu-checkbox"
+                      checked={allSelected}
+                      ref={(el) => { if (el) el.indeterminate = someSelected && !allSelected; }}
+                      onChange={togglePage}
+                    />
+                  </th>
+                )}
 
-        .kidu-server-table .pagination .page-link {
-          color: #1B3763;
-        }
+                {hg.headers.map((header) => {
+                  const col      = columns.find((c) => c.key === header.id);
+                  const pinned   = col?.pinned;
+                  const isAct    = header.id === "actions";
+                  const canSort  = header.column.getCanSort();
+                  const sorted   = header.column.getIsSorted();
 
-        .kidu-server-table .pagination .page-item.active .page-link {
-          background-color: #1B3763;
-          border-color: #1B3763;
-        }
-      `}</style>
-    </Container>
+                  return (
+                    <th
+                      key={header.id}
+                      draggable={!isAct}
+                      onDragStart={() => !isAct && handleDragStart(header.id)}
+                      onDragOver={(e) => !isAct && handleDragOver(e, header.id)}
+                      onDragEnd={handleDragEnd}
+                      onClick={canSort ? header.column.getToggleSortingHandler() : undefined}
+                      className={[
+                        "kidu-th",
+                        densityClass[density],
+                        canSort              ? "kidu-th-sortable"         : "",
+                        pinned               ? `kidu-th-pinned-${pinned}` : "",
+                        draggedCol === header.id ? "kidu-th-dragging"     : "",
+                        isAct                ? "kidu-th-actions"          : "",
+                      ].filter(Boolean).join(" ")}
+                      style={{ minWidth: col?.minWidth ?? 80, width: col?.width }}
+                    >
+                      <div className="kidu-th-inner">
+                        {!isAct && <FaGripVertical className="kidu-drag-handle" />}
+                        <span className="kidu-th-label">
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                        </span>
+                        {canSort && (
+                          <span className="kidu-sort-icon">
+                            {sorted === "asc"  ? <FaSortUp   /> :
+                             sorted === "desc" ? <FaSortDown /> : <FaSort />}
+                          </span>
+                        )}
+                        {pinned && <FaThumbtack className="kidu-pin-indicator" />}
+                      </div>
+                    </th>
+                  );
+                })}
+              </tr>
+            ))}
+          </thead>
+
+          {/* Body */}
+          <tbody>
+
+            {/* Loading skeleton */}
+            {loading && Array.from({ length: rowsPerPage }).map((_, i) => (
+              <tr key={`sk-${i}`} className="kidu-skeleton-row">
+                {selectionEnabled && (
+                  <td className={`kidu-td ${densityClass[density]}`}>
+                    <div className="kidu-skeleton kidu-skel-xs" />
+                  </td>
+                )}
+                {tableColumns.map((col) => (
+                  <td key={String((col as any).id ?? (col as any).accessorKey)} className={`kidu-td ${densityClass[density]}`}>
+                    <div className={`kidu-skeleton ${(col as any).id === "actions" ? "kidu-skel-xs" : "kidu-skel-md"}`} />
+                  </td>
+                ))}
+              </tr>
+            ))}
+
+            {/* Error */}
+            {!loading && error && (
+              <tr>
+                <td colSpan={tableColumns.length + (selectionEnabled ? 1 : 0)} className="kidu-empty-cell">
+                  <div className="kidu-error-state">
+                    <p className="kidu-error-msg">⚠ {error}</p>
+                    <Button size="sm" variant="primary" onClick={loadData}>Retry</Button>
+                  </div>
+                </td>
+              </tr>
+            )}
+
+            {/* Empty */}
+            {!loading && !error && table.getRowModel().rows.length === 0 && (
+              <tr>
+                <td colSpan={tableColumns.length + (selectionEnabled ? 1 : 0)} className="kidu-empty-cell">
+                  <p className="kidu-empty-msg">No records found.</p>
+                </td>
+              </tr>
+            )}
+
+            {/* Data rows */}
+            {!loading && !error && table.getRowModel().rows.map((row) => {
+              const isSelected = selectedRows.has(row.original[rowKey]);
+              return (
+                <tr
+                  key={row.id}
+                  onClick={() => onRowClick?.(row.original)}
+                  className={[
+                    "kidu-tr",
+                    highlightOnHover ? "kidu-tr-hover"     : "",
+                    isSelected       ? "kidu-tr-selected"  : "",
+                    onRowClick       ? "kidu-tr-clickable" : "",
+                  ].filter(Boolean).join(" ")}
+                >
+                  {selectionEnabled && (
+                    <td className={`kidu-td kidu-td-checkbox ${densityClass[density]}`}>
+                      <input
+                        type="checkbox"
+                        className="kidu-checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleRow(row.original[rowKey])}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </td>
+                  )}
+
+                  {row.getVisibleCells().map((cell) => {
+                    const col    = columns.find((c) => c.key === cell.column.id);
+                    const pinned = col?.pinned;
+                    return (
+                      <td
+                        key={cell.id}
+                        className={[
+                          "kidu-td",
+                          densityClass[density],
+                          pinned                  ? `kidu-td-pinned-${pinned}` : "",
+                          cell.column.id === "actions" ? "kidu-td-actions"     : "",
+                        ].filter(Boolean).join(" ")}
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════
+          Footer / Pagination
+      ═══════════════════════════════════════════════════════ */}
+      {showPagination && (
+        <div className="kidu-footer">
+          <div className="kidu-footer-left">
+            <span className="kidu-footer-info">
+              Showing {Math.min((currentPage - 1) * rowsPerPage + 1, total)}–
+              {Math.min(currentPage * rowsPerPage, total)} of {total}
+            </span>
+
+            {showRowsPerPage && (
+              <div className="kidu-page-size">
+                <Form.Select
+                  size="sm"
+                  value={rowsPerPage}
+                  onChange={(e) => setRowsPerPage(Number(e.target.value))}
+                  className="kidu-page-size-select"
+                >
+                  {rowsPerPageOptions.map((n) => <option key={n} value={n}>{n}</option>)}
+                </Form.Select>
+                <span className="kidu-footer-info">per page</span>
+              </div>
+            )}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="kidu-pagination">
+              {/* First */}
+              <button className="kidu-page-btn kidu-page-nav" disabled={currentPage === 1} onClick={() => handlePageChange(1)} aria-label="First">
+                <FaChevronLeft style={{ marginRight: "-4px" }} /><FaChevronLeft />
+              </button>
+              {/* Prev */}
+              <button className="kidu-page-btn kidu-page-nav" disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)} aria-label="Prev">
+                <FaChevronLeft />
+              </button>
+
+              {pageNumbers.map((p, i) =>
+                p === "…" ? (
+                  <span key={`el-${i}`} className="kidu-page-ellipsis">…</span>
+                ) : (
+                  <button
+                    key={p}
+                    className={`kidu-page-btn ${p === currentPage ? "kidu-page-active" : ""}`}
+                    onClick={() => handlePageChange(Number(p))}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+
+              {/* Next */}
+              <button className="kidu-page-btn kidu-page-nav" disabled={currentPage === totalPages} onClick={() => handlePageChange(currentPage + 1)} aria-label="Next">
+                <FaChevronRight />
+              </button>
+              {/* Last */}
+              <button className="kidu-page-btn kidu-page-nav" disabled={currentPage === totalPages} onClick={() => handlePageChange(totalPages)} aria-label="Last">
+                <FaChevronRight /><FaChevronRight style={{ marginLeft: "-4px" }} />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════
+          Managed KiduCreateModal (Add / Edit / View)
+          Only rendered when a modal prop was provided for the
+          triggered action. `show` is controlled by the table.
+      ═══════════════════════════════════════════════════════ */}
+      {modal.kind && modal.props && (
+        <KiduCreateModal
+          {...modal.props}
+          show={true}
+          onHide={closeModal}
+          onSuccess={() => {
+            // Refresh data after successful create/edit
+            loadData();
+            modal.props?.onSuccess?.();
+          }}
+        />
+      )}
+    </div>
   );
 }
 

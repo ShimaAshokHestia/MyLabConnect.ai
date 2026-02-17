@@ -24,6 +24,12 @@ export const API_ENDPOINTS = {
     DOWNLOAD: (attachmentId: number) => `${API_BASE_URL}/Attachment/download/${attachmentId}`,
     UPDATE:(id:number)=>`${API_BASE_URL}/Attachment/${id}`
   },
+  COMMENT:{
+   //GET_ALL:`${API_BASE_URL}/Comment/${tableName}/${recordId}`,
+   GET_BY_ID:(id:number)=>`${API_BASE_URL}/Comment/${id}`,
+   //DELETE:(id:number)=>`${API_BASE_URL}/Comment/${CommentId}`,
+   CREATE:`${API_BASE_URL}/Comment/AddComment`,
+  },
   COMPANY:{
    GET_ALL:`${API_BASE_URL}/Company/GetAll/admin-getall-company`,
    GET_LOOKUP:`${API_BASE_URL}/Company/GetCompanyLookup/admin-lookup-company`,
@@ -79,8 +85,86 @@ export const API_ENDPOINTS = {
   DELETE:(id:number)=>`${API_BASE_URL}/DSOProductGroup/${id}`,
   UPDATE_PAGINATION:`${API_BASE_URL}/DSOProductGroup/getall-paginated`,
   },
- 
-
+ DSO_PROTHESIS_TYPE:{
+  GET_ALL:`${API_BASE_URL}/DSOProthesisType`,
+  CREATE:`${API_BASE_URL}/DSOProthesisType`,
+  GET_BY_ID:(id:number)=>`${API_BASE_URL}/DSOProthesisType/${id}`,
+  UPDATE:(id:number)=>`${API_BASE_URL}/DSOProthesisType/${id}`,
+  DELETE:(id:number)=>`${API_BASE_URL}/DSOProthesisType/${id}`,
+  UPDATE_PAGINATION:`${API_BASE_URL}/DSOProthesisType/getall-paginated`,
+ },
+ DSO_REGION:{
+  GET_ALL:`${API_BASE_URL}/DSORegion`,
+  CREATE:`${API_BASE_URL}/DSORegion`,
+  GET_BY_ID:(id:number)=>`${API_BASE_URL}/DSORegion/${id}`,
+  UPDATE:(id:number)=>`${API_BASE_URL}/DSORegion/${id}`,
+  DELETE:(id:number)=>`${API_BASE_URL}/DSORegion/${id}`,
+  UPDATE_PAGINATION:`${API_BASE_URL}/DSORegion/getall-paginated`,
+ },
+ DSO_RESTORATION_TYPE:{
+  GET_ALL:`${API_BASE_URL}/DSORestorationType`,
+  CREATE:`${API_BASE_URL}/DSORestorationType`,
+  GET_BY_ID:(id:number)=>`${API_BASE_URL}/DSORestorationType/${id}`,
+  UPDATE:(id:number)=>`${API_BASE_URL}/DSORestorationType/${id}`,
+  DELETE:(id:number)=>`${API_BASE_URL}/DSORestorationType/${id}`,
+  UPDATE_PAGINATION:`${API_BASE_URL}/DSORestorationType/getall-paginated`,
+ },
+ DSO_SCHEMA:{
+  GET_ALL:`${API_BASE_URL}/DSOSchema`,
+  CREATE:`${API_BASE_URL}/DSOSchema`,
+  GET_BY_ID:(id:number)=>`${API_BASE_URL}/DSOSchema/${id}`,
+  UPDATE:(id:number)=>`${API_BASE_URL}/DSOSchema/${id}`,
+  DELETE:(id:number)=>`${API_BASE_URL}/DSOSchema/${id}`,
+  UPDATE_PAGINATION:`${API_BASE_URL}/DSOSchema/getall-paginated`,
+ },
+ DSO_SETTING:{
+  GET_ALL:`${API_BASE_URL}/DSOSetting`,
+  CREATE:`${API_BASE_URL}/DSOSetting`,
+  GET_BY_ID:(id:number)=>`${API_BASE_URL}/DSOSetting/${id}`,
+  UPDATE:(id:number)=>`${API_BASE_URL}/DSOSetting/${id}`,
+  DELETE:(id:number)=>`${API_BASE_URL}/DSOSetting/${id}`,
+  UPDATE_PAGINATION:`${API_BASE_URL}/DSOSetting/getall-paginated`,
+ },
+ DSO_TERRITORY:{
+  GET_ALL:`${API_BASE_URL}/DSOTerritory`,
+  CREATE:`${API_BASE_URL}/DSOTerritory`,
+  GET_BY_ID:(id:number)=>`${API_BASE_URL}/DSOTerritory/${id}`,
+  UPDATE:(id:number)=>`${API_BASE_URL}/DSOTerritory/${id}`,
+  DELETE:(id:number)=>`${API_BASE_URL}/DSOTerritory/${id}`,
+  UPDATE_PAGINATION:`${API_BASE_URL}/DSOTerritory/getall-paginated`,
+ },
+ DSO_USER:{
+  GET_ALL:`${API_BASE_URL}/DSOUser`,
+  CREATE:`${API_BASE_URL}/DSOUser`,
+  GET_BY_ID:(id:number)=>`${API_BASE_URL}/DSOUser/${id}`,
+  UPDATE:(id:number)=>`${API_BASE_URL}/DSOUser/${id}`,
+  DELETE:(id:number)=>`${API_BASE_URL}/DSOUser/${id}`,
+  UPDATE_PAGINATION:`${API_BASE_URL}/DSOUser/getall-paginated`,
+ },
+ DSO_ZONE:{
+  GET_ALL:`${API_BASE_URL}/DSOZone`,
+  CREATE:`${API_BASE_URL}/DSOZone`,
+  GET_BY_ID:(id:number)=>`${API_BASE_URL}/DSOZone/${id}`,
+  UPDATE:(id:number)=>`${API_BASE_URL}/DSOZone/${id}`,
+  DELETE:(id:number)=>`${API_BASE_URL}/DSOZone/${id}`,
+  UPDATE_PAGINATION:`${API_BASE_URL}/DSOZone/getall-paginated`,
+ },
+ FINANCIAL_YEAR:{
+  GET_ALL:`${API_BASE_URL}/FinancialYear/GetAll`,
+  GET_LOOKUP:`${API_BASE_URL}/FinancialYear/GetCategoryLookUp/admin-lookup-financialyear`,
+  GET_BY_ID:(id:number)=>`${API_BASE_URL}/FinancialYear/GetById/${id}`,
+  CREATE:`${API_BASE_URL}/FinancialYear/Create`,
+  UPDATE:(id:number)=>`${API_BASE_URL}/FinancialYear/Update/${id}`,
+  DELETE:(id:number)=>`${API_BASE_URL}/FinancialYear/Delete/${id}`,
+ },
+ USER:{
+  GET_ALL:`${API_BASE_URL}/User`,
+  CREATE:`${API_BASE_URL}/User`,
+  GET_BY_ID:(id:number)=>`${API_BASE_URL}/User/${id}`,
+  UPDATE:(id:number)=>`${API_BASE_URL}/User/${id}`,
+  DELETE:(id:number)=>`${API_BASE_URL}/User/${id}`,
+  CHANGE_PASSWORD:(id:number)=>`${API_BASE_URL}/User/ChangePassword/${id}`,
+ },
   //------------------------DSO - Connect ----------------------------------------
 
   DSODoctor: {

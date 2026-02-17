@@ -48,8 +48,8 @@ export const dsoadminConnectConfig = {
             children: [
                 { title: 'Lab', url: '/dsoadmin-connect/masters/lab', icon: Microscope },
                 { title: 'Practice', url: '/dsoadmin-connect/masters/practice', icon: Building2 },
-                { title: 'Doctor', url: '/dsoadmin-connect/masters/doctor', icon: UserCog },
-                { title: 'Product Group', url: '/dsoadmin-connect/masters/product-group', icon: Package },
+                { title: 'Doctor', url: '/dsoadmin-connect/masters/doctor-list', icon: UserCog },
+                { title: 'Product Group', url: '/dsoadmin-connect/masters/productGroup-list', icon: Package },
                 { title: 'User Role Creation', url: '/dsoadmin-connect/masters/user-roles', icon: UserPlus },
             ],
         },

@@ -1,4 +1,4 @@
-import type { AuditTrails } from "../../../Types/AuditLog.types";
+import type { AuditTrails } from "../../../Types/Auditlog.types";
 
 export interface DSOProductGroup {
   id?: number;
@@ -17,5 +17,5 @@ export interface DSOProductGroup {
   sortDescending?: boolean;
   showDeleted?: boolean;
   showInactive?: boolean;
-  auditlog:AuditTrails[];
+  auditlog?:AuditTrails[];
 };

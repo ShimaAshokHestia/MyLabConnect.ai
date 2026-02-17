@@ -91,12 +91,12 @@ export const labMenuConfig: MenuItem[] = [
       },
       { 
         title: 'Doctor', 
-        url: '/dsoadmin-connect/masters/doctor', 
+        url: '/dsoadmin-connect/masters/doctor-list', 
         icon: UserCog 
       },
       { 
         title: 'Product Group', 
-        url: '/dashboard/masters/product-group', 
+        url: '/dsoadmin-connect/masters/productGroup-list', 
         icon: Package 
       },
       { 

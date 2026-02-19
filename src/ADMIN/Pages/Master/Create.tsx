@@ -11,10 +11,10 @@ interface Props {
 }
 
 const fields: Field[] = [
-  { name: "name",        rules: { type: "text",     label: "Name",        required: true,  maxLength: 100, colWidth: 6  } },
+  { name: "name", rules: { type: "text", label: "Name", required: true, maxLength: 100, colWidth: 6 } },
   { name: "description", rules: { type: "textarea", label: "Description", required: false, maxLength: 500, colWidth: 12 } },
-  { name: "isActive",    rules: { type: "toggle",   label: "Active",                                       colWidth: 6  } },
-  { name: "isDeleted",   rules: { type: "toggle",   label: "Deleted",                                      colWidth: 6  } },
+  { name: "isActive", rules: { type: "toggle", label: "Active", colWidth: 6 } },
+  { name: "isDeleted", rules: { type: "toggle", label: "Deleted", colWidth: 6 } },
 ];
 
 const DSOmasterCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }) => {

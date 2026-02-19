@@ -69,6 +69,14 @@ export const API_ENDPOINTS = {
    DELETE:(id:number)=>`${API_BASE_URL}/DSODoctorDentalOffice/${id}`,
    UPDATE_PAGINATION:`${API_BASE_URL}/DSODoctorDentalOffice/getall-paginated`,
   },
+  DSO_INDICATION:{
+   GET_ALL:`${API_BASE_URL}/DSOIndication`,
+   CREATE:`${API_BASE_URL}/DSOIndication`,
+   GET_BY_ID:(id:number) =>`${API_BASE_URL}/DSOIndication/${id}`,
+   UPDATE:(id:number) =>`${API_BASE_URL}/DSOIndication/${id}`,
+   DELETE:(id:number)=>`${API_BASE_URL}/DSOIndication/${id}`,
+   UPDATE_PAGINATION:`${API_BASE_URL}/DSOIndication/getall-paginated`
+  },
   DSO_MASTER:{
    GET_ALL:`${API_BASE_URL}/DSOMaster`,
    CREATE:`${API_BASE_URL}/DSOMaster`,
@@ -76,6 +84,22 @@ export const API_ENDPOINTS = {
    UPDATE:(id:number)=>`${API_BASE_URL}/DSOMaster/${id}`,
    DELETE:(id:number)=>`${API_BASE_URL}/DSOMaster/${id}`,
    UPDATE_PAGINATION:`${API_BASE_URL}/DSOMaster/getall-paginated`,
+  },
+  DSO_MATERIAL:{
+   GET_ALL:`${API_BASE_URL}/DSOMaterial`,
+   CREATE:`${API_BASE_URL}/DSOMaterial`,
+   GET_BY_ID:(id:number)=>`${API_BASE_URL}/DSOMaterial/${id}`,
+   UPDATE:(id:number)=>`${API_BASE_URL}/DSOMaterial/${id}`,
+   DELETE:(id:number)=>`${API_BASE_URL}/DSOMaterial/${id}`,
+   UPDATE_PAGINATION:`${API_BASE_URL}/DSOMaterial/getall-paginated`,
+  },
+  DSO_PRODUCT:{
+   GET_ALL:`${API_BASE_URL}/DSOProduct`,
+   CREATE:`${API_BASE_URL}/DSOProduct`,
+   GET_BY_ID:(id:number)=>`${API_BASE_URL}/DSOProduct/${id}`,
+   UPDATE:(id:number)=>`${API_BASE_URL}/DSOProduct/${id}`,
+   DELETE:(id:number)=>`${API_BASE_URL}/DSOProduct/${id}`,
+   UPDATE_PAGINATION:`${API_BASE_URL}/DSOProduct/getall-paginated`,
   },
   DSO_PRODUCT_GROUP:{
   GET_ALL:`${API_BASE_URL}/DSOProductGroup`,
@@ -157,6 +181,30 @@ export const API_ENDPOINTS = {
   UPDATE:(id:number)=>`${API_BASE_URL}/FinancialYear/Update/${id}`,
   DELETE:(id:number)=>`${API_BASE_URL}/FinancialYear/Delete/${id}`,
  },
+ LAB_GROUP:{
+  GET_ALL:`${API_BASE_URL}/LabGroup`,
+  CREATE:`${API_BASE_URL}/LabGroup`,
+  GET_BY_ID:(id:number)=>`${API_BASE_URL}/LabGroup/${id}`,
+  UPDATE:(id:number)=>`${API_BASE_URL}/LabGroup/${id}`,
+  DELETE:(id:number)=>`${API_BASE_URL}/LabGroup/${id}`,
+  UPDATE_PAGINATION:`${API_BASE_URL}/LabGroup/getall-paginated`,
+ },
+ LAB_MASTER:{
+  GET_ALL:`${API_BASE_URL}/LabMaster`,
+  CREATE:`${API_BASE_URL}/LabMaster`,
+  GET_BY_ID:(id:number)=>`${API_BASE_URL}/LabMaster/${id}`,
+  UPDATE:(id:number)=>`${API_BASE_URL}/LabMaster/${id}`,
+  DELETE:(id:number)=>`${API_BASE_URL}/LabMaster/${id}`,
+  UPDATE_PAGINATION:`${API_BASE_URL}/LabMaster/getall-paginated`,
+ },
+ LAB_SETTING:{
+  GET_ALL:`${API_BASE_URL}/LabSetting`,
+  CREATE:`${API_BASE_URL}/LabSetting`,
+  GET_BY_ID:(id:number)=>`${API_BASE_URL}/LabSetting/${id}`,
+  UPDATE:(id:number)=>`${API_BASE_URL}/LabSetting/${id}`,
+  DELETE:(id:number)=>`${API_BASE_URL}/LabSetting/${id}`,
+  UPDATE_PAGINATION:`${API_BASE_URL}/LabSetting/getall-paginated`,
+ },
  USER:{
   GET_ALL:`${API_BASE_URL}/User`,
   CREATE:`${API_BASE_URL}/User`,
@@ -164,17 +212,26 @@ export const API_ENDPOINTS = {
   UPDATE:(id:number)=>`${API_BASE_URL}/User/${id}`,
   DELETE:(id:number)=>`${API_BASE_URL}/User/${id}`,
   CHANGE_PASSWORD:(id:number)=>`${API_BASE_URL}/User/ChangePassword/${id}`,
+  UPDATE_PAGINATION:`${API_BASE_URL}/User/getall-paginated`
+ },
+ USER_TYPE:{
+  GET_ALL:`${API_BASE_URL}/UserType`,
+  CREATE:`${API_BASE_URL}/UserType`,
+  GET_BY_ID:(id:number)=>`${API_BASE_URL}/UserType/${id}`,
+  UPDATE:(id:number)=>`${API_BASE_URL}/UserType/${id}`,
+  DELETE:(id:number)=>`${API_BASE_URL}/UserType/${id}`,
+  UPDATE_PAGINATION:`${API_BASE_URL}/UserType/getall-paginated`,
  },
   //------------------------DSO - Connect ----------------------------------------
 
-  DSODoctor: {
-    GET_ALL: `${API_BASE_URL}/DSOMaster`,
-    GET_BY_ID: (id: number) => `${API_BASE_URL}/DSOMaster${id}`,
-    CREATE: `${API_BASE_URL}/DSOMaster`,
-    UPDATE: (id: number) => `${API_BASE_URL}/DSOMaster${id}`,
-    DELETE: (id: number) => `${API_BASE_URL}/DSOMaster${id}`,
-    POST_PAGINATED:`${API_BASE_URL}/DSOProductGroup/getall-paginated`
-  },
+  // DSODoctor: {
+  //   GET_ALL: `${API_BASE_URL}/DSOMaster`,
+  //   GET_BY_ID: (id: number) => `${API_BASE_URL}/DSOMaster${id}`,
+  //   CREATE: `${API_BASE_URL}/DSOMaster`,
+  //   UPDATE: (id: number) => `${API_BASE_URL}/DSOMaster${id}`,
+  //   DELETE: (id: number) => `${API_BASE_URL}/DSOMaster${id}`,
+  //   POST_PAGINATED:`${API_BASE_URL}/DSOProductGroup/getall-paginated`
+  // },
  
 
 };

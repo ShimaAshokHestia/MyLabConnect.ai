@@ -9,33 +9,25 @@ interface Props {
   onSuccess: () => void;
 }
 
+const fields: Field[] = [
+  { name: "code",        rules: { type: "text",   label: "Code",       required: true, maxLength: 20,  colWidth: 6 } },
+  { name: "name",        rules: { type: "text",   label: "Name",       required: true, maxLength: 100, colWidth: 6 } },
+  { name: "dsoMasterId", rules: { type: "number", label: "DSO Master", required: true,                 colWidth: 6 } },
+  { name: "isActive",    rules: { type: "toggle", label: "Active",                                     colWidth: 6 } },
+];
+
 const DsoProductGroupCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }) => {
 
-  // ── Fields ────────────────────────────────────────────────────
-  const fields: Field[] = [
-    { name: "code",        rules: { type: "text",   label: "Code",       required: true, maxLength: 20,  colWidth: 6 } },
-    { name: "name",        rules: { type: "text",   label: "Name",       required: true, maxLength: 100, colWidth: 6 } },
-    { name: "dsoMasterId", rules: { type: "number", label: "DSO Master", required: true,                 colWidth: 6 } },
-    { name: "isActive",    rules: { type: "toggle", label: "Active",                                     colWidth: 6 } },
-  ];
-
-  // ── Submit ────────────────────────────────────────────────────
- const handleSubmit = async (formData: Record<string, any>) => {
-  console.log("formData:", formData);  // ✅ add this
-  
-  const payload: DSOProductGroup = {
-    code:        formData.code,
-    name:        formData.name,
-    dsoMasterId: Number(formData.dsoMasterId),
-    isActive:    formData.isActive ?? true,
+  const handleSubmit = async (formData: Record<string, any>) => {
+    const payload: Partial<DSOProductGroup> = {
+      code:        formData.code,
+      name:        formData.name,
+      dsoMasterId: Number(formData.dsoMasterId),
+      isActive:    formData.isActive ?? true,
+    };
+    await DSOProductGroupService.create(payload);
   };
 
-  console.log("payload:", payload);  // ✅ add this
-  
-  await DSOProductGroupService.create(payload);
-};
-
-  // ── Render ────────────────────────────────────────────────────
   return (
     <KiduCreateModal
       show={show}
@@ -44,7 +36,7 @@ const DsoProductGroupCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }
       subtitle="Add new DSO Product Group"
       fields={fields}
       onSubmit={handleSubmit}
-      successMessage="Product group created successfully"
+      successMessage="Product group created successfully!"
       onSuccess={onSuccess}
     />
   );

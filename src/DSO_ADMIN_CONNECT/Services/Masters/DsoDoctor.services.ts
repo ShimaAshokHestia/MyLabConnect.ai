@@ -41,4 +41,23 @@ export default class DSODoctorService {
   static async delete(id: number): Promise<void> {
     await HttpService.callApi<void>(API_ENDPOINTS.DSO_DOCTOR.DELETE(id), "DELETE");
   }
+
+  static async getPaginated(payload: Partial<DSODoctor>): Promise<{
+    data: DSODoctor[];
+    totalCount: number;
+    totalPages?: number;
+    currentPage?: number;
+  }> {
+    const response = await HttpService.callApi<any>(
+      API_ENDPOINTS.DSO_DOCTOR.UPDATE_PAGINATION,
+      "POST",
+      payload
+    );
+    return {
+      data:        response.data        ?? response.items          ?? response.results ?? [],
+      totalCount:  response.totalCount  ?? response.totalRecords   ?? response.total   ?? 0,
+      totalPages:  response.totalPages,
+      currentPage: response.currentPage ?? response.pageNumber,
+    };
+  }
 }

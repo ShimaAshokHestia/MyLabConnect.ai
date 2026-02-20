@@ -24,6 +24,11 @@ interface ThemeProviderProps {
  * Single source of truth for theme management.
  * Sets BOTH data-theme (custom CSS vars) AND data-bs-theme (Bootstrap)
  * on document.documentElement so all components stay in sync.
+ *
+ * Priority order:
+ *  1. Previously saved user preference (localStorage)
+ *  2. OS / browser system preference (prefers-color-scheme)
+ *  3. Fallback: 'light'
  */
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   children,
@@ -32,16 +37,19 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
     if (typeof window !== 'undefined') {
+      // 1. Honour an explicit user choice saved previously
       const savedTheme = localStorage.getItem(storageKey) as Theme;
       if (savedTheme === 'light' || savedTheme === 'dark') return savedTheme;
+      // 2. Fall back to the OS/browser system preference
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      return prefersDark ? 'dark' : defaultTheme;
+      return prefersDark ? 'dark' : 'light';
     }
+    // 3. SSR / no-window fallback
     return defaultTheme;
   });
 
-  // Apply theme to document — sets BOTH attribute systems in one place
-  const applyTheme = (t: Theme) => {
+  // Apply DOM attributes only — no localStorage write here
+  const applyThemeToDom = (t: Theme) => {
     const root = document.documentElement;
     if (t === 'dark') {
       root.setAttribute('data-theme', 'dark');
@@ -50,21 +58,41 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       root.removeAttribute('data-theme');
       root.setAttribute('data-bs-theme', 'light');
     }
-    localStorage.setItem(storageKey, t);
   };
 
+  // Sync DOM whenever theme state changes
   useEffect(() => {
-    applyTheme(theme);
-  }, [theme, storageKey]);
+    applyThemeToDom(theme);
+  }, [theme]);
 
+  // Listen for OS-level theme changes — only fires when no saved user preference
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      const hasUserPref = localStorage.getItem(storageKey);
+      if (!hasUserPref) {
+        // Follow system — no localStorage write, just update state -> DOM
+        setThemeState(e.matches ? 'dark' : 'light');
+      }
+    };
+    mq.addEventListener('change', handleChange);
+    return () => mq.removeEventListener('change', handleChange);
+  }, [storageKey]);
+
+  // Manual toggle — saves user preference to localStorage
   const toggleTheme = () => {
     setThemeState((prev) => {
       const next = prev === 'light' ? 'dark' : 'light';
+      localStorage.setItem(storageKey, next); // only written on explicit user action
       return next;
     });
   };
 
-  const setTheme = (newTheme: Theme) => setThemeState(newTheme);
+  // Explicit set — also saves to localStorage
+  const setTheme = (newTheme: Theme) => {
+    localStorage.setItem(storageKey, newTheme);
+    setThemeState(newTheme);
+  };
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>

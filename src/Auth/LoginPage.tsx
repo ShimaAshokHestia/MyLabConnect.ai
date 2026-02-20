@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Button } from "react-bootstrap";
 import "../Styles/Auth/LoginPage.css";
 import KiduLogo from "../KIDU_COMPONENTS/KiduLogo";
-import { ThemeToggle } from "../ThemeProvider/ThemeProvider";
 import LoginForm from "./LoginForm";
 
 const carouselImages = [
@@ -28,7 +27,7 @@ const LoginPage: React.FC = () => {
   return (
     <div className="login-wrapper">
       <Container fluid className="p-0">
-        <Row className="g-0 min-vh-100">
+        <Row className="g-0 login-row">
 
           {/* ================= LEFT SIDE - CAROUSEL ================= */}
           <Col lg={6} className="d-none d-lg-flex position-relative login-carousel">
@@ -38,9 +37,7 @@ const LoginPage: React.FC = () => {
                 key={index}
                 src={img}
                 alt={`Dental slide ${index + 1}`}
-                className={`carousel-image ${
-                  index === currentSlide ? "active" : ""
-                }`}
+                className={`carousel-image ${index === currentSlide ? "active" : ""}`}
               />
             ))}
 
@@ -58,9 +55,7 @@ const LoginPage: React.FC = () => {
                 <Button
                   key={index}
                   onClick={() => setCurrentSlide(index)}
-                  className={`indicator ${
-                    index === currentSlide ? "active" : ""
-                  }`}
+                 className={`indicator ${index === currentSlide ? "active" : ""}`}
                 />
               ))}
             </div>
@@ -76,11 +71,6 @@ const LoginPage: React.FC = () => {
               {/* Mobile Logo */}
               <div className="d-lg-none text-center mb-4">
                 <KiduLogo />
-              </div>
-
-              {/* Theme Toggle */}
-              <div className="theme-toggle-wrapper">
-                <ThemeToggle />
               </div>
 
               {/* Welcome Text */}

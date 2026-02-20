@@ -9,7 +9,7 @@ import Swal from 'sweetalert2';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ThemeProvider defaultTheme="light">  <YearProvider><App /></YearProvider></ThemeProvider>
+    <ThemeProvider>  <YearProvider><App /></YearProvider></ThemeProvider>
   </StrictMode>,
 )
 Swal.mixin({

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import type { MenuItem } from '../Types/KiduTypes/Sidebar.types';
 import type { UserProfile, NotificationItem, NavbarAction } from '../Types/KiduTypes/Navbar.types';
@@ -66,16 +66,6 @@ const KiduLayout: React.FC<KiduLayoutProps> = ({
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(defaultSidebarCollapsed);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  // Persist sidebar state
-  useEffect(() => {
-    const saved = localStorage.getItem('sidebar-collapsed');
-    if (saved !== null) setSidebarCollapsed(saved === 'true');
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('sidebar-collapsed', String(sidebarCollapsed));
-  }, [sidebarCollapsed]);
 
   const handleSidebarToggle = () => setSidebarCollapsed((prev) => !prev);
   const handleMobileMenuToggle = () => setMobileMenuOpen((prev) => !prev);

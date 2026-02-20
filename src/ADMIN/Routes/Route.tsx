@@ -9,6 +9,7 @@ import DSOmasterList from '../Pages/Master/List';
 import UserList from '../Pages/User Management/User/List';
 import UserTypeList from '../Pages/User Management/User Type/List';
 import CompanyList from '../Pages/Company/List';
+import FinancialYearList from '../Pages/Settings/Financial Year/List';
 
 // ── Add page imports here as you build them ────────────────────────
 // import DSOmasterList from '../Pages/Master/List';
@@ -37,7 +38,7 @@ export const adminConnectRoutes = (
     <Route path="reports/support-tickets"  element={<div><h5>Support Tickets</h5></div>} />
 
     {/* Settings */}
-    <Route path="settings/financialYear-list" element={<div><h5>Settings</h5></div>} />
+    <Route path="settings/financialYear-list" element={<FinancialYearList/>} />
 
     {/* Catch-all */}
     <Route path="*" element={<Navigate to="/appadmin-connect" replace />} />

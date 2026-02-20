@@ -12,6 +12,7 @@ import DsoDoctorList from '../Pages/Masters/Doctors/List';
 import DSOZoneList from '../Pages/Setup/Zone/List';
 import { DsoUserLayout } from '../Layout/DsoUserLayout';
 import DsoProductGroupList from '../Pages/Masters/Product Group/List';
+import DSOProsthesisTypeList from '../Pages/Prosthesis/List';
 
 // ── Add more page imports here as you build them ──────────────────
 // import DsoLabList       from '../Pages/Masters/Lab/List';
@@ -61,6 +62,7 @@ export const dsoadminConnectRoutes = (
     {/* Invoices */}
     <Route path="invoices/proforma" element={<div><h5>Proforma Invoice</h5></div>} />
     <Route path="invoices" element={<div><h5>Invoices</h5></div>} />
+    <Route path="prosthesis" element={<DSOProsthesisTypeList/>}/>
 
     {/* Catch-all */}
     <Route path="*" element={<Navigate to="/dsoadmin-connect" replace />} />

@@ -23,6 +23,8 @@ import {
     TrendingUp,
     User,
     Key,
+    Sparkles,
+    RefreshCw
 } from 'lucide-react';
 import type { MenuItem } from '../../Types/KiduTypes/Sidebar.types';
 import type { UserProfile, NotificationItem, NavbarAction } from '../../Types/KiduTypes/Navbar.types';
@@ -97,6 +99,16 @@ export const dsoAdminMenuItems: MenuItem[] = [
         children: [
             { title: 'Proforma Invoice', url: '/dsoadmin-connect/invoices/proforma', icon: Receipt },
         ],
+    },
+   {
+        title: 'Prosthesis',
+        url: '/dsoadmin-connect/prosthesis',
+        icon: Sparkles,
+    },
+    {
+        title: 'Restoration',
+        url: '/dsoadmin-connect/restoration',
+        icon:  RefreshCw,
     },
 ];
 

@@ -5,7 +5,6 @@ import { Form, Button, Dropdown } from "react-bootstrap";
 import {
   FaSort, FaSortUp, FaSortDown,
   FaEllipsisV, FaEye, FaEdit, FaTrash,
-  FaGripVertical, FaThumbtack,
   FaChevronLeft, FaChevronRight, FaDownload,
   FaHistory,
 } from "react-icons/fa";
@@ -18,11 +17,10 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import KiduCreateModal, { type KiduCreateModalProps } from "./KiduCreateModal";
-import KiduAuditLogs from "./KiduAuditLogs";   // ← built-in audit modal
+import KiduAuditLogs from "./KiduAuditLogs";
 import "../Styles/KiduStyles/ServerTable.css";
 import type { Density, ExportFormat, ToolbarColumnConfig } from "./KiduToolbar";
 import KiduToolbar from "./KiduToolbar";
-
 
 // ─────────────────────────────────────────────────────────────
 // Types
@@ -97,20 +95,7 @@ export interface KiduServerTableProps<T> {
   onBulkDelete?:  (rows: T[]) => void;
   onRowClick?:    (row: T) => void;
 
-  /**
-   * Pass the DB table name (e.g. "DOCTOR") to enable the built-in
-   * Audit Logs modal. The row's `rowKey` value is used as recordId.
-   *
-   * Example:
-   *   <KiduServerTableList auditLogTableName="DOCTOR" ... />
-   */
   auditLogTableName?: string;
-
-  /**
-   * Provide your own handler instead of the built-in modal.
-   * When set, clicking "Audit Logs" calls this instead.
-   * `auditLogTableName` is ignored when this is set.
-   */
   onAuditLogClick?: (row: T) => void;
 
   rowsPerPageOptions?: number[];
@@ -135,7 +120,6 @@ interface AuditState {
   open:     boolean;
   recordId: number | string;
 }
-
 
 // ─────────────────────────────────────────────────────────────
 // Export helpers
@@ -181,7 +165,6 @@ function exportPDF(data: any[], columns: KiduColumn[], filename: string, title: 
   doc.save(`${filename}.pdf`);
 }
 
-
 // ─────────────────────────────────────────────────────────────
 // Avatar cell
 // ─────────────────────────────────────────────────────────────
@@ -201,7 +184,6 @@ function AvatarCell({ name }: { name: string }) {
     </div>
   );
 }
-
 
 // ─────────────────────────────────────────────────────────────
 // Cell renderer
@@ -270,7 +252,6 @@ function renderCell(col: KiduColumn, value: any, row: any): React.ReactNode {
   }
 }
 
-
 // ─────────────────────────────────────────────────────────────
 // Main component
 // ─────────────────────────────────────────────────────────────
@@ -291,7 +272,6 @@ function KiduServerTable<T extends Record<string, any>>({
   showActions         = true,
   showPagination      = true,
   showRowsPerPage     = true,
- 
   showSelectionToggle = true,
   addButtonLabel = "Add New",
   addModal,
@@ -344,7 +324,7 @@ function KiduServerTable<T extends Record<string, any>>({
   const [filtersOpen,   setFiltersOpen]   = useState(false);
 
   // ── Column state ─────────────────────────────────────────────
-  const [columns,          setColumns]          = useState<KiduColumn[]>(initialColumns);
+  const [columns,          ]          = useState<KiduColumn[]>(initialColumns);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [density,          setDensity]          = useState<Density>(defaultDensity);
 
@@ -354,7 +334,6 @@ function KiduServerTable<T extends Record<string, any>>({
 
   // ── UI ───────────────────────────────────────────────────────
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [draggedCol,   setDraggedCol]   = useState<string | null>(null);
 
   // ── CRUD modal ───────────────────────────────────────────────
   const [modal, setModal] = useState<ModalState<T>>({ kind: null, row: null, props: null });
@@ -402,14 +381,8 @@ function KiduServerTable<T extends Record<string, any>>({
   };
 
   const allSelected  = data.length > 0 && data.every((r) => selectedRows.has(r[rowKey]));
-  const someSelected = data.some((r) => selectedRows.has(r[rowKey]));
 
   // ── Selection helpers ────────────────────────────────────────
-  function toggleRow(id: any) {
-    const next = new Set(selectedRows);
-    next.has(id) ? next.delete(id) : next.add(id);
-    setSelectedRows(next);
-  }
 
   function togglePage() {
     const next = new Set(selectedRows);
@@ -417,28 +390,6 @@ function KiduServerTable<T extends Record<string, any>>({
     else             { data.forEach((r) => next.add(r[rowKey]));    }
     setSelectedRows(next);
   }
-
-  // ── Column helpers ───────────────────────────────────────────
-  const toggleColVisibility = (key: string) =>
-    setColumnVisibility((p) => ({ ...p, [key]: !p[key] }));
-
-  const togglePin = (key: string, side: "left" | "right") =>
-    setColumns((p) => p.map((c) => c.key === key ? { ...c, pinned: c.pinned === side ? false : side } : c));
-
-  const handleDragStart = (key: string) => setDraggedCol(key);
-  const handleDragEnd   = () => setDraggedCol(null);
-  const handleDragOver  = (e: React.DragEvent, key: string) => {
-    e.preventDefault();
-    if (!draggedCol || draggedCol === key) return;
-    setColumns((p) => {
-      const arr  = [...p];
-      const from = arr.findIndex((c) => c.key === draggedCol);
-      const to   = arr.findIndex((c) => c.key === key);
-      const [m]  = arr.splice(from, 1);
-      arr.splice(to, 0, m);
-      return arr;
-    });
-  };
 
   // ── Export ───────────────────────────────────────────────────
   const handleExport = (format: ExportFormat) => {
@@ -479,11 +430,6 @@ function KiduServerTable<T extends Record<string, any>>({
     if (viewRoute)   { navigate(`${viewRoute}/${row[rowKey]}`); }
   }
 
-  /**
-   * Audit Logs:
-   *   1. Custom handler → call it directly
-   *   2. auditLogTableName set → open the built-in KiduAuditLogs modal
-   */
   function handleAuditLog(row: T) {
     if (onAuditLogClick) {
       onAuditLogClick(row);
@@ -495,38 +441,37 @@ function KiduServerTable<T extends Record<string, any>>({
   }
 
   const showAudit = !!(auditLogTableName || onAuditLogClick);
-
   const hasActions = showActions && (
-    editModal    || editRoute    || onEditClick  ||
-    viewModal    || viewRoute    || onViewClick  ||
+    editModal || editRoute || onEditClick ||
+    viewModal || viewRoute || onViewClick ||
     onDeleteClick || showAudit
   );
 
   // ── TanStack columns ─────────────────────────────────────────
   const tableColumns = useMemo<ColumnDef<T>[]>(() => {
     const cols: ColumnDef<T>[] = columns.map((col) => ({
-      accessorKey:   col.key,
-      header:        col.label,
+      id: col.key,
+      accessorKey: col.key,
+      header: col.label,
       enableSorting: col.enableSorting !== false,
-      size:          col.width,
-      minSize:       col.minWidth,
+      size: col.width,
+      minSize: col.minWidth,
       cell: ({ getValue, row }) => renderCell(col, getValue(), row.original),
     }));
 
     if (hasActions) {
       cols.push({
-        id:            "actions",
-        header:        "Actions",
+        id: "actions",
+        header: "ACTIONS",
         enableSorting: false,
+        size: 80,
+        minSize: 60,
         cell: ({ row }) => (
           <Dropdown onClick={(e) => e.stopPropagation()} align="end">
             <Dropdown.Toggle variant="link" size="sm" className="kidu-action-toggle">
               <FaEllipsisV />
             </Dropdown.Toggle>
-
             <Dropdown.Menu className="kidu-actions-menu">
-
-              {/* View */}
               {(viewModal || viewRoute || onViewClick) && (
                 <Dropdown.Item
                   className="kidu-dropdown-item"
@@ -535,8 +480,6 @@ function KiduServerTable<T extends Record<string, any>>({
                   <FaEye className="me-2" /> View
                 </Dropdown.Item>
               )}
-
-              {/* Edit */}
               {(editModal || editRoute || onEditClick) && (
                 <Dropdown.Item
                   className="kidu-dropdown-item"
@@ -545,8 +488,6 @@ function KiduServerTable<T extends Record<string, any>>({
                   <FaEdit className="me-2" /> Edit
                 </Dropdown.Item>
               )}
-
-              {/* Audit Logs */}
               {showAudit && (
                 <Dropdown.Item
                   className="kidu-dropdown-item"
@@ -555,8 +496,6 @@ function KiduServerTable<T extends Record<string, any>>({
                   <FaHistory className="me-2" /> Audit Logs
                 </Dropdown.Item>
               )}
-
-              {/* Delete — always last with divider */}
               {onDeleteClick && (
                 <>
                   <Dropdown.Divider />
@@ -568,7 +507,6 @@ function KiduServerTable<T extends Record<string, any>>({
                   </Dropdown.Item>
                 </>
               )}
-
             </Dropdown.Menu>
           </Dropdown>
         ),
@@ -576,7 +514,6 @@ function KiduServerTable<T extends Record<string, any>>({
     }
 
     return cols;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [columns, hasActions, editModal, editRoute, onEditClick,
       viewModal, viewRoute, onViewClick, onDeleteClick, showAudit]);
 
@@ -613,7 +550,6 @@ function KiduServerTable<T extends Record<string, any>>({
     key: c.key, label: c.label, pinned: c.pinned,
   }));
 
-
   // ─────────────────────────────────────────────────────────────
   // Render
   // ─────────────────────────────────────────────────────────────
@@ -621,7 +557,7 @@ function KiduServerTable<T extends Record<string, any>>({
   return (
     <div className={`kidu-server-table ${isFullscreen ? "kidu-fullscreen" : ""}`} ref={tableRef}>
 
-      {/* ══════════════════ Toolbar ══════════════════ */}
+      {/* Toolbar */}
       <KiduToolbar
         title={title}    subtitle={subtitle}
         showSearch={showSearch}
@@ -634,8 +570,8 @@ function KiduServerTable<T extends Record<string, any>>({
         showColumnToggle={showColumnToggle}
         columns={toolbarCols}
         columnVisibility={columnVisibility}
-        onColumnVisibilityToggle={toggleColVisibility}
-        onColumnPin={togglePin}
+        onColumnVisibilityToggle={(key) => setColumnVisibility((p) => ({ ...p, [key]: !p[key] }))}
+        onColumnPin={() => {}}
         showDensityToggle={showDensityToggle}
         density={density}
         onDensityChange={setDensity}
@@ -653,7 +589,7 @@ function KiduServerTable<T extends Record<string, any>>({
         additionalButtons={additionalButtons}
       />
 
-      {/* ══════════════════ Selection Bar ══════════════════ */}
+      {/* Selection Bar */}
       {selectedRows.size > 0 && (
         <div className="kidu-selection-bar">
           <span className="kidu-sel-count">
@@ -676,7 +612,7 @@ function KiduServerTable<T extends Record<string, any>>({
             <Button size="sm" variant="danger" className="kidu-sel-action"
               onClick={() => {
                 const rows = data.filter((r) => selectedRows.has(r[rowKey]));
-                if (onBulkDelete)                     onBulkDelete(rows);
+                if (onBulkDelete) onBulkDelete(rows);
                 else if (onDeleteClick && rows.length) onDeleteClick(rows[0]);
               }}
             >
@@ -686,7 +622,7 @@ function KiduServerTable<T extends Record<string, any>>({
         </div>
       )}
 
-      {/* ══════════════════ Filter Row ══════════════════ */}
+      {/* Filter Row */}
       {filtersOpen && (
         <div className="kidu-filter-row">
           {visibleCols
@@ -725,60 +661,45 @@ function KiduServerTable<T extends Record<string, any>>({
         </div>
       )}
 
-      {/* ══════════════════ Table ══════════════════ */}
+      {/* Table */}
       <div className="kidu-table-scroll">
         <table className={`kidu-table ${striped ? "kidu-striped" : ""}`}>
-
+          
+          {/* HEADER - FIXED ALIGNMENT */}
           <thead className={stickyHeader ? "kidu-thead-sticky" : ""}>
-            {table.getHeaderGroups().map((hg) => (
-              <tr key={hg.id}>
-                {selectionEnabled && (
-                  <th className={`kidu-th kidu-th-checkbox ${densityClass[density]}`}>
-                    <input
-                      type="checkbox"
-                      className="kidu-checkbox"
-                      checked={allSelected}
-                      ref={(el) => { if (el) el.indeterminate = someSelected && !allSelected; }}
-                      onChange={togglePage}
-                    />
-                  </th>
-                )}
-                {hg.headers.map((header) => {
-                  const col     = columns.find((c) => c.key === header.id);
-                  const pinned  = col?.pinned;
-                  const isAct   = header.id === "actions";
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  const col = columns.find((c) => c.key === header.id);
+                  const isAction = header.id === "actions";
                   const canSort = header.column.getCanSort();
-                  const sorted  = header.column.getIsSorted();
+                  const sorted = header.column.getIsSorted();
+                  
                   return (
                     <th
                       key={header.id}
-                      draggable={!isAct}
-                      onDragStart={() => !isAct && handleDragStart(header.id)}
-                      onDragOver={(e) => !isAct && handleDragOver(e, header.id)}
-                      onDragEnd={handleDragEnd}
                       onClick={canSort ? header.column.getToggleSortingHandler() : undefined}
                       className={[
                         "kidu-th",
                         densityClass[density],
-                        canSort                  ? "kidu-th-sortable"         : "",
-                        pinned                   ? `kidu-th-pinned-${pinned}` : "",
-                        draggedCol === header.id ? "kidu-th-dragging"         : "",
-                        isAct                    ? "kidu-th-actions"          : "",
+                        canSort ? "kidu-th-sortable" : "",
+                        isAction ? "kidu-th-actions" : "",
                       ].filter(Boolean).join(" ")}
-                      style={{ minWidth: col?.minWidth ?? 80, width: col?.width }}
+                      style={{ 
+                        width: col?.width || (isAction ? 80 : 'auto'),
+                        minWidth: col?.minWidth || (isAction ? 60 : 100)
+                      }}
                     >
                       <div className="kidu-th-inner">
-                        {!isAct && <FaGripVertical className="kidu-drag-handle" />}
                         <span className="kidu-th-label">
                           {flexRender(header.column.columnDef.header, header.getContext())}
                         </span>
                         {canSort && (
                           <span className="kidu-sort-icon">
-                            {sorted === "asc"  ? <FaSortUp   /> :
+                            {sorted === "asc" ? <FaSortUp /> :
                              sorted === "desc" ? <FaSortDown /> : <FaSort />}
                           </span>
                         )}
-                        {pinned && <FaThumbtack className="kidu-pin-indicator" />}
                       </div>
                     </th>
                   );
@@ -787,19 +708,19 @@ function KiduServerTable<T extends Record<string, any>>({
             ))}
           </thead>
 
+          {/* BODY - FIXED ALIGNMENT */}
           <tbody>
-
             {/* Loading skeleton */}
             {loading && Array.from({ length: rowsPerPage }).map((_, i) => (
               <tr key={`sk-${i}`} className="kidu-skeleton-row">
-                {selectionEnabled && (
-                  <td className={`kidu-td ${densityClass[density]}`}>
-                    <div className="kidu-skeleton kidu-skel-xs" />
-                  </td>
-                )}
                 {tableColumns.map((col) => (
-                  <td key={String((col as any).id ?? (col as any).accessorKey)} className={`kidu-td ${densityClass[density]}`}>
-                    <div className={`kidu-skeleton ${(col as any).id === "actions" ? "kidu-skel-xs" : "kidu-skel-md"}`} />
+                  <td key={String(col.id || (col as any).accessorKey)} 
+                      className={`kidu-td ${densityClass[density]}`}
+                      style={{ 
+                        width: col.size || (col.id === "actions" ? 80 : 'auto'),
+                        minWidth: col.minSize || (col.id === "actions" ? 60 : 100)
+                      }}>
+                    <div className={`kidu-skeleton ${col.id === "actions" ? "kidu-skel-xs" : "kidu-skel-md"}`} />
                   </td>
                 ))}
               </tr>
@@ -808,7 +729,7 @@ function KiduServerTable<T extends Record<string, any>>({
             {/* Error */}
             {!loading && error && (
               <tr>
-                <td colSpan={tableColumns.length + (selectionEnabled ? 1 : 0)} className="kidu-empty-cell">
+                <td colSpan={tableColumns.length} className="kidu-empty-cell">
                   <div className="kidu-error-state">
                     <p className="kidu-error-msg">⚠ {error}</p>
                     <Button size="sm" variant="primary" onClick={loadData}>Retry</Button>
@@ -820,7 +741,7 @@ function KiduServerTable<T extends Record<string, any>>({
             {/* Empty */}
             {!loading && !error && table.getRowModel().rows.length === 0 && (
               <tr>
-                <td colSpan={tableColumns.length + (selectionEnabled ? 1 : 0)} className="kidu-empty-cell">
+                <td colSpan={tableColumns.length} className="kidu-empty-cell">
                   <p className="kidu-empty-msg">No records found.</p>
                 </td>
               </tr>
@@ -828,41 +749,33 @@ function KiduServerTable<T extends Record<string, any>>({
 
             {/* Data rows */}
             {!loading && !error && table.getRowModel().rows.map((row) => {
-              const isSelected = selectedRows.has(row.original[rowKey]);
               return (
                 <tr
                   key={row.id}
                   onClick={() => onRowClick?.(row.original)}
                   className={[
                     "kidu-tr",
-                    highlightOnHover ? "kidu-tr-hover"     : "",
-                    isSelected       ? "kidu-tr-selected"  : "",
-                    onRowClick       ? "kidu-tr-clickable" : "",
+                    highlightOnHover ? "kidu-tr-hover" : "",
+                    selectedRows.has(row.original[rowKey]) ? "kidu-tr-selected" : "",
+                    onRowClick ? "kidu-tr-clickable" : "",
                   ].filter(Boolean).join(" ")}
                 >
-                  {selectionEnabled && (
-                    <td className={`kidu-td kidu-td-checkbox ${densityClass[density]}`}>
-                      <input
-                        type="checkbox"
-                        className="kidu-checkbox"
-                        checked={isSelected}
-                        onChange={() => toggleRow(row.original[rowKey])}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </td>
-                  )}
                   {row.getVisibleCells().map((cell) => {
-                    const col    = columns.find((c) => c.key === cell.column.id);
-                    const pinned = col?.pinned;
+                    const col = columns.find((c) => c.key === cell.column.id);
+                    const isAction = cell.column.id === "actions";
+                    
                     return (
                       <td
                         key={cell.id}
                         className={[
                           "kidu-td",
                           densityClass[density],
-                          pinned                       ? `kidu-td-pinned-${pinned}` : "",
-                          cell.column.id === "actions" ? "kidu-td-actions"          : "",
+                          isAction ? "kidu-td-actions" : "",
                         ].filter(Boolean).join(" ")}
+                        style={{ 
+                          width: col?.width || (isAction ? 80 : 'auto'),
+                          minWidth: col?.minWidth || (isAction ? 60 : 100)
+                        }}
                       >
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </td>
@@ -875,7 +788,7 @@ function KiduServerTable<T extends Record<string, any>>({
         </table>
       </div>
 
-      {/* ══════════════════ Footer / Pagination ══════════════════ */}
+      {/* Footer / Pagination */}
       {showPagination && (
         <div className="kidu-footer">
           <div className="kidu-footer-left">
@@ -900,10 +813,10 @@ function KiduServerTable<T extends Record<string, any>>({
 
           {totalPages > 1 && (
             <div className="kidu-pagination">
-              <button className="kidu-page-btn kidu-page-nav" disabled={currentPage === 1} onClick={() => handlePageChange(1)} aria-label="First">
+              <button className="kidu-page-btn kidu-page-nav" disabled={currentPage === 1} onClick={() => handlePageChange(1)}>
                 <FaChevronLeft style={{ marginRight: "-4px" }} /><FaChevronLeft />
               </button>
-              <button className="kidu-page-btn kidu-page-nav" disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)} aria-label="Prev">
+              <button className="kidu-page-btn kidu-page-nav" disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)}>
                 <FaChevronLeft />
               </button>
               {pageNumbers.map((p, i) =>
@@ -919,10 +832,10 @@ function KiduServerTable<T extends Record<string, any>>({
                   </button>
                 )
               )}
-              <button className="kidu-page-btn kidu-page-nav" disabled={currentPage === totalPages} onClick={() => handlePageChange(currentPage + 1)} aria-label="Next">
+              <button className="kidu-page-btn kidu-page-nav" disabled={currentPage === totalPages} onClick={() => handlePageChange(currentPage + 1)}>
                 <FaChevronRight />
               </button>
-              <button className="kidu-page-btn kidu-page-nav" disabled={currentPage === totalPages} onClick={() => handlePageChange(totalPages)} aria-label="Last">
+              <button className="kidu-page-btn kidu-page-nav" disabled={currentPage === totalPages} onClick={() => handlePageChange(totalPages)}>
                 <FaChevronRight /><FaChevronRight style={{ marginLeft: "-4px" }} />
               </button>
             </div>
@@ -930,7 +843,7 @@ function KiduServerTable<T extends Record<string, any>>({
         </div>
       )}
 
-      {/* ══════════════════ CRUD Modal ══════════════════ */}
+      {/* CRUD Modal */}
       {modal.kind && modal.props && (
         <KiduCreateModal
           {...modal.props}
@@ -943,17 +856,10 @@ function KiduServerTable<T extends Record<string, any>>({
         />
       )}
 
-      {/* ════════════════════════════════════════════════════════
-          Built-in Audit Log Modal
-          ────────────────────────────────────────────────────────
-          Rendered when auditLogTableName is provided.
-          Uses controlled open/onClose props on KiduAuditLogs.
-          showTrigger={false} hides the standalone trigger button
-          because the table's dropdown is the trigger here.
-      ════════════════════════════════════════════════════════ */}
+      {/* Audit Log Modal */}
       {auditLogTableName && (
         <KiduAuditLogs
-          key={`audit-${auditState.recordId}`}   /* re-mount on new row */
+          key={`audit-${auditState.recordId}`}
           tableName={auditLogTableName}
           recordId={auditState.recordId}
           open={auditState.open}

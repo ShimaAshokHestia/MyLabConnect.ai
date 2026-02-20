@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Navbar as BSNavbar,
   Container,
@@ -18,7 +18,10 @@ import {
   Sun,
   Moon,
   Menu,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
+import { useTheme } from '../ThemeProvider/ThemeProvider';
 import type {
   NavbarProps,
   NavbarState,
@@ -27,39 +30,15 @@ import type {
 import '../Styles/KiduStyles/Navbar.css';
 
 /**
- * Reusable Navbar Component
- * 
- * Features:
- * - User profile with dropdown menu
- * - Search functionality with focus effects
- * - Notifications panel
- * - Theme toggle (light/dark)
- * - Change password modal
- * - Sign out confirmation
- * - Mobile responsive
- * - Fully customizable
- * 
- * @param user - User profile information
- * @param searchPlaceholder - Search input placeholder text
- * @param onSearch - Search handler function
- * @param showSearch - Show/hide search bar
- * @param notifications - Array of notification items
- * @param onNotificationClick - Notification click handler
- * @param onMarkAllAsRead - Mark all notifications as read handler
- * @param showNotifications - Show/hide notifications
- * @param showThemeToggle - Show/hide theme toggle
- * @param profileMenuActions - Additional profile menu actions
- * @param onProfileClick - Profile click handler
- * @param onChangePassword - Change password handler
- * @param onSignOut - Sign out handler
- * @param logoSrc - Logo image source
- * @param logoText - Logo text
- * @param className - Additional CSS classes
- * @param showMobileMenuToggle - Show mobile menu toggle
- * @param onMobileMenuToggle - Mobile menu toggle handler
- * @param additionalActions - Additional action buttons
+ * KiduNavbar Component
+ *
+ * Theme toggle now driven by ThemeContext (single source of truth).
+ * Sidebar toggle arrow button is built-in — no separate wrapper button needed.
  */
-const KiduNavbar: React.FC<NavbarProps> = ({
+const KiduNavbar: React.FC<NavbarProps & {
+  sidebarCollapsed?: boolean;
+  onSidebarToggle?: () => void;
+}> = ({
   user,
   searchPlaceholder = 'Search cases, doctors, labs...',
   onSearch,
@@ -79,7 +58,11 @@ const KiduNavbar: React.FC<NavbarProps> = ({
   showMobileMenuToggle = true,
   onMobileMenuToggle,
   additionalActions,
+  sidebarCollapsed = false,
+  onSidebarToggle,
 }) => {
+  const { theme, toggleTheme } = useTheme();
+
   const [state, setState] = useState<NavbarState>({
     searchFocused: false,
     showSignOutDialog: false,
@@ -88,70 +71,31 @@ const KiduNavbar: React.FC<NavbarProps> = ({
     searchQuery: '',
   });
 
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const searchRef = useRef<HTMLInputElement>(null);
 
-  // Load theme from localStorage
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark';
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.documentElement.setAttribute('data-bs-theme', savedTheme);
-    }
-  }, []);
+  const handleSearchFocus = () => setState((p) => ({ ...p, searchFocused: true }));
+  const handleSearchBlur = () => setState((p) => ({ ...p, searchFocused: false }));
 
-  // Handle search focus
-  const handleSearchFocus = () => {
-    setState((prev) => ({ ...prev, searchFocused: true }));
-  };
-
-  const handleSearchBlur = () => {
-    setState((prev) => ({ ...prev, searchFocused: false }));
-  };
-
-  // Handle search change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
-    setState((prev) => ({ ...prev, searchQuery: query }));
-    if (onSearch) {
-      onSearch(query);
-    }
+    setState((p) => ({ ...p, searchQuery: query }));
+    if (onSearch) onSearch(query);
   };
 
-  // Handle theme toggle
-  const handleThemeToggle = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    document.documentElement.setAttribute('data-bs-theme', newTheme);
-  };
-
-  // Handle sign out
   const handleSignOut = () => {
-    setState((prev) => ({ ...prev, showSignOutDialog: false }));
+    setState((p) => ({ ...p, showSignOutDialog: false }));
     onSignOut();
   };
 
-  // Handle notifications
   const handleNotificationClick = (notification: NotificationItem) => {
-    if (onNotificationClick) {
-      onNotificationClick(notification);
-    }
-    setState((prev) => ({ ...prev, showNotifications: false }));
+    if (onNotificationClick) onNotificationClick(notification);
+    setState((p) => ({ ...p, showNotifications: false }));
   };
 
-  // Get unread notification count
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  // Get user initials
-  const getUserInitials = (name: string): string => {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
+  const getUserInitials = (name: string): string =>
+    name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 
   return (
     <>
@@ -161,6 +105,23 @@ const KiduNavbar: React.FC<NavbarProps> = ({
         expand="lg"
       >
         <Container fluid className="px-3 px-lg-4">
+
+          {/* Sidebar Arrow Toggle (desktop) */}
+          {onSidebarToggle && (
+            <button
+              className="navbar-sidebar-arrow d-none d-lg-flex"
+              onClick={onSidebarToggle}
+              aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {sidebarCollapsed ? (
+                <ChevronRight size={18} />
+              ) : (
+                <ChevronLeft size={18} />
+              )}
+            </button>
+          )}
+
           {/* Mobile Menu Toggle */}
           {showMobileMenuToggle && (
             <Button
@@ -211,7 +172,6 @@ const KiduNavbar: React.FC<NavbarProps> = ({
 
           {/* Right Side Actions */}
           <div className="navbar-actions d-flex align-items-center gap-2">
-            {/* Additional Actions */}
             {additionalActions}
 
             {/* Theme Toggle */}
@@ -219,7 +179,7 @@ const KiduNavbar: React.FC<NavbarProps> = ({
               <Button
                 variant="link"
                 className="navbar-action-btn"
-                onClick={handleThemeToggle}
+                onClick={toggleTheme}
                 aria-label="Toggle theme"
               >
                 {theme === 'light' ? (
@@ -276,9 +236,7 @@ const KiduNavbar: React.FC<NavbarProps> = ({
                       {notifications.map((notification) => (
                         <Dropdown.Item
                           key={notification.id}
-                          className={`notification-item ${
-                            !notification.read ? 'unread' : ''
-                          }`}
+                          className={`notification-item ${!notification.read ? 'unread' : ''}`}
                           onClick={() => handleNotificationClick(notification)}
                         >
                           <div className="d-flex gap-2">
@@ -286,19 +244,11 @@ const KiduNavbar: React.FC<NavbarProps> = ({
                               <notification.icon className="notification-icon" />
                             )}
                             <div className="flex-grow-1">
-                              <div className="notification-title">
-                                {notification.title}
-                              </div>
-                              <div className="notification-message">
-                                {notification.message}
-                              </div>
-                              <div className="notification-time">
-                                {notification.time}
-                              </div>
+                              <div className="notification-title">{notification.title}</div>
+                              <div className="notification-message">{notification.message}</div>
+                              <div className="notification-time">{notification.time}</div>
                             </div>
-                            {!notification.read && (
-                              <div className="notification-dot"></div>
-                            )}
+                            {!notification.read && <div className="notification-dot" />}
                           </div>
                         </Dropdown.Item>
                       ))}
@@ -317,15 +267,9 @@ const KiduNavbar: React.FC<NavbarProps> = ({
               >
                 <div className="profile-avatar">
                   {user.avatar ? (
-                    <img
-                      src={user.avatar}
-                      alt={user.name}
-                      className="avatar-img"
-                    />
+                    <img src={user.avatar} alt={user.name} className="avatar-img" />
                   ) : (
-                    <div className="avatar-initials">
-                      {getUserInitials(user.name)}
-                    </div>
+                    <div className="avatar-initials">{getUserInitials(user.name)}</div>
                   )}
                 </div>
                 <div className="profile-info d-none d-lg-block text-start">
@@ -341,7 +285,6 @@ const KiduNavbar: React.FC<NavbarProps> = ({
                 </div>
                 <Dropdown.Divider />
 
-                {/* Profile Action */}
                 {onProfileClick && (
                   <Dropdown.Item onClick={onProfileClick}>
                     <User className="me-2 icon-size-sm" />
@@ -349,19 +292,15 @@ const KiduNavbar: React.FC<NavbarProps> = ({
                   </Dropdown.Item>
                 )}
 
-                {/* Change Password */}
                 {onChangePassword && (
                   <Dropdown.Item
-                    onClick={() =>
-                      setState((prev) => ({ ...prev, showPasswordModal: true }))
-                    }
+                    onClick={() => setState((p) => ({ ...p, showPasswordModal: true }))}
                   >
                     <Key className="me-2 icon-size-sm" />
                     Change Password
                   </Dropdown.Item>
                 )}
 
-                {/* Additional Profile Menu Actions */}
                 {profileMenuActions.map((action, index) => (
                   <Dropdown.Item key={index} onClick={action.onClick}>
                     <action.icon className="me-2 icon-size-sm" />
@@ -371,12 +310,9 @@ const KiduNavbar: React.FC<NavbarProps> = ({
 
                 <Dropdown.Divider />
 
-                {/* Sign Out */}
                 <Dropdown.Item
                   className="text-danger"
-                  onClick={() =>
-                    setState((prev) => ({ ...prev, showSignOutDialog: true }))
-                  }
+                  onClick={() => setState((p) => ({ ...p, showSignOutDialog: true }))}
                 >
                   <LogOut className="me-2 icon-size-sm" />
                   Sign Out
@@ -390,7 +326,7 @@ const KiduNavbar: React.FC<NavbarProps> = ({
       {/* Sign Out Confirmation Modal */}
       <Modal
         show={state.showSignOutDialog}
-        onHide={() => setState((prev) => ({ ...prev, showSignOutDialog: false }))}
+        onHide={() => setState((p) => ({ ...p, showSignOutDialog: false }))}
         centered
       >
         <Modal.Header closeButton>
@@ -405,9 +341,7 @@ const KiduNavbar: React.FC<NavbarProps> = ({
         <Modal.Footer>
           <Button
             variant="secondary"
-            onClick={() =>
-              setState((prev) => ({ ...prev, showSignOutDialog: false }))
-            }
+            onClick={() => setState((p) => ({ ...p, showSignOutDialog: false }))}
           >
             Stay Signed In
           </Button>
@@ -421,9 +355,7 @@ const KiduNavbar: React.FC<NavbarProps> = ({
       {onChangePassword && (
         <Modal
           show={state.showPasswordModal}
-          onHide={() =>
-            setState((prev) => ({ ...prev, showPasswordModal: false }))
-          }
+          onHide={() => setState((p) => ({ ...p, showPasswordModal: false }))}
           centered
         >
           <Modal.Header closeButton>
@@ -448,9 +380,7 @@ const KiduNavbar: React.FC<NavbarProps> = ({
           <Modal.Footer>
             <Button
               variant="secondary"
-              onClick={() =>
-                setState((prev) => ({ ...prev, showPasswordModal: false }))
-              }
+              onClick={() => setState((p) => ({ ...p, showPasswordModal: false }))}
             >
               Cancel
             </Button>
@@ -458,7 +388,7 @@ const KiduNavbar: React.FC<NavbarProps> = ({
               variant="primary"
               onClick={() => {
                 onChangePassword();
-                setState((prev) => ({ ...prev, showPasswordModal: false }));
+                setState((p) => ({ ...p, showPasswordModal: false }));
               }}
             >
               Change Password

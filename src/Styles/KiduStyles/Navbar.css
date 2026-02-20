@@ -4,20 +4,42 @@
 
 .app-navbar {
   height: 48px;
-  background-color: var(--theme-bg-paper);
-  border-bottom: 1px solid var(--theme-border);
+  background-color: var(--theme-bg-paper) !important;
+  border-bottom: 1px solid var(--theme-border) !important;
   backdrop-filter: blur(8px);
-  z-index: 1000;
-  transition: all 0.3s ease;
+  z-index: 100;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .app-navbar .container-fluid {
   height: 100%;
 }
 
-/* ============================================
-   Logo
-   ============================================ */
+/* ── Sidebar arrow toggle (desktop) ────────── */
+
+.navbar-sidebar-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 0.375rem;
+  border: 1px solid var(--theme-border);
+  background-color: var(--theme-bg-hover);
+  color: var(--theme-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  margin-right: 0.5rem;
+}
+
+.navbar-sidebar-arrow:hover {
+  background-color: var(--theme-accent);
+  border-color: var(--theme-primary);
+  color: var(--theme-primary);
+}
+
+/* ── Logo ─────────────────────────────────── */
 
 .navbar-logo {
   display: flex;
@@ -28,35 +50,24 @@
   font-weight: 600;
 }
 
-.navbar-logo-img {
-  height: 32px;
-  width: auto;
-}
+.navbar-logo-img  { height: 32px; width: auto; }
+.navbar-logo-text { font-size: 1rem; font-weight: 700; color: var(--theme-text-primary); }
 
-.navbar-logo-text {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--theme-text-primary);
-}
-
-/* ============================================
-   Search Bar
-   ============================================ */
+/* ── Search ───────────────────────────────── */
 
 .navbar-search-wrapper {
-  max-width: 400px;
+  max-width: 360px;
   transition: max-width 0.3s ease;
 }
 
 .navbar-search-wrapper.search-focused {
-  max-width: 500px;
+  max-width: 480px;
 }
 
 .navbar-search {
-  height: 40px;
+  height: 36px;
   border-radius: 0.5rem;
   overflow: hidden;
-  transition: all 0.2s ease;
 }
 
 .navbar-search .search-icon {
@@ -74,104 +85,98 @@
 }
 
 .navbar-search .search-input {
-  background-color: var(--theme-bg-hover);
-  border: 1px solid var(--theme-border);
-  border-left: none;
-  color: var(--theme-text-primary);
-  font-size: 0.875rem;
-  height: 40px;
+  background-color: var(--theme-bg-hover) !important;
+  border: 1px solid var(--theme-border) !important;
+  border-left: none !important;
+  color: var(--theme-text-primary) !important;
+  font-size: 0.8125rem;
+  height: 36px;
   transition: all 0.2s ease;
 }
 
 .navbar-search .search-input:focus {
-  background-color: var(--theme-bg-paper);
-  border-color: var(--theme-primary);
-  box-shadow: 0 0 0 0.2rem rgba(239, 13, 80, 0.1);
+  background-color: var(--theme-bg-paper) !important;
+  border-color: var(--theme-primary) !important;
+  box-shadow: 0 0 0 0.15rem rgba(239, 13, 80, 0.15) !important;
   outline: none;
+  color: var(--theme-text-primary) !important;
 }
 
 .navbar-search .search-input::placeholder {
   color: var(--theme-text-disabled);
 }
 
-/* ============================================
-   Actions
-   ============================================ */
+/* ── Right actions ────────────────────────── */
 
-.navbar-actions {
-  gap: 0.25rem;
-}
+.navbar-actions { gap: 0.25rem; }
 
 .navbar-action-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 0.5rem;
   border: none;
-  background-color: transparent;
-  color: var(--theme-text-secondary);
+  background-color: transparent !important;
+  color: var(--theme-text-secondary) !important;
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none;
 }
 
 .navbar-action-btn:hover {
-  background-color: var(--theme-bg-hover);
-  color: var(--theme-text-primary);
+  background-color: var(--theme-bg-hover) !important;
+  color: var(--theme-text-primary) !important;
 }
 
 .navbar-action-btn:focus {
   outline: none;
-  box-shadow: 0 0 0 0.2rem rgba(239, 13, 80, 0.1);
+  box-shadow: 0 0 0 0.15rem rgba(239, 13, 80, 0.15) !important;
 }
 
-/* ============================================
-   Mobile Menu Toggle
-   ============================================ */
+/* ── Mobile toggle ────────────────────────── */
 
 .navbar-mobile-toggle {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   padding: 0;
   border: none;
-  background-color: transparent;
-  color: var(--theme-text-secondary);
+  background-color: transparent !important;
+  color: var(--theme-text-secondary) !important;
   text-decoration: none;
 }
 
 .navbar-mobile-toggle:hover {
-  background-color: var(--theme-bg-hover);
-  color: var(--theme-text-primary);
+  background-color: var(--theme-bg-hover) !important;
+  color: var(--theme-text-primary) !important;
 }
 
-/* ============================================
-   Notifications
-   ============================================ */
+/* ── Notifications ────────────────────────── */
 
 .navbar-notifications .notification-badge {
   top: -4px;
   right: -4px;
-  min-width: 18px;
-  height: 18px;
-  font-size: 0.625rem;
-  padding: 0 0.3rem;
+  min-width: 16px;
+  height: 16px;
+  font-size: 0.6rem;
+  padding: 0 0.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .notifications-menu {
-  width: 360px;
+  width: 340px;
   max-width: 90vw;
-  max-height: 500px;
+  max-height: 480px;
   overflow: hidden;
   border: 1px solid var(--theme-border);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  background-color: var(--theme-bg-paper) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
 .notifications-header {
@@ -179,102 +184,65 @@
 }
 
 .notifications-header h6 {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--theme-text-primary);
 }
 
 .notifications-list {
-  max-height: 400px;
+  max-height: 380px;
   overflow-y: auto;
 }
 
 .notification-item {
-  padding: 0.75rem 1rem;
-  border: none;
+  padding: 0.625rem 1rem;
   border-bottom: 1px solid var(--theme-divider);
   background-color: transparent;
   transition: background-color 0.2s ease;
   cursor: pointer;
+  color: var(--theme-text-primary) !important;
 }
 
-.notification-item:hover {
-  background-color: var(--theme-bg-hover);
-}
+.notification-item:hover  { background-color: var(--theme-bg-hover); }
+.notification-item.unread { background-color: var(--theme-accent-light); }
+.notification-item.unread:hover { background-color: var(--theme-accent); }
 
-.notification-item.unread {
-  background-color: var(--theme-accent-light);
-}
-
-.notification-item.unread:hover {
-  background-color: var(--theme-accent);
-}
-
-.notification-icon {
-  width: 20px;
-  height: 20px;
-  color: var(--theme-primary);
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.notification-title {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--theme-text-primary);
-  margin-bottom: 0.25rem;
-}
-
-.notification-message {
-  font-size: 0.8125rem;
-  color: var(--theme-text-secondary);
-  margin-bottom: 0.25rem;
-  line-height: 1.4;
-}
-
-.notification-time {
-  font-size: 0.75rem;
-  color: var(--theme-text-disabled);
-}
+.notification-icon   { width: 18px; height: 18px; color: var(--theme-primary); flex-shrink: 0; margin-top: 2px; }
+.notification-title  { font-size: 0.8125rem; font-weight: 600; color: var(--theme-text-primary); margin-bottom: 0.2rem; }
+.notification-message{ font-size: 0.75rem; color: var(--theme-text-secondary); margin-bottom: 0.2rem; line-height: 1.4; }
+.notification-time   { font-size: 0.6875rem; color: var(--theme-text-disabled); }
 
 .notification-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background-color: var(--theme-primary);
   flex-shrink: 0;
-  margin-top: 6px;
+  margin-top: 5px;
 }
 
-/* ============================================
-   User Profile
-   ============================================ */
+/* ── User Profile ─────────────────────────── */
 
 .navbar-profile-toggle {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.25rem 0.5rem;
+  padding: 0.2rem 0.4rem;
   border: none;
-  background-color: transparent;
-  color: var(--theme-text-primary);
+  background-color: transparent !important;
+  color: var(--theme-text-primary) !important;
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none;
   border-radius: 0.5rem;
 }
 
-.navbar-profile-toggle:hover {
-  background-color: var(--theme-bg-hover);
-}
-
-.navbar-profile-toggle::after {
-  display: none;
-}
+.navbar-profile-toggle:hover     { background-color: var(--theme-bg-hover) !important; }
+.navbar-profile-toggle::after    { display: none; }
 
 .profile-avatar {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
@@ -284,198 +252,90 @@
   justify-content: center;
 }
 
-.avatar-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+.avatar-img      { width: 100%; height: 100%; object-fit: cover; }
+.avatar-initials { color: white; font-size: 0.8125rem; font-weight: 600; }
 
-.avatar-initials {
-  color: white;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.profile-info {
-  line-height: 1.2;
-}
-
-.profile-name {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--theme-text-primary);
-}
-
-.profile-role {
-  font-size: 0.75rem;
-  color: var(--theme-text-secondary);
-}
+.profile-info  { line-height: 1.2; }
+.profile-name  { font-size: 0.8125rem; font-weight: 600; color: var(--theme-text-primary); }
+.profile-role  { font-size: 0.6875rem; color: var(--theme-text-secondary); }
 
 .profile-menu {
-  min-width: 220px;
+  min-width: 200px;
   border: 1px solid var(--theme-border);
+  background-color: var(--theme-bg-paper) !important;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
-.profile-menu-header {
-  border-bottom: 1px solid var(--theme-divider);
-}
-
-.profile-menu-name {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--theme-text-primary);
-  margin-bottom: 0.125rem;
-}
-
-.profile-menu-email {
-  font-size: 0.75rem;
-  color: var(--theme-text-secondary);
-}
+.profile-menu-header { border-bottom: 1px solid var(--theme-divider); }
+.profile-menu-name   { font-size: 0.8125rem; font-weight: 600; color: var(--theme-text-primary); margin-bottom: 0.1rem; }
+.profile-menu-email  { font-size: 0.6875rem; color: var(--theme-text-secondary); }
 
 .profile-menu .dropdown-item {
-  padding: 0.625rem 1rem;
-  font-size: 0.875rem;
-  color: var(--theme-text-primary);
+  padding: 0.5rem 1rem;
+  font-size: 0.8125rem;
+  color: var(--theme-text-primary) !important;
   display: flex;
   align-items: center;
+  background-color: transparent;
   transition: all 0.2s ease;
 }
 
-.profile-menu .dropdown-item:hover {
-  background-color: var(--theme-bg-hover);
-}
+.profile-menu .dropdown-item:hover        { background-color: var(--theme-bg-hover) !important; }
+.profile-menu .dropdown-item.text-danger  { color: var(--bs-danger) !important; }
+.profile-menu .dropdown-item.text-danger:hover { background-color: rgba(239, 68, 68, 0.1) !important; }
 
-.profile-menu .dropdown-item.text-danger {
-  color: var(--bs-danger) !important;
-}
+/* ── Icon sizes ───────────────────────────── */
 
-.profile-menu .dropdown-item.text-danger:hover {
-  background-color: rgba(239, 68, 68, 0.1);
-}
+.icon-size    { width: 18px; height: 18px; }
+.icon-size-sm { width: 14px; height: 14px; }
 
-/* ============================================
-   Icon Sizes
-   ============================================ */
+/* ── Modal ────────────────────────────────── */
 
-.icon-size {
-  width: 20px;
-  height: 20px;
-}
-
-.icon-size-sm {
-  width: 16px;
-  height: 16px;
-}
-
-/* ============================================
-   Modal Customization
-   ============================================ */
-
-.modal-header {
-  border-bottom: 1px solid var(--theme-border);
-}
-
-.modal-footer {
-  border-top: 1px solid var(--theme-border);
-}
-
+.modal-header  { border-bottom: 1px solid var(--theme-border); }
+.modal-footer  { border-top: 1px solid var(--theme-border); }
 .modal-content {
   border: 1px solid var(--theme-border);
-  background-color: var(--theme-bg-paper);
+  background-color: var(--theme-bg-paper) !important;
+  color: var(--theme-text-primary);
 }
 
-/* ============================================
-   Responsive Design
-   ============================================ */
+/* ── Dark mode Bootstrap overrides ───────── */
+
+[data-theme="dark"] .app-navbar           { background-color: rgba(26, 31, 38, 0.97) !important; }
+[data-theme="dark"] .dropdown-menu        { background-color: var(--theme-bg-paper) !important; border-color: var(--theme-border) !important; }
+[data-theme="dark"] .dropdown-item        { color: var(--theme-text-primary) !important; }
+[data-theme="dark"] .dropdown-item:hover  { background-color: var(--theme-bg-hover) !important; }
+[data-theme="dark"] .dropdown-divider     { border-color: var(--theme-border) !important; }
+[data-theme="dark"] .modal-content        { background-color: var(--theme-bg-paper) !important; color: var(--theme-text-primary) !important; }
+[data-theme="dark"] .modal-header         { border-color: var(--theme-border) !important; }
+[data-theme="dark"] .modal-footer         { border-color: var(--theme-border) !important; }
+[data-theme="dark"] .form-control         { background-color: var(--theme-bg-elevated) !important; border-color: var(--theme-border) !important; color: var(--theme-text-primary) !important; }
+[data-theme="dark"] .form-control:focus   { background-color: var(--theme-bg-elevated) !important; color: var(--theme-text-primary) !important; }
+[data-theme="dark"] .notification-item.unread { background-color: rgba(239, 13, 80, 0.1); }
+
+/* ── Dropdown animation ───────────────────── */
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-menu.show { animation: slideDown 0.18s ease-out; }
+
+/* ── Responsive ───────────────────────────── */
 
 @media (max-width: 991px) {
   .navbar-search-wrapper {
     max-width: 100%;
     order: 3;
     flex-basis: 100%;
-    margin-top: 0.5rem;
-  }
-
-  .navbar-search-wrapper.search-focused {
-    max-width: 100%;
-  }
-
-  .profile-info {
-    display: none;
-  }
-
-  .profile-avatar {
-    width: 32px;
-    height: 32px;
-  }
-
-  .navbar-actions {
-    gap: 0.125rem;
-  }
-
-  .navbar-action-btn {
-    width: 36px;
-    height: 36px;
+    margin-top: 0.375rem;
   }
 }
 
 @media (max-width: 575px) {
-  .app-navbar {
-    height: auto;
-    padding: 0.5rem 0;
-  }
-
-  .navbar-search {
-    height: 36px;
-  }
-
-  .navbar-search .search-input {
-    height: 36px;
-    font-size: 0.8125rem;
-  }
-
-  .notifications-menu {
-    width: 320px;
-  }
-}
-
-/* ============================================
-   Dark Mode Adjustments
-   ============================================ */
-
-[data-theme="dark"] .app-navbar {
-  background-color: rgba(26, 31, 38, 0.95);
-}
-
-[data-theme="dark"] .navbar-search .search-icon,
-[data-theme="dark"] .navbar-search .search-input {
-  background-color: var(--theme-bg-elevated);
-}
-
-[data-theme="dark"] .notification-item.unread {
-  background-color: rgba(239, 13, 80, 0.1);
-}
-
-[data-theme="dark"] .notification-item.unread:hover {
-  background-color: rgba(239, 13, 80, 0.15);
-}
-
-/* ============================================
-   Animation Utilities
-   ============================================ */
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.dropdown-menu.show {
-  animation: slideDown 0.2s ease-out;
+  .app-navbar { height: auto; padding: 0.375rem 0; }
+  .navbar-search { height: 34px; }
+  .navbar-search .search-input { height: 34px; font-size: 0.75rem; }
+  .notifications-menu { width: 300px; }
 }

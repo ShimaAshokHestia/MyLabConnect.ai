@@ -1,379 +1,116 @@
 /* ============================================
-   Kidu Layout Component Styles
+   KiduLayout — responsive shell
    ============================================ */
 
-.kidu-layout-container {
+:root {
+  --sidebar-w: var(--theme-sidebar-width, 260px);
+  --sidebar-w-collapsed: var(--theme-sidebar-collapsed-width, 70px);
+  --navbar-h: 48px;
+  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Root container ───────────────────────── */
+
+.kidu-layout {
   display: flex;
-  min-height: 100vh;
-  width: 100%;
-  position: relative;
-  overflow: hidden;
-}
-
-/* ============================================
-   Sidebar Wrapper
-   ============================================ */
-
-.kidu-sidebar-wrapper {
-  position: fixed;
-  top: 0;
-  left: 0;
   height: 100vh;
-  z-index: 1001;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100vw;
+  overflow: hidden;
+  background-color: var(--theme-bg);
 }
 
-/* .kidu-sidebar-wrapper.collapsed { */
-  /* Sidebar width is controlled by KiduSidebar component */
-/* } */
+/* ── Sidebar slot ─────────────────────────── */
 
-/* Mobile Sidebar */
-@media (max-width: 768px) {
-  .kidu-sidebar-wrapper {
-    transform: translateX(-100%);
-  }
-
-  .kidu-sidebar-wrapper.mobile-open {
-    transform: translateX(0);
-  }
+.kidu-sidebar-slot {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  height: 100vh;
+  transition: width var(--transition);
+  position: relative;
+  z-index: 200;
 }
 
-/* ============================================
-   Main Wrapper
-   ============================================ */
+.kidu-sidebar-slot.collapsed {
+  width: var(--sidebar-w-collapsed);
+}
 
-.kidu-main-wrapper {
-  flex: 1;
+/*
+ * Hide the sidebar's own built-in toggle button.
+ * The navbar arrow button is the single control.
+ */
+.kidu-sidebar-slot .sidebar-toggle {
+  display: none !important;
+}
+
+/* ── Main area ────────────────────────────── */
+
+.kidu-main {
   display: flex;
   flex-direction: column;
-  margin-left: 260px; /* Default expanded sidebar width */
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  min-height: 100vh;
-}
-
-.kidu-main-wrapper.sidebar-collapsed {
-  margin-left: 70px; /* Collapsed sidebar width */
-}
-
-/* Mobile Main Wrapper */
-@media (max-width: 768px) {
-  .kidu-main-wrapper {
-    margin-left: 0 !important;
-  }
-}
-
-/* ============================================
-   Navbar Wrapper
-   ============================================ */
-
-.kidu-navbar-wrapper {
-  position: sticky;
-  top: 0;
-  z-index: 999;
-  background-color: var(--theme-bg-paper);
-  border-bottom: 1px solid var(--theme-border);
-}
-
-/* ============================================
-   Navbar Sidebar Toggle Button
-   ============================================ */
-
-.kidu-navbar-sidebar-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 0.5rem;
-  border: none;
-  background-color: transparent;
-  color: var(--theme-text-secondary);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  padding: 0;
-}
-
-.kidu-navbar-sidebar-toggle:hover {
-  background-color: var(--theme-bg-hover);
-  color: var(--theme-text-primary);
-}
-
-.kidu-navbar-sidebar-toggle:focus {
-  outline: none;
-  box-shadow: 0 0 0 0.2rem rgba(239, 13, 80, 0.1);
-}
-
-.kidu-navbar-sidebar-toggle .toggle-icon {
-  transition: transform 0.3s ease;
-}
-
-.kidu-navbar-sidebar-toggle .toggle-icon.collapsed {
-  transform: rotate(180deg);
-}
-
-/* ============================================
-   Main Content Area
-   ============================================ */
-
-.kidu-main-content-area {
   flex: 1;
-  min-height: calc(100vh - 48px); /* Subtract navbar height */
-  background-color: var(--theme-bg);
-  padding: 0;
+  min-width: 0;          /* prevent flex overflow */
+  height: 100vh;
+  overflow: hidden;
+  transition: none;      /* layout shift handled by sidebar slot width */
+}
+
+/* ── Navbar ───────────────────────────────── */
+
+.kidu-main .app-navbar {
+  flex-shrink: 0;
+  height: var(--navbar-h);
+  width: 100%;
+}
+
+/* ── Page content ─────────────────────────── */
+
+.kidu-content {
+  flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
+  padding: 1.25rem;
+  background-color: var(--theme-bg);
 }
 
-.kidu-content-container {
-  padding: 1.5rem;
-  max-width: 100%;
-  margin: 0 auto;
-}
-
-/* Content Container Responsive Padding */
-@media (max-width: 768px) {
-  .kidu-content-container {
-    padding: 1rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .kidu-content-container {
-    padding: 0.75rem;
-  }
-}
-
-/* ============================================
-   Mobile Overlay
-   ============================================ */
+/* ── Mobile overlay ───────────────────────── */
 
 .kidu-mobile-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-  animation: fadeIn 0.3s ease;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 199;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
+/* ── Responsive ───────────────────────────── */
 
-/* ============================================
-   Page Content Helpers
-   ============================================ */
-
-.page-header {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--theme-divider);
-}
-
-.page-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--theme-text-primary);
-  margin: 0 0 0.5rem 0;
-}
-
-.page-subtitle {
-  font-size: 0.9375rem;
-  color: var(--theme-text-secondary);
-  margin: 0;
-}
-
-.page-description {
-  font-size: 0.875rem;
-  color: var(--theme-text-secondary);
-  margin: 0;
-  line-height: 1.5;
-}
-
-.content-card {
-  background-color: var(--theme-bg-paper);
-  border-radius: 0.75rem;
-  border: 1px solid var(--theme-border);
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  margin-bottom: 1.5rem;
-}
-
-.content-card:last-child {
-  margin-bottom: 0;
-}
-
-.content-card-header {
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--theme-divider);
-}
-
-.content-card-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--theme-text-primary);
-  margin: 0;
-}
-
-.content-card-body {
-  color: var(--theme-text-secondary);
-  font-size: 0.875rem;
-  line-height: 1.6;
-}
-
-/* ============================================
-   Responsive Adjustments
-   ============================================ */
-
-/* Tablet */
 @media (max-width: 991px) {
-  .page-title {
-    font-size: 1.5rem;
+  /* Sidebar becomes an off-canvas drawer on mobile/tablet */
+  .kidu-sidebar-slot {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: var(--sidebar-w) !important; /* always full width when open */
+    transform: translateX(-100%);
+    transition: transform var(--transition);
   }
 
-  .content-card {
-    padding: 1.25rem;
-  }
-}
-
-/* Mobile */
-@media (max-width: 768px) {
-  .kidu-main-content-area {
-    min-height: calc(100vh - 48px);
+  .kidu-sidebar-slot.mobile-open {
+    transform: translateX(0);
   }
 
-  .page-header {
-    margin-bottom: 1rem;
+  /* Main takes full width on mobile */
+  .kidu-main {
+    width: 100%;
   }
 
-  .page-title {
-    font-size: 1.25rem;
-  }
-
-  .content-card {
+  .kidu-content {
     padding: 1rem;
-    border-radius: 0.5rem;
-    margin-bottom: 1rem;
   }
 }
 
-/* ============================================
-   Dark Mode Adjustments
-   ============================================ */
-
-[data-theme="dark"] .kidu-main-content-area {
-  background-color: var(--theme-bg);
-}
-
-[data-theme="dark"] .content-card {
-  background-color: var(--theme-bg-paper);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-/* ============================================
-   Print Styles
-   ============================================ */
-
-@media print {
-  .kidu-sidebar-wrapper,
-  .kidu-navbar-wrapper,
-  .kidu-mobile-overlay {
-    display: none !important;
+@media (max-width: 575px) {
+  .kidu-content {
+    padding: 0.75rem;
   }
-
-  .kidu-main-wrapper {
-    margin-left: 0 !important;
-  }
-
-  .kidu-main-content-area {
-    min-height: auto;
-  }
-
-  .kidu-content-container {
-    padding: 0;
-  }
-}
-
-/* ============================================
-   Accessibility
-   ============================================ */
-
-/* Focus visible for keyboard navigation */
-.kidu-navbar-sidebar-toggle:focus-visible {
-  outline: 2px solid var(--theme-primary);
-  outline-offset: 2px;
-}
-
-/* Reduced motion preference */
-@media (prefers-reduced-motion: reduce) {
-  .kidu-sidebar-wrapper,
-  .kidu-main-wrapper,
-  .kidu-navbar-sidebar-toggle .toggle-icon,
-  .kidu-mobile-overlay {
-    transition: none;
-    animation: none;
-  }
-}
-
-/* ============================================
-   Loading State (Optional)
-   ============================================ */
-
-.kidu-content-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  color: var(--theme-text-secondary);
-}
-
-.kidu-content-loading .spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--theme-border);
-  border-top-color: var(--theme-primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* ============================================
-   Utility Classes
-   ============================================ */
-
-.kidu-layout-container .text-muted {
-  color: var(--theme-text-secondary) !important;
-}
-
-.kidu-layout-container .text-primary {
-  color: var(--theme-primary) !important;
-}
-
-.kidu-layout-container .bg-light {
-  background-color: var(--theme-bg-hover) !important;
-}
-
-.kidu-layout-container .border {
-  border: 1px solid var(--theme-border) !important;
-}
-
-.kidu-layout-container .rounded {
-  border-radius: 0.5rem !important;
-}
-
-.kidu-layout-container .shadow-sm {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
 }

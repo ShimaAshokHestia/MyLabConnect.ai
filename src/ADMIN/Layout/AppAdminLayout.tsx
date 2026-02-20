@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import KiduLayout from '../../KIDU_COMPONENTS/KiduLayout';
-
 import type { NotificationItem } from '../../Types/KiduTypes/Navbar.types';
 import { appAdminConnectConfig } from './AppAdminLayoutConfig';
 import AuthService from '../../Services/AuthServices/Auth.services';

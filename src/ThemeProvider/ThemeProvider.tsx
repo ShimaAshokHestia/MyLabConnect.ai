@@ -20,14 +20,10 @@ interface ThemeProviderProps {
 
 /**
  * ThemeProvider Component
- * 
- * Manages theme state across the application
- * Persists theme preference in localStorage
- * Applies theme to document root
- * 
- * @param children - Child components
- * @param defaultTheme - Initial theme (default: 'light')
- * @param storageKey - LocalStorage key for theme persistence
+ *
+ * Single source of truth for theme management.
+ * Sets BOTH data-theme (custom CSS vars) AND data-bs-theme (Bootstrap)
+ * on document.documentElement so all components stay in sync.
  */
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   children,
@@ -35,76 +31,61 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   storageKey = 'app-theme',
 }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
-    // Check localStorage for saved theme
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem(storageKey) as Theme;
-      if (savedTheme === 'light' || savedTheme === 'dark') {
-        return savedTheme;
-      }
-      
-      // Check system preference
+      if (savedTheme === 'light' || savedTheme === 'dark') return savedTheme;
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       return prefersDark ? 'dark' : defaultTheme;
     }
     return defaultTheme;
   });
 
-  // Apply theme to document
-  useEffect(() => {
+  // Apply theme to document — sets BOTH attribute systems in one place
+  const applyTheme = (t: Theme) => {
     const root = document.documentElement;
-    
-    // Remove previous theme
-    root.removeAttribute('data-theme');
-    
-    // Apply new theme
-    if (theme === 'dark') {
+    if (t === 'dark') {
       root.setAttribute('data-theme', 'dark');
+      root.setAttribute('data-bs-theme', 'dark');
+    } else {
+      root.removeAttribute('data-theme');
+      root.setAttribute('data-bs-theme', 'light');
     }
-    
-    // Save to localStorage
-    localStorage.setItem(storageKey, theme);
+    localStorage.setItem(storageKey, t);
+  };
+
+  useEffect(() => {
+    applyTheme(theme);
   }, [theme, storageKey]);
 
-  // Toggle between themes
   const toggleTheme = () => {
-    setThemeState((prev) => (prev === 'light' ? 'dark' : 'light'));
+    setThemeState((prev) => {
+      const next = prev === 'light' ? 'dark' : 'light';
+      return next;
+    });
   };
 
-  // Set specific theme
-  const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme);
-  };
+  const setTheme = (newTheme: Theme) => setThemeState(newTheme);
 
-  const value: ThemeContextType = {
-    theme,
-    toggleTheme,
-    setTheme,
-  };
-
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
 };
 
 /**
- * useTheme Hook
- * 
- * Access theme context from any component
- * 
- * @returns Theme context with theme state and controls
+ * useTheme Hook — access theme context from any component
  */
 export const useTheme = (): ThemeContextType => {
   const context = useContext(ThemeContext);
-  
   if (context === undefined) {
     throw new Error('useTheme must be used within a ThemeProvider');
   }
-  
   return context;
 };
 
 /**
- * ThemeToggle Component
- * 
- * Reusable button to toggle between light and dark themes
+ * ThemeToggle Component — reusable toggle button
  */
 interface ThemeToggleProps {
   className?: string;
@@ -121,28 +102,13 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ className = '' }) => {
       title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
     >
       {theme === 'light' ? (
-        // Moon icon for dark mode
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"
-            fill="currentColor"
-          />
+        // Moon icon
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" fill="currentColor" />
         </svg>
       ) : (
-        // Sun icon for light mode
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
+        // Sun icon
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path
             d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
             fill="currentColor"
@@ -153,7 +119,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ className = '' }) => {
   );
 };
 
-// Optional: CSS for ThemeToggle button
+// CSS for ThemeToggle button
 export const themeToggleStyles = `
 .theme-toggle {
   display: flex;
@@ -168,20 +134,16 @@ export const themeToggleStyles = `
   cursor: pointer;
   transition: all 0.2s ease;
 }
-
 .theme-toggle:hover {
   background-color: var(--theme-bg-hover);
   border-color: var(--theme-primary);
 }
-
 .theme-toggle:active {
   transform: scale(0.95);
 }
-
 .theme-toggle svg {
   transition: transform 0.3s ease;
 }
-
 .theme-toggle:hover svg {
   transform: rotate(20deg);
 }

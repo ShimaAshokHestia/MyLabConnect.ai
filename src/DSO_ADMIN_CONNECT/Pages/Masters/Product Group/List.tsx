@@ -8,16 +8,34 @@ import DsoProductGroupEditModal from "./Edit";
 import DsoProductGroupViewModal from "./View";
 
 const columns: KiduColumn[] = [
-  { key: "code",     label: "Code",       enableSorting: true, enableFiltering: true },
-  { key: "name",     label: "Name",       enableSorting: true, enableFiltering: true },
-  { key: "dsoName",  label: "DSO Master", enableSorting: true, enableFiltering: true },
+  {
+    key: "code",
+    label: "Code",
+    enableSorting: true,
+    enableFiltering: true,
+    filterType: "text",
+  },
+  {
+    key: "name",
+    label: "Name",
+    enableSorting: true,
+    enableFiltering: true,
+    filterType: "text",
+  },
+  {
+    key: "dsoName",
+    label: "DSO Master",
+    enableSorting: true,
+    enableFiltering: false, // Not filterable by name (uses dsoMasterId internally)
+  },
   {
     key: "isActive",
     label: "Status",
     type: "badge",
+    enableSorting: false,
     enableFiltering: true,
     filterType: "select",
-    filterOptions: ["Active", "Inactive"],
+    filterOptions: ["Inactive", "Active"], // Mapped to showInactive in service
     render: (value) => (
       <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>
         {value ? "Active" : "Inactive"}
@@ -52,13 +70,12 @@ const DsoProductGroupList: React.FC = () => {
   const handleDeleteClick = async (row: any) => {
     const result = await Swal.fire({
       title: "Are you sure?",
-      text: "This record will be permanently deleted.",
+      text: "This product group will be permanently deleted.",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#ef0d50",
       cancelButtonColor: "#6c757d",
       confirmButtonText: "Yes, delete it!",
-      cancelButtonText: "Cancel",
     });
 
     if (result.isConfirmed) {
@@ -75,7 +92,7 @@ const DsoProductGroupList: React.FC = () => {
         title="DSO Product Groups"
         subtitle="Manage product group master data"
         columns={columns}
-        fetchService={() => DSOProductGroupService.getAll()}
+        paginatedFetchService={DSOProductGroupService.getPaginatedList}
         rowKey="id"
         showAddButton={true}
         addButtonLabel="Add Product Group"
@@ -90,6 +107,7 @@ const DsoProductGroupList: React.FC = () => {
         showColumnToggle={true}
         defaultRowsPerPage={10}
         highlightOnHover={true}
+        auditLogTableName="dso_product_group"
       />
 
       <DsoProductGroupCreateModal

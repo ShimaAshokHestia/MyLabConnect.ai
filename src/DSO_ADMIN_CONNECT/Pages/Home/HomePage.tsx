@@ -10,77 +10,12 @@ import {
   Users,
   Building2,
 } from 'lucide-react';
-import type { Case, TabItem } from '../../../Types/Dashboards.types';
+import type {  TabItem } from '../../../Types/Dashboards.types';
 import type { StatCardProps } from '../../../Types/KiduTypes/StatCard.types';
 import KiduStatsCardsGrid from '../../../KIDU_COMPONENTS/KiduStatsCardsGrid';
 import CaseTabs from '../../../KIDU_COMPONENTS/KiduCaseTabs';
 
 // Mock data - Replace with actual API calls
-const mockCases: Case[] = [
-  {
-    id: 'CS-2024-001',
-    patient: 'John Smith',
-    doctor: 'Dr. Sarah Wilson',
-    lab: 'DentalLab Pro',
-    product: 'Crown - Zirconia',
-    status: 'on-hold',
-    date: 'Jan 15, 2024',
-  },
-  {
-    id: 'CS-2024-002',
-    patient: 'Emily Davis',
-    doctor: 'Dr. Michael Brown',
-    lab: 'Premier Dental',
-    product: 'Bridge - 3 Unit',
-    status: 'in-transit',
-    date: 'Jan 14, 2024',
-  },
-  {
-    id: 'CS-2024-003',
-    patient: 'Robert Johnson',
-    doctor: 'Dr. Sarah Wilson',
-    lab: 'DentalLab Pro',
-    product: 'Veneer - Porcelain',
-    status: 'in-production',
-    date: 'Jan 13, 2024',
-  },
-  {
-    id: 'CS-2024-004',
-    patient: 'Maria Garcia',
-    doctor: 'Dr. James Lee',
-    lab: 'Smile Labs',
-    product: 'Implant Crown',
-    status: 'submitted',
-    date: 'Jan 12, 2024',
-  },
-  {
-    id: 'CS-2024-005',
-    patient: 'David Chen',
-    doctor: 'Dr. Michael Brown',
-    lab: 'Premier Dental',
-    product: 'Denture - Full',
-    status: 'completed',
-    date: 'Jan 11, 2024',
-  },
-  {
-    id: 'CS-2024-006',
-    patient: 'Lisa Anderson',
-    doctor: 'Dr. Sarah Wilson',
-    lab: 'DentalLab Pro',
-    product: 'Inlay - Composite',
-    status: 'on-hold',
-    date: 'Jan 10, 2024',
-  },
-  {
-    id: 'CS-2024-007',
-    patient: 'Michael Scott',
-    doctor: 'Dr. James Lee',
-    lab: 'Premier Dental',
-    product: 'Crown - PFM',
-    status: 'in-production',
-    date: 'Jan 9, 2024',
-  },
-];
 
 // Tab configurations
 const tabs: TabItem[] = [
@@ -110,9 +45,6 @@ const HomePage: React.FC = () => {
   const [_loading, _setLoading] = useState(false);
 
   // Filter cases based on active tab
-  const filteredCases = activeTab === 'recent'
-    ? mockCases
-    : mockCases.filter((c) => c.status === activeTab);
 
   // Handle tab change
   const handleTabChange = (tabId: string) => {

@@ -1,15 +1,12 @@
-// src/types/Auth.types.ts
+// src/Types/Auth/Auth.types.ts
 
-import type { AuditTrails } from "../Auditlog.types";
-
+// ─── Request Types ────────────────────────────────────────────────
 export interface LoginRequest {
   userName: string;
   password: string;
 }
 
-/* REGISTER TYPES (ADDED) */
 export interface RegisterRequest {
-  staffNo: number;
   userName: string;
   userEmail: string;
   phoneNumber: string;
@@ -17,47 +14,86 @@ export interface RegisterRequest {
   password: string;
 }
 
-export interface User {
-  userId: number;
-  userName: string;
-  userEmail: string;
-  staffNo: number;
-  memberId?: number; // Added to match backend response
-  phoneNumber: string;
-  address: string;
-  passwordHash: string;
-  oldPassword?: string;
-  newPassword?: string;
-  isActive: boolean;
-  islocked: boolean;
-  createAt: string;
-  lastlogin: string;
-  lastloginString: string;
-  createAtSyring: string;
-  companyId?: number;
-  companyName?: string;
-  role: string; // User role from backend
-  auditLogs?: AuditTrails[];
-}
-
-export interface LoginResponse {
-  token: string;
-  expiresAt: string;
-  user: User;
-}
-
 export interface ForgotPasswordRequest {
   email: string;
 }
 
-// Type guard to check if user has valid role
-export function isValidUserRole(role: string | null | undefined): role is string {
-  if (!role) return false;
-  const normalizedRole = role.trim().toLowerCase();
-  return normalizedRole === 'DSO' || 
-         normalizedRole === 'Lab' || 
-         normalizedRole === 'Doctor' ||
-         normalizedRole === 'Practice' || 
-         normalizedRole === 'Integrator' ||
-         normalizedRole === 'AppAdmin';
+export interface ResetPasswordRequest {
+  token: string;
+  email: string;
+  newPassword: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+// ─── UserTypeName — must match DB UserTypes exactly ───────────────
+export type UserTypeName =
+  | 'DSO'
+  | 'Lab'
+  | 'Doctor'
+  | 'Practice'
+  | 'Integrator'
+  | 'AppAdmin';
+
+// ─── Portal route map ─────────────────────────────────────────────
+export const PORTAL_ROUTES: Record<UserTypeName, string> = {
+  AppAdmin:   '/appadmin-connect',
+  DSO:        '/dsoadmin-connect',
+  Lab:        '/lab-connect',
+  Practice:   '/practice-connect',
+  Doctor:     '/doctor-connect',
+  Integrator: '/integrator-connect',
+};
+
+// ─── AuthUser — mirrors backend UserDTO ──────────────────────────
+export interface AuthUser {
+  id: number;
+  userName: string;
+  userEmail: string;
+  phoneNumber: string;
+  address: string;
+  islocked: boolean;
+  companyId: number;
+  companyName: string;
+  userTypeId: number;
+  userTypeName: UserTypeName;
+  lastlogin: string;
+  lastloginString: string;
+  createAtString: string;
+  createdAt: string;
+  updatedAt: string;
+  isDeleted: boolean;
+  isActive: boolean;
+}
+
+// ─── Login response (value field from backend) ────────────────────
+export interface LoginResponseValue {
+  token: string;
+  expiresAt: string;
+  user: AuthUser;
+}
+
+// ─── Generic backend wrapper — preserves backend typo "isSucess" ──
+export interface CustomApiResponse<T = any> {
+  statusCode: number;
+  error: string | null;
+  customMessage: string | null;
+  isSucess: boolean;
+  value: T | null;
+}
+
+export type LoginApiResponse = CustomApiResponse<LoginResponseValue>;
+
+// ─── Helpers ──────────────────────────────────────────────────────
+export function isValidUserTypeName(name: string | null | undefined): name is UserTypeName {
+  if (!name) return false;
+  return ['DSO', 'Lab', 'Doctor', 'Practice', 'Integrator', 'AppAdmin'].includes(name);
+}
+
+export function getDashboardRouteByType(userTypeName: string): string {
+  if (!isValidUserTypeName(userTypeName)) return '/';
+  return PORTAL_ROUTES[userTypeName];
 }

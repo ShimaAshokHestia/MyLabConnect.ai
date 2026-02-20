@@ -1,9 +1,9 @@
 import { useState } from "react";
-import {  dsoadminConnectConfig } from "../../Configs/LayoutConfig";
+import {  dsoConnectConfig } from "../../Configs/LayoutConfig";
 import KiduLayout from "../../KIDU_COMPONENTS/KiduLayout";
 
 export const DsoAdminLayout: React.FC = () => {
-  const [notifications, setNotifications] = useState(dsoadminConnectConfig.notifications);
+  const [notifications, setNotifications] = useState(dsoConnectConfig.notifications);
 
   const handleSignOut = () => {
     window.location.href = '/login';
@@ -11,12 +11,12 @@ export const DsoAdminLayout: React.FC = () => {
 
   return (
     <KiduLayout
-      menuItems={dsoadminConnectConfig.menuItems}
+      menuItems={dsoConnectConfig.menuItems}
       logoTitle="{my}labconnect.ai"
-      logoSubtitle="DSO Admin Connect"
-      user={dsoadminConnectConfig.user}
+      logoSubtitle="DSO User Connect"
+      user={dsoConnectConfig.user}
       notifications={notifications}
-      profileMenuActions={dsoadminConnectConfig.profileActions}
+      profileMenuActions={dsoConnectConfig.profileActions}
       onNotificationClick={(notification) => {
         setNotifications((prev) =>
           prev.map((n) =>

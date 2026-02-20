@@ -39,34 +39,34 @@ export const labMenuConfig: MenuItem[] = [
     title: 'Home',
     icon: Home,
     children: [
-      { 
-        title: 'Case on Hold', 
-        url: '/dashboard/case-on-hold', 
-        icon: Clock, 
-        badge: 12 
+      {
+        title: 'Case on Hold',
+        url: '/dashboard/case-on-hold',
+        icon: Clock,
+        badge: 12
       },
-      { 
-        title: 'In Transit', 
-        url: '/dashboard/in-transit', 
-        icon: Truck, 
-        badge: 8 
+      {
+        title: 'In Transit',
+        url: '/dashboard/in-transit',
+        icon: Truck,
+        badge: 8
       },
-      { 
-        title: 'In Production', 
-        url: '/dashboard/in-production', 
-        icon: Package, 
-        badge: 24 
+      {
+        title: 'In Production',
+        url: '/dashboard/in-production',
+        icon: Package,
+        badge: 24
       },
-      { 
-        title: 'Submitted', 
-        url: '/dashboard/submitted', 
-        icon: ClipboardList, 
-        badge: 5 
+      {
+        title: 'Submitted',
+        url: '/dashboard/submitted',
+        icon: ClipboardList,
+        badge: 5
       },
-      { 
-        title: 'Recent', 
-        url: '/dashboard/recent', 
-        icon: FileText 
+      {
+        title: 'Recent',
+        url: '/dashboard/recent',
+        icon: FileText
       },
     ],
   },
@@ -79,30 +79,30 @@ export const labMenuConfig: MenuItem[] = [
     title: 'Masters',
     icon: Users,
     children: [
-      { 
-        title: 'Lab', 
-        url: '/dashboard/masters/lab', 
-        icon: Microscope 
+      {
+        title: 'Lab',
+        url: '/dashboard/masters/lab',
+        icon: Microscope
       },
-      { 
-        title: 'Practice', 
-        url: '/dashboard/masters/practice', 
-        icon: Building2 
+      {
+        title: 'Practice',
+        url: '/dashboard/masters/practice',
+        icon: Building2
       },
-      { 
-        title: 'Doctor', 
-        url: '/dsoadmin-connect/masters/doctor-list', 
-        icon: UserCog 
+      {
+        title: 'Doctor',
+        url: '/dsoadmin-connect/masters/doctor-list',
+        icon: UserCog
       },
-      { 
-        title: 'Product Group', 
-        url: '/dsoadmin-connect/masters/productGroup-list', 
-        icon: Package 
+      {
+        title: 'Product Group',
+        url: '/dsoadmin-connect/masters/productGroup-list',
+        icon: Package
       },
-      { 
-        title: 'User Role Creation', 
-        url: '/dashboard/masters/user-roles', 
-        icon: UserPlus 
+      {
+        title: 'User Role Creation',
+        url: '/dashboard/masters/user-roles',
+        icon: UserPlus
       },
     ],
   },
@@ -110,25 +110,25 @@ export const labMenuConfig: MenuItem[] = [
     title: 'Setup',
     icon: Settings,
     children: [
-      { 
-        title: 'Practice Manager Login', 
-        url: '/dashboard/setup/practice-manager', 
-        icon: UserCog 
+      {
+        title: 'Practice Manager Login',
+        url: '/dashboard/setup/practice-manager',
+        icon: UserCog
       },
-      { 
-        title: 'DSO – User Login', 
-        url: '/dashboard/setup/dso-user', 
-        icon: Users 
+      {
+        title: 'DSO – User Login',
+        url: '/dashboard/setup/dso-user',
+        icon: Users
       },
-      { 
-        title: 'Lab Products Rate', 
-        url: '/dashboard/setup/lab-products-rate', 
-        icon: DollarSign 
+      {
+        title: 'Lab Products Rate',
+        url: '/dashboard/setup/lab-products-rate',
+        icon: DollarSign
       },
-      { 
-        title: 'Zone', 
-        url: '/dashboard/setup/zone-list', 
-        icon: MapPin 
+      {
+        title: 'Zone',
+        url: '/dashboard/setup/zone-list',
+        icon: MapPin
       },
     ],
   },
@@ -136,35 +136,35 @@ export const labMenuConfig: MenuItem[] = [
     title: 'Mapping',
     icon: Link2,
     children: [
-      { 
-        title: 'Prescription Product', 
-        url: '/dashboard/mapping/prescription-product', 
-        icon: ClipboardList 
+      {
+        title: 'Prescription Product',
+        url: '/dashboard/mapping/prescription-product',
+        icon: ClipboardList
       },
-      { 
-        title: 'Trios Doctor', 
-        url: '/dashboard/mapping/trios-doctor', 
-        icon: UserCog 
+      {
+        title: 'Trios Doctor',
+        url: '/dashboard/mapping/trios-doctor',
+        icon: UserCog
       },
-      { 
-        title: 'Trios Product', 
-        url: '/dashboard/mapping/trios-product', 
-        icon: Package 
+      {
+        title: 'Trios Product',
+        url: '/dashboard/mapping/trios-product',
+        icon: Package
       },
-      { 
-        title: 'Lab – DSO Doctor', 
-        url: '/dashboard/mapping/lab-dso-doctor', 
-        icon: Users 
+      {
+        title: 'Lab – DSO Doctor',
+        url: '/dashboard/mapping/lab-dso-doctor',
+        icon: Users
       },
-      { 
-        title: 'Lab – DSO Product', 
-        url: '/dashboard/mapping/lab-dso-product', 
-        icon: Package 
+      {
+        title: 'Lab – DSO Product',
+        url: '/dashboard/mapping/lab-dso-product',
+        icon: Package
       },
-      { 
-        title: 'Doctor – Pickup Service', 
-        url: '/dashboard/mapping/doctor-pickup', 
-        icon: Truck 
+      {
+        title: 'Doctor – Pickup Service',
+        url: '/dashboard/mapping/doctor-pickup',
+        icon: Truck
       },
     ],
   },
@@ -172,30 +172,30 @@ export const labMenuConfig: MenuItem[] = [
     title: 'Reports',
     icon: FileText,
     children: [
-      { 
-        title: 'Case Summary', 
-        url: '/dashboard/reports/case-summary', 
-        icon: FileBarChart 
+      {
+        title: 'Case Summary',
+        url: '/dashboard/reports/case-summary',
+        icon: FileBarChart
       },
-      { 
-        title: 'Revenue Summary', 
-        url: '/dashboard/reports/revenue-summary', 
-        icon: DollarSign 
+      {
+        title: 'Revenue Summary',
+        url: '/dashboard/reports/revenue-summary',
+        icon: DollarSign
       },
-      { 
-        title: 'Support Tickets', 
-        url: '/dashboard/reports/support-tickets', 
-        icon: HelpCircle 
+      {
+        title: 'Support Tickets',
+        url: '/dashboard/reports/support-tickets',
+        icon: HelpCircle
       },
-      { 
-        title: 'Case On Hold – Aging', 
-        url: '/dashboard/reports/case-aging', 
-        icon: Clock 
+      {
+        title: 'Case On Hold – Aging',
+        url: '/dashboard/reports/case-aging',
+        icon: Clock
       },
-      { 
-        title: 'Usage Adoption Report', 
-        url: '/dashboard/reports/usage-adoption', 
-        icon: TrendingUp 
+      {
+        title: 'Usage Adoption Report',
+        url: '/dashboard/reports/usage-adoption',
+        icon: TrendingUp
       },
     ],
   },
@@ -203,10 +203,10 @@ export const labMenuConfig: MenuItem[] = [
     title: 'Invoices',
     icon: Receipt,
     children: [
-      { 
-        title: 'Proforma Invoice', 
-        url: '/dashboard/invoices/proforma', 
-        icon: Receipt 
+      {
+        title: 'Proforma Invoice',
+        url: '/dashboard/invoices/proforma',
+        icon: Receipt
       },
     ],
   },
@@ -220,22 +220,22 @@ export const doctorMenuConfig: MenuItem[] = [
     title: 'Home',
     icon: Home,
     children: [
-      { 
-        title: 'My Cases', 
-        url: '/doctor/cases', 
-        icon: ClipboardList, 
-        badge: 5 
+      {
+        title: 'My Cases',
+        url: '/doctor/cases',
+        icon: ClipboardList,
+        badge: 5
       },
-      { 
-        title: 'In Progress', 
-        url: '/doctor/in-progress', 
-        icon: Package, 
-        badge: 3 
+      {
+        title: 'In Progress',
+        url: '/doctor/in-progress',
+        icon: Package,
+        badge: 3
       },
-      { 
-        title: 'Completed', 
-        url: '/doctor/completed', 
-        icon: FileText 
+      {
+        title: 'Completed',
+        url: '/doctor/completed',
+        icon: FileText
       },
     ],
   },
@@ -248,15 +248,15 @@ export const doctorMenuConfig: MenuItem[] = [
     title: 'Reports',
     icon: FileText,
     children: [
-      { 
-        title: 'Case Summary', 
-        url: '/doctor/reports/case-summary', 
-        icon: FileBarChart 
+      {
+        title: 'Case Summary',
+        url: '/doctor/reports/case-summary',
+        icon: FileBarChart
       },
-      { 
-        title: 'Support Tickets', 
-        url: '/doctor/reports/support-tickets', 
-        icon: HelpCircle 
+      {
+        title: 'Support Tickets',
+        url: '/doctor/reports/support-tickets',
+        icon: HelpCircle
       },
     ],
   },
@@ -270,16 +270,16 @@ export const practiceManagerMenuConfig: MenuItem[] = [
     title: 'Home',
     icon: Home,
     children: [
-      { 
-        title: 'Dashboard', 
-        url: '/practice/dashboard', 
-        icon: Home 
+      {
+        title: 'Dashboard',
+        url: '/practice/dashboard',
+        icon: Home
       },
-      { 
-        title: 'Active Cases', 
-        url: '/practice/active-cases', 
-        icon: ClipboardList, 
-        badge: 15 
+      {
+        title: 'Active Cases',
+        url: '/practice/active-cases',
+        icon: ClipboardList,
+        badge: 15
       },
     ],
   },
@@ -287,15 +287,15 @@ export const practiceManagerMenuConfig: MenuItem[] = [
     title: 'Doctors',
     icon: UserCog,
     children: [
-      { 
-        title: 'Manage Doctors', 
-        url: '/practice/doctors', 
-        icon: Users 
+      {
+        title: 'Manage Doctors',
+        url: '/practice/doctors',
+        icon: Users
       },
-      { 
-        title: 'Add Doctor', 
-        url: '/practice/doctors/add', 
-        icon: UserPlus 
+      {
+        title: 'Add Doctor',
+        url: '/practice/doctors/add',
+        icon: UserPlus
       },
     ],
   },
@@ -303,15 +303,15 @@ export const practiceManagerMenuConfig: MenuItem[] = [
     title: 'Reports',
     icon: FileText,
     children: [
-      { 
-        title: 'Practice Summary', 
-        url: '/practice/reports/summary', 
-        icon: FileBarChart 
+      {
+        title: 'Practice Summary',
+        url: '/practice/reports/summary',
+        icon: FileBarChart
       },
-      { 
-        title: 'Revenue Report', 
-        url: '/practice/reports/revenue', 
-        icon: DollarSign 
+      {
+        title: 'Revenue Report',
+        url: '/practice/reports/revenue',
+        icon: DollarSign
       },
     ],
   },

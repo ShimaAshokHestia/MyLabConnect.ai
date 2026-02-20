@@ -3,7 +3,7 @@
 // It's just a collection of Route definitions to be used in the main AppRoutes
 
 import { Navigate, Route } from 'react-router-dom';
-import { DsoAdminLayout } from '../Layout/DsoAdminLayout';
+import { DsoAdminLayout } from '../Layout/DsoUserLayout';
 import HomePage from '../Pages/Home/HomePage';
 //DSO Doctor
 import DsoDoctorList from '../Pages/Masters/Doctors/List';

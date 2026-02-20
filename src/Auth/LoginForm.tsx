@@ -1,133 +1,169 @@
-// src/components/LoginForm.tsx
+// src/Auth/LoginForm.tsx
 
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Form, Button, InputGroup, Spinner } from "react-bootstrap";
-import { Eye, EyeOff } from "lucide-react";
-import "../Styles/Auth/LoginForm.css";
-import { FaLock, FaUser } from "react-icons/fa";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Form, Button, InputGroup, Spinner } from 'react-bootstrap';
+import { Eye, EyeOff } from 'lucide-react';
+import { FaLock, FaUser } from 'react-icons/fa';
+import toast from 'react-hot-toast';
+import type { LoginRequest } from '../Types/Auth/Auth.types';
+import AuthService from '../Services/AuthServices/Auth.services';
 
 interface LoginFormProps {
-    onForgotPassword: () => void;
+  onForgotPassword?: () => void;
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({ onForgotPassword }) => {
-    const navigate = useNavigate();
-    const [username, setUsername] = useState<string>("");
-    const [password, setPassword] = useState<string>("");
-    const [showPassword, setShowPassword] = useState<boolean>(false);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [focusedField, setFocusedField] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        setIsLoading(true);
+  const [userName, setUserName]       = useState('');
+  const [password, setPassword]       = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading]     = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [submitted, setSubmitted]     = useState(false);
+  const [errors, setErrors]           = useState({ userName: '', password: '' });
 
-        // Simulate login
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-
-        setIsLoading(false);
-        navigate("/dsoadmin-connect");
+  // ── Validation ──────────────────────────────────────────────────
+  const validate = (): boolean => {
+    const errs = {
+      userName: userName.trim() ? '' : 'Username is required',
+      password: password       ? '' : 'Password is required',
     };
+    setErrors(errs);
+    return !errs.userName && !errs.password;
+  };
 
-    return (
-        <Form onSubmit={handleSubmit} className="login-form">
+  // ── Submit ───────────────────────────────────────────────────────
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSubmitted(true);
+    if (!validate()) return;
 
-            {/* ================= USERNAME ================= */}
-            <Form.Group className="mb-4">
-                <Form.Label
-                    className={`form-label-custom ${focusedField === "username" ? "focused" : ""
-                        }`}
-                >
-                    Username
-                </Form.Label>
+    setIsLoading(true);
+    try {
+      const credentials: LoginRequest = { userName: userName.trim(), password };
+      const response = await AuthService.login(credentials);
 
-                <InputGroup>
-                    <InputGroup.Text className="input-icon">
-                        <FaUser/>
-                    </InputGroup.Text>
+      if (response.isSucess && response.value) {
+        const { userName: name } = response.value.user;
+        toast.success(`Welcome, ${name}!`);
 
-                    <Form.Control
-                        type="text"
-                        placeholder="Enter your username"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        onFocus={() => setFocusedField("username")}
-                        onBlur={() => setFocusedField(null)}
-                        className="form-control-custom"
-                        required
-                    />
-                </InputGroup>
-            </Form.Group>
+        const route = AuthService.getDashboardRoute();
+        setTimeout(() => navigate(route, { replace: true }), 800);
+      } else {
+        toast.error(
+          response.error ||
+          response.customMessage ||
+          'Login failed. Please check your credentials.'
+        );
+      }
+    } catch (err: any) {
+      toast.error(
+        err?.message || 'An error occurred. Please try again.'
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-            {/* ================= PASSWORD ================= */}
-            <Form.Group className="mb-3">
-                <Form.Label
-                    className={`form-label-custom ${focusedField === "password" ? "focused" : ""
-                        }`}
-                >
-                    Password
-                </Form.Label>
+  return (
+    <Form onSubmit={handleSubmit} className="login-form" noValidate>
 
-                <InputGroup>
-                    <InputGroup.Text className="input-icon">
-                        <FaLock />
-                    </InputGroup.Text>
+      {/* ── Username ──────────────────────────────────────────────── */}
+      <Form.Group className="mb-4">
+        <Form.Label className={`form-label-custom ${focusedField === 'userName' ? 'focused' : ''}`}>
+          Username <span className="text-danger">*</span>
+        </Form.Label>
+        <InputGroup>
+          <InputGroup.Text className="input-icon">
+            <FaUser />
+          </InputGroup.Text>
+          <Form.Control
+            type="text"
+            placeholder="Enter your username"
+            value={userName}
+            onChange={e => {
+              setUserName(e.target.value);
+              if (submitted) setErrors(p => ({ ...p, userName: e.target.value.trim() ? '' : 'Username is required' }));
+            }}
+            onFocus={() => setFocusedField('userName')}
+            onBlur={() => setFocusedField(null)}
+            isInvalid={submitted && !!errors.userName}
+            disabled={isLoading}
+            className="form-control-custom"
+          />
+          <Form.Control.Feedback type="invalid">{errors.userName}</Form.Control.Feedback>
+        </InputGroup>
+      </Form.Group>
 
-                    <Form.Control
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Enter your password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        onFocus={() => setFocusedField("password")}
-                        onBlur={() => setFocusedField(null)}
-                        className="form-control-custom"
-                        required
-                    />
+      {/* ── Password ──────────────────────────────────────────────── */}
+      <Form.Group className="mb-3">
+        <Form.Label className={`form-label-custom ${focusedField === 'password' ? 'focused' : ''}`}>
+          Password <span className="text-danger">*</span>
+        </Form.Label>
+        <InputGroup>
+          <InputGroup.Text className="input-icon">
+            <FaLock />
+          </InputGroup.Text>
+          <Form.Control
+            type={showPassword ? 'text' : 'password'}
+            placeholder="Enter your password"
+            value={password}
+            onChange={e => {
+              setPassword(e.target.value);
+              if (submitted) setErrors(p => ({ ...p, password: e.target.value ? '' : 'Password is required' }));
+            }}
+            onFocus={() => setFocusedField('password')}
+            onBlur={() => setFocusedField(null)}
+            isInvalid={submitted && !!errors.password}
+            disabled={isLoading}
+            className="form-control-custom"
+          />
+          <Button
+            variant="outline-secondary"
+            className="password-toggle-btn"
+            onClick={() => setShowPassword(v => !v)}
+            disabled={isLoading}
+            type="button"
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </Button>
+          <Form.Control.Feedback type="invalid">{errors.password}</Form.Control.Feedback>
+        </InputGroup>
+      </Form.Group>
 
-                    <Button
-                        variant="outline-secondary"
-                        className="password-toggle-btn"
-                        onClick={() => setShowPassword(!showPassword)}
-                        type="button"
-                    >
-                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </Button>
-                </InputGroup>
-            </Form.Group>
+      {/* ── Forgot Password ───────────────────────────────────────── */}
+      {onForgotPassword && (
+        <div className="text-end mb-4">
+          <button
+            type="button"
+            onClick={onForgotPassword}
+            disabled={isLoading}
+            className="forgot-password-btn"
+          >
+            Forgot Password?
+          </button>
+        </div>
+      )}
 
-            {/* ================= FORGOT PASSWORD ================= */}
-            <div className="text-end mb-4">
-                <button
-                    type="button"
-                    onClick={onForgotPassword}
-                    className="forgot-password-btn"
-                >
-                    Forgot Password?
-                </button>
-            </div>
+      {/* ── Submit ────────────────────────────────────────────────── */}
+      <Button
+        type="submit"
+        disabled={isLoading}
+        className="login-submit-btn w-100"
+      >
+        {isLoading
+          ? <Spinner animation="border" size="sm" />
+          : 'Sign In'
+        }
+      </Button>
 
-            {/* ================= SUBMIT ================= */}
-            <Button
-                type="submit"
-                disabled={isLoading}
-                className="login-submit-btn w-100"
-            >
-                {!isLoading ? (
-                    <>
-                        Sign In
-                    </>
-                ) : (
-                    <Spinner animation="border" size="sm" />
-                )}
-            </Button>
-
-            {/* ================= ROLE INFO ================= */}
-            <p className="text-center mt-3 role-info">
-                Access for Admin, DSO, Doctors & Labs
-            </p>
-        </Form>
-    );
+      <p className="text-center mt-3 role-info">
+        Access for AppAdmin, DSO, Lab, Practice, Doctor &amp; Integrator
+      </p>
+    </Form>
+  );
 };
 
 export default LoginForm;

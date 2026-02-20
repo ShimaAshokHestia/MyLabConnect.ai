@@ -464,5 +464,375 @@
 
   .kidu-modal-header .btn-close {
     display: none;
-  }
+  }/* ─────────────────────────────────────────────────────────────────────────────
+   KiduCreateModal.css
+   Styles for KiduCreateModal — including the popup pill field that appears
+   inside the modal form. No inline styles anywhere.
+
+   Place in: src/Styles/KiduStyles/KiduCreateModal.css
+   Import once in KiduCreateModal.tsx.
+───────────────────────────────────────────────────────────────────────────── */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Modal shell
+═══════════════════════════════════════════════════════════════════════════ */
+
+.kidu-modal-content {
+  border: none;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
+  background: var(--theme-bg-paper, #fff);
+}
+
+.kidu-modal-dialog {
+  max-width: 680px;
+}
+
+/* ── Header ── */
+.kidu-modal-header {
+  padding: 20px 24px 12px;
+  border-bottom: 1px solid var(--theme-divider, #f1f5f9) !important;
+  background: var(--theme-bg-paper, #fff);
+}
+
+.kidu-modal-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--theme-text-primary, #0f172a);
+  margin: 0;
+}
+
+.kidu-modal-subtitle {
+  font-size: 0.75rem;
+  margin: 4px 0 0;
+  color: var(--theme-text-secondary, #64748b);
+}
+
+/* ── Body ── */
+.kidu-modal-body {
+  padding: 20px 24px 8px;
+  background: var(--theme-bg-paper, #fff);
+}
+
+/* ── Footer ── */
+.kidu-modal-footer {
+  padding: 12px 24px 20px;
+  border-top: 1px solid var(--theme-divider, #f1f5f9) !important;
+  background: var(--theme-bg-paper, #fff);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Form labels
+═══════════════════════════════════════════════════════════════════════════ */
+
+.kidu-form-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--theme-text-secondary, #64748b);
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.kidu-required-star {
+  color: var(--theme-primary, #ef0d50);
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Text / email / url / number / date inputs
+═══════════════════════════════════════════════════════════════════════════ */
+
+.kidu-input,
+.kidu-textarea,
+.kidu-select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid var(--theme-border, #e2e8f0);
+  border-radius: 10px;
+  font-size: 0.83rem;
+  outline: none;
+  font-family: inherit;
+  background: var(--theme-bg, #f8fafc);
+  color: var(--theme-text-primary, #0f172a);
+  transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.kidu-input:focus,
+.kidu-textarea:focus,
+.kidu-select:focus {
+  border-color: var(--theme-primary, #ef0d50);
+  box-shadow: 0 0 0 3px rgba(239, 13, 80, 0.09);
+  background: var(--theme-bg-paper, #fff);
+  outline: none;
+}
+
+.kidu-input::placeholder,
+.kidu-textarea::placeholder {
+  color: var(--theme-text-disabled, #94a3b8);
+}
+
+/* Bootstrap invalid state override */
+.kidu-input.is-invalid,
+.kidu-textarea.is-invalid,
+.kidu-select.is-invalid {
+  border-color: #ef4444;
+  box-shadow: none;
+}
+
+.kidu-input.is-invalid:focus,
+.kidu-textarea.is-invalid:focus,
+.kidu-select.is-invalid:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Select arrow */
+.kidu-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 34px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Disabled state */
+.kidu-input-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Input group (password / search combo)
+═══════════════════════════════════════════════════════════════════════════ */
+
+.kidu-input-group {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+
+.kidu-input-grouped {
+  border-radius: 10px 0 0 10px !important;
+  flex: 1;
+}
+
+.kidu-input-btn {
+  border-radius: 0 10px 10px 0 !important;
+  border: 1.5px solid var(--theme-border, #e2e8f0) !important;
+  border-left: none !important;
+  background: var(--theme-bg, #f8fafc) !important;
+  color: var(--theme-text-secondary, #64748b) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.kidu-input-btn:hover {
+  background: var(--theme-border, #e2e8f0) !important;
+  color: var(--theme-text-primary, #0f172a) !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Popup pill field — lives inside the modal form
+   (KiduSelectInputPill from KiduSelectPopup is used; these classes customise
+    its appearance so it matches the modal's design language exactly)
+═══════════════════════════════════════════════════════════════════════════ */
+
+/*
+  Override the pill trigger so it matches kidu-input visually when used
+  inside the create modal. The overrides are scoped to .kidu-modal-body so
+  they never affect standalone pill usage.
+*/
+.kidu-modal-body .ksp-pill-trigger {
+  border-radius: 10px;
+  background: var(--theme-bg, #f8fafc);
+  border-color: var(--theme-border, #e2e8f0);
+  min-height: 40px;
+  transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+}
+
+.kidu-modal-body .ksp-pill-trigger:hover:not([data-disabled]) {
+  border-color: var(--theme-primary, #ef0d50);
+  box-shadow: 0 0 0 3px rgba(239, 13, 80, 0.09);
+  background: var(--theme-bg-paper, #fff);
+}
+
+/* Error border when validation fails */
+.kidu-modal-body .ksp-pill-trigger.ksp-pill-error-border {
+  border-color: #ef4444;
+}
+
+.kidu-modal-body .ksp-pill-trigger.ksp-pill-error-border:hover:not([data-disabled]) {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/*
+  The pill label inside the modal is rendered by KiduCreateModal as a
+  .kidu-form-label (same style as other fields), so hide the built-in
+  ksp-pill-label to avoid a double label.
+*/
+.kidu-modal-body .ksp-pill-wrap > .ksp-pill-label {
+  display: none;
+}
+
+/* Error message below pill */
+.kidu-modal-body .ksp-pill-error-msg {
+  font-size: 0.73rem;
+  color: #ef4444;
+  margin-top: 4px;
+  display: block;
+}
+
+/* Selected tag inside the pill */
+.kidu-modal-body .ksp-pill-tag {
+  background: rgba(239, 13, 80, 0.08);
+  border: 1px solid rgba(239, 13, 80, 0.25);
+  color: var(--theme-primary, #ef0d50);
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 3px 10px 3px 11px;
+}
+
+/* Clear (✕) button on the selected tag */
+.kidu-modal-body .ksp-pill-clear {
+  background: rgba(239, 13, 80, 0.15);
+  color: var(--theme-primary, #ef0d50);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  font-size: 9px;
+  cursor: pointer;
+  transition: background 0.13s;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.kidu-modal-body .ksp-pill-clear:hover {
+  background: rgba(239, 13, 80, 0.3);
+}
+
+/* Search icon inside pill */
+.kidu-modal-body .ksp-pill-search-ico {
+  color: var(--theme-text-disabled, #94a3b8);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* Placeholder text */
+.kidu-modal-body .ksp-pill-placeholder {
+  font-size: 0.83rem;
+  color: var(--theme-text-disabled, #94a3b8);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Radio group layout
+═══════════════════════════════════════════════════════════════════════════ */
+
+.kidu-radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  padding-top: 4px;
+}
+
+.kidu-radio-group .form-check-input:checked {
+  background-color: var(--theme-primary, #ef0d50);
+  border-color: var(--theme-primary, #ef0d50);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Toggle / checkbox
+═══════════════════════════════════════════════════════════════════════════ */
+
+.form-check-input:checked {
+  background-color: var(--theme-primary, #ef0d50);
+  border-color: var(--theme-primary, #ef0d50);
+}
+
+.form-switch .form-check-input:checked {
+  background-color: var(--theme-primary, #ef0d50);
+  border-color: var(--theme-primary, #ef0d50);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Error message
+═══════════════════════════════════════════════════════════════════════════ */
+
+.kidu-error-message {
+  font-size: 0.73rem;
+  color: #ef4444;
+  margin-top: 4px;
+  display: block;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Buttons
+═══════════════════════════════════════════════════════════════════════════ */
+
+.kidu-btn-cancel {
+  padding: 8px 20px;
+  border-radius: 9px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border: 1.5px solid var(--theme-border, #e2e8f0) !important;
+  color: var(--theme-text-secondary, #64748b) !important;
+  background: var(--theme-bg, #f8fafc) !important;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.kidu-btn-cancel:hover {
+  border-color: var(--theme-text-secondary, #64748b) !important;
+  color: var(--theme-text-primary, #0f172a) !important;
+}
+
+.kidu-btn-submit {
+  padding: 8px 22px;
+  border-radius: 9px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  border: none !important;
+  color: #fff !important;
+  letter-spacing: 0.15px;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.kidu-btn-submit:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.kidu-btn-submit:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.kidu-btn-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 }

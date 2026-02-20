@@ -7,25 +7,66 @@ import type { KiduColumn } from "../../../../KIDU_COMPONENTS/KiduServerTable";
 import UserService from "../../../Services/User Management/User.services";
 import KiduServerTableList from "../../../../KIDU_COMPONENTS/KiduServerTableList";
 
-const authTypeLabels: Record<number, string> = { 0: "Standard", 1: "OAuth", 2: "LDAP", 3: "SSO" };
+const authTypeLabels: Record<number, string> = { 
+  1: "Normal", 
+  2: "SSO", 
+  3: "Basic" 
+};
 
 const columns: KiduColumn[] = [
-  { key: "userName",     label: "User Name",   enableSorting: true, enableFiltering: true },
-  { key: "userEmail",    label: "Email",        enableSorting: true, enableFiltering: true },
-  { key: "phoneNumber",  label: "Phone Number", enableSorting: true, enableFiltering: true },
-  { key: "companyName",  label: "Company",      enableSorting: true, enableFiltering: true },
-  { key: "userTypeName", label: "User Type",    enableSorting: true, enableFiltering: true },
+  { 
+    key: "userName",     
+    label: "User Name",   
+    enableSorting: true, 
+    enableFiltering: true,
+    filterType: "text",
+  },
+  { 
+    key: "userEmail",    
+    label: "Email",        
+    enableSorting: true, 
+    enableFiltering: true,
+    filterType: "text",
+  },
+  { 
+    key: "phoneNumber",  
+    label: "Phone Number", 
+    enableSorting: true, 
+    enableFiltering: true,
+    filterType: "text",
+  },
+  { 
+    key: "companyName",  
+    label: "Company",      
+    enableSorting: true, 
+    enableFiltering: false, // Not filterable by name (uses companyId)
+  },
+  { 
+    key: "userTypeName", 
+    label: "User Type",    
+    enableSorting: true, 
+    enableFiltering: false, // Not filterable by name (uses userTypeId)
+  },
   {
     key: "authenticationType",
     label: "Auth Type",
-    render: (value) => <span>{authTypeLabels[value] ?? "Unknown"}</span>,
+    enableSorting: true,
+    enableFiltering: true,
+    filterType: "select",
+    filterOptions: ["Normal", "SSO", "Basic"], // Match your auth type values
+    render: (value) => {
+      const label = typeof value === 'number' ? authTypeLabels[value] : value;
+      return <span>{label ?? "Unknown"}</span>;
+    },
   },
   {
     key: "isActive",
     label: "Status",
+    type: "badge",
+    enableSorting: false,
     enableFiltering: true,
     filterType: "select",
-    filterOptions: ["Active", "Inactive"],
+    filterOptions: ["Inactive", "Active"], // Order matters for backend mapping
     render: (value) => (
       <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>
         {value ? "Active" : "Inactive"}
@@ -66,7 +107,6 @@ const UserList: React.FC = () => {
       confirmButtonColor: "#ef0d50",
       cancelButtonColor: "#6c757d",
       confirmButtonText: "Yes, delete it!",
-      cancelButtonText: "Cancel",
     });
 
     if (result.isConfirmed) {
@@ -83,7 +123,7 @@ const UserList: React.FC = () => {
         title="Users"
         subtitle="Manage User data"
         columns={columns}
-        fetchService={() => UserService.getAll()}
+        paginatedFetchService={UserService.getPaginatedList}
         rowKey="id"
         showAddButton={true}
         addButtonLabel="Add User"
@@ -98,6 +138,7 @@ const UserList: React.FC = () => {
         showColumnToggle={true}
         defaultRowsPerPage={10}
         highlightOnHover={true}
+        auditLogTableName="user"
       />
 
       <UserCreateModal

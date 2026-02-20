@@ -8,18 +8,86 @@ import UserTypeService from "../../../Services/User Management/UserType.services
 import KiduServerTableList from "../../../../KIDU_COMPONENTS/KiduServerTableList";
 
 const columns: KiduColumn[] = [
-  { key: "userTypeName",   label: "User Type Name", enableSorting: true, enableFiltering: true },
-  { key: "isAdminAdable",  label: "Admin Addable",  render: (value) => <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>{value ? "Yes" : "No"}</span> },
-  { key: "isDSOAddable",   label: "DSO Addable",    render: (value) => <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>{value ? "Yes" : "No"}</span> },
-  { key: "isLabAddable",   label: "Lab Addable",    render: (value) => <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>{value ? "Yes" : "No"}</span> },
-  { key: "isDoctorAddable",label: "Doctor Addable", render: (value) => <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>{value ? "Yes" : "No"}</span> },
-  { key: "isPMAddable",    label: "PM Addable",     render: (value) => <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>{value ? "Yes" : "No"}</span> },
+  { 
+    key: "userTypeName",   
+    label: "User Type Name", 
+    enableSorting: true, 
+    enableFiltering: true,
+    filterType: "text",
+  },
+  { 
+    key: "isAdminAdable",  
+    label: "Admin Addable",  
+    enableSorting: true,
+    enableFiltering: true,
+    filterType: "select",
+    filterOptions: ["Yes", "No"],
+    render: (value) => (
+      <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>
+        {value ? "Yes" : "No"}
+      </span>
+    ),
+  },
+  { 
+    key: "isDSOAddable",   
+    label: "DSO Addable",    
+    enableSorting: true,
+    enableFiltering: true,
+    filterType: "select",
+    filterOptions: ["Yes", "No"],
+    render: (value) => (
+      <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>
+        {value ? "Yes" : "No"}
+      </span>
+    ),
+  },
+  { 
+    key: "isLabAddable",   
+    label: "Lab Addable",    
+    enableSorting: true,
+    enableFiltering: true,
+    filterType: "select",
+    filterOptions: ["Yes", "No"],
+    render: (value) => (
+      <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>
+        {value ? "Yes" : "No"}
+      </span>
+    ),
+  },
+  { 
+    key: "isDoctorAddable",
+    label: "Doctor Addable", 
+    enableSorting: true,
+    enableFiltering: true,
+    filterType: "select",
+    filterOptions: ["Yes", "No"],
+    render: (value) => (
+      <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>
+        {value ? "Yes" : "No"}
+      </span>
+    ),
+  },
+  { 
+    key: "isPMAddable",    
+    label: "PM Addable",     
+    enableSorting: true,
+    enableFiltering: true,
+    filterType: "select",
+    filterOptions: ["Yes", "No"],
+    render: (value) => (
+      <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>
+        {value ? "Yes" : "No"}
+      </span>
+    ),
+  },
   {
     key: "isActive",
     label: "Status",
+    type: "badge",
+    enableSorting: false,
     enableFiltering: true,
     filterType: "select",
-    filterOptions: ["Active", "Inactive"],
+    filterOptions: ["Inactive", "Active"], // Order matters for backend mapping
     render: (value) => (
       <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>
         {value ? "Active" : "Inactive"}
@@ -60,7 +128,6 @@ const UserTypeList: React.FC = () => {
       confirmButtonColor: "#ef0d50",
       cancelButtonColor: "#6c757d",
       confirmButtonText: "Yes, delete it!",
-      cancelButtonText: "Cancel",
     });
 
     if (result.isConfirmed) {
@@ -77,7 +144,7 @@ const UserTypeList: React.FC = () => {
         title="User Types"
         subtitle="Manage User Type data"
         columns={columns}
-        fetchService={() => UserTypeService.getAll()}
+        paginatedFetchService={UserTypeService.getPaginatedList}
         rowKey="id"
         showAddButton={true}
         addButtonLabel="Add User Type"
@@ -92,6 +159,7 @@ const UserTypeList: React.FC = () => {
         showColumnToggle={true}
         defaultRowsPerPage={10}
         highlightOnHover={true}
+        auditLogTableName="user_type"
       />
 
       <UserTypeCreateModal

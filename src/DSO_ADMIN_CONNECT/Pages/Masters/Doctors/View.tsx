@@ -9,51 +9,31 @@ interface Props {
 }
 
 const fields: ViewField[] = [
-  // Personal Information
-  { name: "fullName",     label: "Full Name",      colWidth: 6 },
-  { name: "doctorCode",   label: "Doctor Code",    colWidth: 6 },
-  { name: "licenseNo",    label: "License No",     colWidth: 6 },
-  { name: "firstName",    label: "First Name",     colWidth: 6 },
-  { name: "lastName",     label: "Last Name",      colWidth: 6 },
-  
-  // Contact Information
-  { name: "email",        label: "Email",          colWidth: 6 },
-  { name: "phoneNumber",  label: "Phone Number",   colWidth: 6 },
-  { name: "address",      label: "Address",        colWidth: 12 },
-  
-  // Professional Information
-  { name: "info",         label: "Specialty/Info", colWidth: 12 },
-  { name: "dsoName",      label: "DSO Master",     colWidth: 6 },
-  { name: "dsoMasterId",  label: "DSO Master ID",  colWidth: 6 },
-  
-  // Status and Audit
-  { name: "isActive",     label: "Status",         colWidth: 6, isToggle: true },
-  { name: "createdAt",    label: "Created At",     colWidth: 6, isDate: true },
-  { name: "updatedAt",    label: "Updated At",     colWidth: 6, isDate: true },
+  { name: "fullName",    label: "Full Name",      colWidth: 6 },
+  { name: "doctorCode",  label: "Doctor Code",    colWidth: 6 },
+  { name: "licenseNo",   label: "License No",     colWidth: 6 },
+  { name: "firstName",   label: "First Name",     colWidth: 6 },
+  { name: "lastName",    label: "Last Name",      colWidth: 6 },
+  { name: "email",       label: "Email",          colWidth: 6 },
+  { name: "phoneNumber", label: "Phone Number",   colWidth: 6 },
+  { name: "dsoName",     label: "DSO Master",     colWidth: 6 },
+  { name: "address",     label: "Address",        colWidth: 12, isTextarea: true },
+  { name: "info",        label: "Specialty/Info", colWidth: 12, isTextarea: true },
+  { name: "isActive",    label: "Status",         colWidth: 6,  isToggle: true },
+  { name: "createdAt",   label: "Created At",     colWidth: 6,  isDate: true },
+  { name: "updatedAt",   label: "Updated At",     colWidth: 6,  isDate: true },
 ];
 
-const DSODoctorViewModal: React.FC<Props> = ({
-  show,
-  onHide,
-  recordId,
-}) => {
-
-  const handleFetch = async (id: string | number) => {
-    const response = await DSODoctorService.getById(Number(id));
-    return response;
-  };
-
+const DSODoctorViewModal: React.FC<Props> = ({ show, onHide, recordId }) => {
   return (
     <KiduViewModal
       show={show}
       onHide={onHide}
       title="View Doctor"
       subtitle="DSO Doctor details"
-      size="lg"
-      centered={true}
-      recordId={recordId}
       fields={fields}
-      onFetch={handleFetch}
+      recordId={recordId}
+      onFetch={(id) => DSODoctorService.getById(Number(id))}
       showBadge={true}
       badgeText="Read Only"
     />

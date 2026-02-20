@@ -15,8 +15,6 @@ const columns: KiduColumn[] = [
   { key: "isDoctorAddable", label: "Doctor Addable", render: (value) => <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>{value ? "Yes" : "No"}</span> },
   { key: "isPMAddable", label: "PM Addable", render: (value) => <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>{value ? "Yes" : "No"}</span> },
   { key: "isActive", label: "Status", enableFiltering: true, filterType: "select", filterOptions: ["Active", "Inactive"], render: (value) => <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>{value ? "Active" : "Inactive"}</span> },
-  { key: "isDeleted", label: "Deleted", enableFiltering: true, filterType: "select", filterOptions: ["true", "false"], render: (value) => <span className={`kidu-badge kidu-badge--${value ? "inactive" : "active"}`}>{value ? "Deleted" : "Active"}</span> },
-  { key: "createdAt", label: "Created At", type: "date", enableSorting: true },
 ];
 
 const UserTypeList: React.FC = () => {

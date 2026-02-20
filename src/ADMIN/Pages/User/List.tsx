@@ -14,10 +14,7 @@ const columns: KiduColumn[] = [
   { key: "companyName", label: "Company", enableSorting: true, enableFiltering: true },
   { key: "userTypeName", label: "User Type", enableSorting: true, enableFiltering: true },
   { key: "authenticationType", label: "Auth Type", render: (value) => { const labels: Record<number, string> = { 0: "Standard", 1: "OAuth", 2: "LDAP", 3: "SSO" }; return <span>{labels[value] ?? "Unknown"}</span>; } },
-  { key: "islocked", label: "Locked", render: (value) => <span className={`kidu-badge kidu-badge--${value ? "inactive" : "active"}`}>{value ? "Locked" : "Unlocked"}</span> },
   { key: "isActive", label: "Status", enableFiltering: true, filterType: "select", filterOptions: ["Active", "Inactive"], render: (value) => <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>{value ? "Active" : "Inactive"}</span> },
-  { key: "isDeleted", label: "Deleted", enableFiltering: true, filterType: "select", filterOptions: ["true", "false"], render: (value) => <span className={`kidu-badge kidu-badge--${value ? "inactive" : "active"}`}>{value ? "Deleted" : "Active"}</span> },
-  { key: "createdAt", label: "Created At", type: "date", enableSorting: true },
 ];
 
 const UserList: React.FC = () => {

@@ -1,0 +1,398 @@
+/* ============================================
+   KiduAuditLogs — theme-aware audit log modal
+   Uses theme CSS variables from ThemeProvider
+   ============================================ */
+
+/* ── Trigger button ─────────────────────────── */
+
+.al-trigger-wrap {
+  display: flex;
+}
+
+.al-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px 7px 11px;
+  background: var(--theme-bg-paper);
+  border: 1.5px solid var(--theme-border);
+  border-radius: 7px;
+  color: var(--theme-text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  font-family: inherit;
+  letter-spacing: 0.01em;
+}
+
+.al-trigger-btn:hover {
+  background: var(--theme-bg-hover);
+  border-color: var(--theme-primary);
+  color: var(--theme-primary);
+}
+
+.al-trigger-icon {
+  display: flex;
+  align-items: center;
+  opacity: 0.75;
+}
+
+.al-trigger-btn:hover .al-trigger-icon {
+  opacity: 1;
+}
+
+.al-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 20px;
+  background: var(--theme-accent);
+  color: var(--theme-primary);
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+/* ── Modal shell ─────────────────────────────── */
+
+.al-modal .modal-dialog {
+  max-width: 680px;
+}
+
+.al-modal .modal-content {
+  background-color: var(--theme-bg-paper);
+  border: 1px solid var(--theme-border);
+  border-radius: 12px;
+  color: var(--theme-text-primary);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+/* ── Header ──────────────────────────────────── */
+
+.al-modal-header {
+  background-color: var(--theme-bg-paper);
+  border-bottom: 1px solid var(--theme-border) !important;
+  padding: 0.875rem 1.25rem;
+}
+
+.al-modal-header .btn-close {
+  filter: var(--theme-close-btn-filter, none);
+  opacity: 0.5;
+}
+
+.al-modal-header .btn-close:hover {
+  opacity: 1;
+}
+
+[data-theme="dark"] .al-modal-header .btn-close {
+  filter: invert(1);
+}
+
+.al-modal-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.al-modal-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--theme-accent);
+  color: var(--theme-primary);
+  flex-shrink: 0;
+}
+
+.al-modal-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--theme-text-primary);
+}
+
+.al-modal-count {
+  font-size: 0.72rem;
+  color: var(--theme-text-secondary);
+  background: var(--theme-bg-hover);
+  border: 1px solid var(--theme-border);
+  padding: 1px 8px;
+  border-radius: 20px;
+  margin-left: 2px;
+}
+
+/* ── Body ────────────────────────────────────── */
+
+.al-modal-body {
+  background-color: var(--theme-bg);
+  padding: 0.875rem 1rem;
+  max-height: 460px;
+  overflow-y: auto;
+}
+
+.al-modal-body::-webkit-scrollbar       { width: 5px; }
+.al-modal-body::-webkit-scrollbar-track { background: transparent; }
+.al-modal-body::-webkit-scrollbar-thumb {
+  background: var(--theme-border);
+  border-radius: 3px;
+}
+
+/* ── States: loading / empty / error ─────────── */
+
+.al-state-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 2.5rem 1rem;
+}
+
+.al-spinner {
+  color: var(--theme-primary) !important;
+}
+
+.al-empty-icon {
+  color: var(--theme-text-disabled);
+  display: flex;
+}
+
+.al-state-text {
+  font-size: 0.8125rem;
+  color: var(--theme-text-secondary);
+}
+
+.al-alert {
+  font-size: 0.8125rem;
+  margin: 0.5rem 0;
+}
+
+/* ── List ────────────────────────────────────── */
+
+.al-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ── Entry card ──────────────────────────────── */
+
+.al-entry {
+  border: 1px solid var(--theme-border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--theme-bg-paper);
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.al-entry.is-open {
+  border-color: var(--theme-primary);
+  box-shadow: 0 2px 12px rgba(239, 13, 80, 0.08);
+}
+
+/* ── Entry row button ────────────────────────── */
+
+.al-entry-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: background 0.15s ease;
+  flex-wrap: wrap;
+}
+
+.al-entry-row:hover {
+  background: var(--theme-bg-hover);
+}
+
+.al-entry.is-open .al-entry-row {
+  background: var(--theme-bg-hover);
+  border-bottom: 1px solid var(--theme-border);
+}
+
+/* ── Action pills ────────────────────────────── */
+
+.al-pill {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 20px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.al-pill--create,
+.al-pill--created {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.al-pill--update,
+.al-pill--updated {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.al-pill--delete,
+.al-pill--deleted {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+[data-theme="dark"] .al-pill--create,
+[data-theme="dark"] .al-pill--created  { background: rgba(16,185,129,0.15); color: #6ee7b7; }
+
+[data-theme="dark"] .al-pill--update,
+[data-theme="dark"] .al-pill--updated  { background: rgba(59,130,246,0.15); color: #93c5fd; }
+
+[data-theme="dark"] .al-pill--delete,
+[data-theme="dark"] .al-pill--deleted  { background: rgba(239,68,68,0.15);  color: #fca5a5; }
+
+/* ── Meta ─────────────────────────────────────── */
+
+.al-meta-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--theme-primary);
+}
+
+.al-meta-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.775rem;
+  color: var(--theme-text-secondary);
+}
+
+.al-fields-tag {
+  font-size: 0.7rem;
+  color: var(--theme-text-disabled);
+  background: var(--theme-bg-hover);
+  border: 1px solid var(--theme-border);
+  padding: 1px 7px;
+  border-radius: 20px;
+}
+
+.al-chevron {
+  display: flex;
+  align-items: center;
+  color: var(--theme-text-disabled);
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.al-entry.is-open .al-chevron {
+  color: var(--theme-primary);
+}
+
+/* ── Detail table area ───────────────────────── */
+
+.al-entry-detail {
+  padding: 8px 12px 10px;
+  background: var(--theme-bg-paper);
+}
+
+.al-table {
+  font-size: 0.775rem;
+  border-color: var(--theme-border) !important;
+}
+
+.al-table thead tr th {
+  background: var(--theme-primary);
+  color: #fff;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-color: var(--theme-primary) !important;
+  white-space: nowrap;
+  font-size: 0.75rem;
+}
+
+.al-table tbody tr td {
+  padding: 5px 10px;
+  vertical-align: middle;
+  border-color: var(--theme-border) !important;
+  background-color: var(--theme-bg-paper);
+  color: var(--theme-text-primary);
+}
+
+.al-table tbody tr:hover td {
+  background: var(--theme-bg-hover);
+}
+
+.al-td-muted  { color: var(--theme-text-disabled) !important; font-size: 0.72rem; }
+.al-td-field  { font-weight: 500; color: var(--theme-text-primary); }
+.al-td-from   { color: #b91c1c; }
+.al-td-to     { color: #065f46; }
+
+[data-theme="dark"] .al-td-from { color: #fca5a5; }
+[data-theme="dark"] .al-td-to   { color: #6ee7b7; }
+
+/* ── Footer ──────────────────────────────────── */
+
+.al-modal-footer {
+  background-color: var(--theme-bg-paper);
+  border-top: 1px solid var(--theme-border) !important;
+  padding: 0.625rem 1.25rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.al-close-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 18px;
+  background: var(--theme-bg-hover);
+  border: 1px solid var(--theme-border);
+  border-radius: 6px;
+  color: var(--theme-text-primary);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.al-close-btn:hover {
+  background: var(--theme-bg-elevated);
+  border-color: var(--theme-primary);
+  color: var(--theme-primary);
+}
+
+/* ── Responsive ──────────────────────────────── */
+
+@media (max-width: 575px) {
+  .al-modal .modal-dialog {
+    max-width: 100%;
+    margin: 0.5rem;
+  }
+
+  .al-entry-row {
+    gap: 7px;
+    padding: 8px 10px;
+  }
+
+  .al-meta-date {
+    display: none;
+  }
+
+  .al-modal-body {
+    max-height: 380px;
+  }
+}

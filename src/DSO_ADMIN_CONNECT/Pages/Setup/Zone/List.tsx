@@ -8,15 +8,34 @@ import DSOZoneEditModal from "./Edit";
 import DSOZoneViewModal from "./View";
 
 const columns: KiduColumn[] = [
-  { key: "name",    label: "Zone Name",  enableSorting: true, enableFiltering: true },
-  { key: "dsoName", label: "DSO Master", enableSorting: true, enableFiltering: true },
+  {
+    key: "id",
+    label: "Zone Code",
+    enableSorting: true,
+    enableFiltering: true,
+    filterType: "text",
+  },
+  {
+    key: "name",
+    label: "Zone Name",
+    enableSorting: true,
+    enableFiltering: true,
+    filterType: "text",
+  },
+  {
+    key: "dsoName",
+    label: "DSO Master",
+    enableSorting: true,
+    enableFiltering: false, 
+  },
   {
     key: "isActive",
     label: "Status",
     type: "badge",
+    enableSorting: false,
     enableFiltering: true,
     filterType: "select",
-    filterOptions: ["Active", "Inactive"],
+    filterOptions: ["Inactive", "Active"], // mapped to showInactive in service ✅
     render: (value) => (
       <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>
         {value ? "Active" : "Inactive"}
@@ -38,14 +57,14 @@ const DSOZoneList: React.FC = () => {
     setTableKey(tableKeyRef.current);
   };
 
-  const handleEditClick = (row: any) => {
-    setRecordId(row.id);
-    setShowEdit(true);
+  const handleEditClick = (row: any) => { 
+    setRecordId(row.id); 
+    setShowEdit(true);  
   };
 
-  const handleViewClick = (row: any) => {
-    setRecordId(row.id);
-    setShowView(true);
+  const handleViewClick = (row: any) => { 
+    setRecordId(row.id); 
+    setShowView(true);  
   };
 
   const handleDeleteClick = async (row: any) => {
@@ -57,7 +76,6 @@ const DSOZoneList: React.FC = () => {
       confirmButtonColor: "#ef0d50",
       cancelButtonColor: "#6c757d",
       confirmButtonText: "Yes, delete it!",
-      cancelButtonText: "Cancel",
     });
 
     if (result.isConfirmed) {
@@ -74,7 +92,7 @@ const DSOZoneList: React.FC = () => {
         title="DSO Zones"
         subtitle="Manage zone master data"
         columns={columns}
-        fetchService={() => DSOZoneService.getAll()}
+        paginatedFetchService={DSOZoneService.getPaginatedList}
         rowKey="id"
         showAddButton={true}
         addButtonLabel="Add Zone"
@@ -89,6 +107,7 @@ const DSOZoneList: React.FC = () => {
         showColumnToggle={true}
         defaultRowsPerPage={10}
         highlightOnHover={true}
+        auditLogTableName="dso_zone"
       />
 
       <DSOZoneCreateModal

@@ -268,3 +268,52 @@
 .sidebar-submenu.expanded .sidebar-submenu-item:nth-child(3) { animation-delay: 0.12s; }
 .sidebar-submenu.expanded .sidebar-submenu-item:nth-child(4) { animation-delay: 0.16s; }
 .sidebar-submenu.expanded .sidebar-submenu-item:nth-child(5) { animation-delay: 0.20s; }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   NEW: Collapsed hover flyout submenu
+   Only these rules are new — nothing above was touched.
+───────────────────────────────────────────────────────────────────────── */
+
+/* Make menu item a positioning context for the flyout */
+.collapsed .sidebar-menu-item {
+  position: relative;
+}
+
+/* Flyout panel */
+.sidebar-submenu-flyout {
+  position: absolute;
+  left: calc(100% + 6px);
+  top: 0;
+  min-width: 180px;
+  list-style: none;
+  padding: 0.375rem;
+  margin: 0;
+  background-color: var(--theme-bg-paper);
+  border: 1px solid var(--theme-border);
+  border-radius: 0.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  z-index: 1050;
+  animation: flyout-in 0.15s ease-out both;
+}
+
+@keyframes flyout-in {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Group title row inside flyout */
+.sidebar-submenu-flyout-title {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--theme-text-secondary);
+  padding: 0.25rem 0.5rem 0.375rem;
+  border-bottom: 1px solid var(--theme-divider, var(--theme-border));
+  margin-bottom: 0.25rem;
+}
+
+/* Flyout submenu buttons reuse existing .sidebar-submenu-btn but reset the indent */
+.sidebar-submenu-flyout .sidebar-submenu-btn {
+  padding-left: 0.625rem;
+}

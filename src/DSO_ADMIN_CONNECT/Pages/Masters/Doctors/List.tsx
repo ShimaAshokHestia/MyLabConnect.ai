@@ -123,6 +123,7 @@ const DSODoctorList: React.FC = () => {
         showColumnToggle={true}
         defaultRowsPerPage={10}
         highlightOnHover={true}
+        auditLogTableName="dso_doctor"
       />
 
       <DSODoctorCreateModal

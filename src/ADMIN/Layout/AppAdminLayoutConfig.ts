@@ -1,6 +1,6 @@
 // src/APPADMIN_CONNECT/Config/LayoutConfig.ts
 
-import { Home, BarChart3, Users, Settings, FileText, Building2, UserCog, UserPlus, FileBarChart, DollarSign, HelpCircle, Microscope, User, Key, } from 'lucide-react';
+import { Home, BarChart3, Users, Settings, FileText, Building2, UserCog, UserPlus, FileBarChart, DollarSign, HelpCircle, Microscope, User, Key, CalendarRange } from 'lucide-react';
 import type { MenuItem } from '../../Types/KiduTypes/Sidebar.types';
 import type { UserProfile, NotificationItem, NavbarAction } from '../../Types/KiduTypes/Navbar.types';
 import AuthService from '../../Services/AuthServices/Auth.services';
@@ -38,8 +38,10 @@ export const appAdminMenuItems: MenuItem[] = [
   },
   {
     title: 'Settings',
-    url: '/appadmin-connect/settings',
     icon: Settings,
+    children: [
+      { title: 'Financial Year', url: '/appadmin-connect/settings/financialYear-list', icon: CalendarRange },
+    ],
   },
 ];
 

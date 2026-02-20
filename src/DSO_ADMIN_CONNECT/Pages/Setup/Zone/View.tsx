@@ -9,41 +9,24 @@ interface Props {
 }
 
 const fields: ViewField[] = [
-  // Core Information
-  { name: "name",         label: "Zone Name",      colWidth: 12 },
-  
-  // DSO Master Information
-  { name: "dsoName",      label: "DSO Master",     colWidth: 6 },
-  { name: "dsoMasterId",  label: "DSO Master ID",  colWidth: 6 },
-  
-  // Status and Audit
-  { name: "isActive",     label: "Status",         colWidth: 6, isToggle: true },
-  { name: "createdAt",    label: "Created At",     colWidth: 6, isDate: true },
-  { name: "updatedAt",    label: "Updated At",     colWidth: 6, isDate: true },
+  { name: "name",        label: "Zone Name",    colWidth: 12 },
+  { name: "dsoName",     label: "DSO Master",   colWidth: 6 },
+  { name: "dsoMasterId", label: "DSO Master ID", colWidth: 6 },
+  { name: "isActive",    label: "Status",       colWidth: 6, isToggle: true },
+  { name: "createdAt",   label: "Created At",   colWidth: 6, isDate: true },
+  { name: "updatedAt",   label: "Updated At",   colWidth: 6, isDate: true },
 ];
 
-const DSOZoneViewModal: React.FC<Props> = ({
-  show,
-  onHide,
-  recordId,
-}) => {
-
-  const handleFetch = async (id: string | number) => {
-    const response = await DSOZoneService.getById(Number(id));
-    return response;
-  };
-
+const DSOZoneViewModal: React.FC<Props> = ({ show, onHide, recordId }) => {
   return (
     <KiduViewModal
       show={show}
       onHide={onHide}
       title="View Zone"
       subtitle="DSO Zone details"
-      size="lg"
-      centered={true}
-      recordId={recordId}
       fields={fields}
-      onFetch={handleFetch}
+      recordId={recordId}
+      onFetch={(id) => DSOZoneService.getById(Number(id))}
       showBadge={true}
       badgeText="Read Only"
     />

@@ -40,8 +40,10 @@
    TOOLBAR
    ────────────────────────────────────────────────────────────── */
 
+/* Toolbar — save ~10px */
 .kidu-toolbar {
-  padding          : 1rem 1.25rem 0.75rem;
+  flex-shrink      : 0;
+  padding          : 0.625rem 1.25rem 0.5rem;   /* was 0.75rem 1.25rem 0.625rem */
   border-bottom    : 1px solid var(--theme-border);
   background-color : var(--theme-bg-paper);
 }
@@ -577,7 +579,7 @@
 /* ── Density ────────────────────────────────────────────────── */
 
 .kidu-density-compact      { padding: 0.35rem 0.7rem; }
-.kidu-density-comfortable  { padding: 0.65rem 0.875rem; }
+.kidu-density-comfortable  { padding: 0.55rem 0.875rem; }
 .kidu-density-spacious     { padding: 1rem   1rem; }
 
 /* ── Body rows ──────────────────────────────────────────────── */
@@ -718,14 +720,16 @@
    ────────────────────────────────────────────────────────────── */
 
 .kidu-footer {
+  flex-shrink      : 0;
   display          : flex;
   align-items      : center;
   justify-content  : space-between;
-  padding          : 0.6rem 1.25rem;
+  padding          : 0.375rem 1.25rem;   /* was 0.5rem */
   border-top       : 1px solid var(--theme-border);
   background-color : var(--theme-bg-paper);
   flex-wrap        : wrap;
   gap              : 0.5rem;
+  min-height       : 42px;               /* was 46px */
 }
 
 .kidu-footer-left {

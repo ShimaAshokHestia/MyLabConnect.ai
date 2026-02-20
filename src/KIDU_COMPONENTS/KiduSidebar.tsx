@@ -10,20 +10,11 @@ import type { MenuItem, SidebarProps, SidebarState } from '../Types/KiduTypes/Si
  * - Collapsible/Expandable
  * - Sticky positioning
  * - Smooth animations
- * - Nested menu support
+ * - Nested menu support (accordion — only one open at a time)
  * - Badge notifications
  * - Responsive design
- * - Tooltip on hover when collapsed
+ * - Hover-expand when collapsed (submenu flies out)
  * - Scrollable menu content
- * 
- * @param menuItems - Array of menu items with optional children
- * @param currentPath - Current active path for highlighting
- * @param logoIcon - Custom logo icon component
- * @param logoTitle - Main logo text
- * @param logoSubtitle - Logo subtitle text
- * @param onNavigate - Navigation callback function
- * @param defaultCollapsed - Initial collapsed state
- * @param className - Additional CSS classes
  */
 const KiduSidebar: React.FC<SidebarProps> = ({
   menuItems,
@@ -37,9 +28,12 @@ const KiduSidebar: React.FC<SidebarProps> = ({
 }) => {
   const [state, setState] = useState<SidebarState>({
     collapsed: defaultCollapsed,
-    openMenus: ['Home'], // Default open menu
+    openMenus: ['Home'],
     mobileOpen: false,
   });
+
+  // Track which menu is hovered when sidebar is collapsed
+  const [hoveredMenu, setHoveredMenu] = useState<string | null>(null);
 
   const sidebarRef = useRef<HTMLDivElement>(null);
 
@@ -48,64 +42,46 @@ const KiduSidebar: React.FC<SidebarProps> = ({
     const activeMenu = menuItems.find((item) =>
       item.children?.some((child) => child.url === currentPath)
     );
-    
     if (activeMenu && !state.openMenus.includes(activeMenu.title)) {
       setState((prev) => ({
         ...prev,
-        openMenus: [...prev.openMenus, activeMenu.title],
+        openMenus: [activeMenu.title], // accordion: only the active one open
       }));
     }
   }, [currentPath, menuItems]);
 
-  // Handle collapse toggle
   const handleToggleCollapse = () => {
-    setState((prev) => ({
-      ...prev,
-      collapsed: !prev.collapsed,
-    }));
+    setState((prev) => ({ ...prev, collapsed: !prev.collapsed }));
+    setHoveredMenu(null);
   };
 
-  // Handle menu toggle
+  // ── CHANGE 1: Accordion — only one menu open at a time ───────────────────
   const handleToggleMenu = (menuTitle: string) => {
     setState((prev) => {
       const isOpen = prev.openMenus.includes(menuTitle);
       return {
         ...prev,
-        openMenus: isOpen
-          ? prev.openMenus.filter((title) => title !== menuTitle)
-          : [...prev.openMenus, menuTitle],
+        // If already open → close it; otherwise open only this one
+        openMenus: isOpen ? [] : [menuTitle],
       };
     });
   };
 
-  // Handle navigation
   const handleNavigation = (url: string) => {
-    if (onNavigate) {
-      onNavigate(url);
-    }
-    
-    // Close mobile menu on navigation
+    if (onNavigate) onNavigate(url);
     if (window.innerWidth <= 768) {
       setState((prev) => ({ ...prev, mobileOpen: false }));
     }
   };
 
-  // Check if path is active
-  const isActive = (url?: string): boolean => {
-    return url ? currentPath === url : false;
-  };
+  const isActive = (url?: string): boolean => url ? currentPath === url : false;
 
-  // Check if menu group is active
-  const isGroupActive = (item: MenuItem): boolean => {
-    return item.children?.some((child) => isActive(child.url)) || false;
-  };
+  const isGroupActive = (item: MenuItem): boolean =>
+    item.children?.some((child) => isActive(child.url)) || false;
 
-  // Toggle mobile menu
-  const handleMobileToggle = () => {
+  const handleMobileToggle = () =>
     setState((prev) => ({ ...prev, mobileOpen: !prev.mobileOpen }));
-  };
 
-  // Close mobile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -116,47 +92,32 @@ const KiduSidebar: React.FC<SidebarProps> = ({
         setState((prev) => ({ ...prev, mobileOpen: false }));
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [state.mobileOpen]);
 
   return (
     <>
-      {/* Mobile Overlay */}
       <div
         className={`sidebar-overlay ${state.mobileOpen ? 'active' : ''}`}
         onClick={handleMobileToggle}
       />
 
-      {/* Sidebar */}
       <div
         ref={sidebarRef}
         className={`app-sidebar ${state.collapsed ? 'collapsed' : ''} ${
           state.mobileOpen ? 'mobile-open' : ''
         } ${className}`}
       >
-        {/* Header with Logo */}
+        {/* Header */}
         <div className="sidebar-header">
           <div className="sidebar-logo">
             {logoIcon || (
               <div className="sidebar-logo-icon">
-                <svg
-                  viewBox="0 0 32 32"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
+                <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <circle cx="16" cy="16" r="16" fill="#ef0d50" />
-                  <path
-                    d="M16 8L20 14H12L16 8Z"
-                    fill="white"
-                  />
-                  <path
-                    d="M12 18H20V24H12V18Z"
-                    fill="white"
-                  />
+                  <path d="M16 8L20 14H12L16 8Z" fill="white" />
+                  <path d="M12 18H20V24H12V18Z" fill="white" />
                 </svg>
               </div>
             )}
@@ -180,78 +141,100 @@ const KiduSidebar: React.FC<SidebarProps> = ({
         <div className="sidebar-content">
           <ul className="sidebar-menu">
             {menuItems.map((item) => (
-              <li key={item.title} className="sidebar-menu-item">
+              <li
+                key={item.title}
+                className="sidebar-menu-item"
+                // ── CHANGE 2: hover-expand when collapsed ──────────────────
+                onMouseEnter={() => state.collapsed && item.children ? setHoveredMenu(item.title) : undefined}
+                onMouseLeave={() => state.collapsed ? setHoveredMenu(null) : undefined}
+              >
                 {item.children ? (
-                  // Menu with Children
                   <>
                     <button
                       className={`sidebar-menu-btn ${
                         state.openMenus.includes(item.title) ? 'expanded' : ''
                       } ${isGroupActive(item) ? 'active' : ''}`}
-                      onClick={() => handleToggleMenu(item.title)}
-                      aria-expanded={state.openMenus.includes(item.title)}
+                      onClick={() => {
+                        if (state.collapsed) {
+                          // In collapsed mode toggle is handled by hover; click expands sidebar
+                          handleToggleCollapse();
+                        } else {
+                          handleToggleMenu(item.title);
+                        }
+                      }}
+                      aria-expanded={
+                        state.collapsed
+                          ? hoveredMenu === item.title
+                          : state.openMenus.includes(item.title)
+                      }
                     >
                       <item.icon className="sidebar-menu-btn-icon" />
                       <span className="sidebar-menu-btn-text">{item.title}</span>
                       <ChevronDown className="sidebar-menu-btn-chevron" />
-                      
-                      {/* Tooltip for collapsed state */}
+
                       {state.collapsed && (
                         <span className="sidebar-tooltip">{item.title}</span>
                       )}
                     </button>
 
-                    {/* Submenu */}
-                    <ul
-                      className={`sidebar-submenu ${
-                        state.openMenus.includes(item.title) ? 'expanded' : ''
-                      }`}
-                    >
-                      {item.children.map((child) => (
-                        <li key={child.title} className="sidebar-submenu-item">
-                          <a
-                            href={child.url}
-                            className={`sidebar-submenu-btn ${
-                              isActive(child.url) ? 'active' : ''
-                            }`}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleNavigation(child.url);
-                            }}
-                          >
-                            <child.icon className="sidebar-submenu-btn-icon" />
-                            <span className="sidebar-submenu-btn-text">
-                              {child.title}
-                            </span>
-                            {child.badge && (
-                              <span className="sidebar-submenu-btn-badge">
-                                {child.badge}
-                              </span>
-                            )}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
+                    {/* Submenu — normal expanded mode */}
+                    {!state.collapsed && (
+                      <ul
+                        className={`sidebar-submenu ${
+                          state.openMenus.includes(item.title) ? 'expanded' : ''
+                        }`}
+                      >
+                        {item.children.map((child) => (
+                          <li key={child.title} className="sidebar-submenu-item">
+                            <a
+                              href={child.url}
+                              className={`sidebar-submenu-btn ${isActive(child.url) ? 'active' : ''}`}
+                              onClick={(e) => { e.preventDefault(); handleNavigation(child.url); }}
+                            >
+                              <child.icon className="sidebar-submenu-btn-icon" />
+                              <span className="sidebar-submenu-btn-text">{child.title}</span>
+                              {child.badge && (
+                                <span className="sidebar-submenu-btn-badge">{child.badge}</span>
+                              )}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+                    {/* Submenu — collapsed hover flyout */}
+                    {state.collapsed && hoveredMenu === item.title && (
+                      <ul className="sidebar-submenu-flyout">
+                        <li className="sidebar-submenu-flyout-title">{item.title}</li>
+                        {item.children.map((child) => (
+                          <li key={child.title} className="sidebar-submenu-item">
+                            <a
+                              href={child.url}
+                              className={`sidebar-submenu-btn ${isActive(child.url) ? 'active' : ''}`}
+                              onClick={(e) => { e.preventDefault(); handleNavigation(child.url); }}
+                            >
+                              <child.icon className="sidebar-submenu-btn-icon" />
+                              <span className="sidebar-submenu-btn-text">{child.title}</span>
+                              {child.badge && (
+                                <span className="sidebar-submenu-btn-badge">{child.badge}</span>
+                              )}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </>
                 ) : (
-                  // Single Menu Item
                   <a
                     href={item.url}
-                    className={`sidebar-menu-btn ${
-                      isActive(item.url) ? 'active' : ''
-                    }`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (item.url) handleNavigation(item.url);
-                    }}
+                    className={`sidebar-menu-btn ${isActive(item.url) ? 'active' : ''}`}
+                    onClick={(e) => { e.preventDefault(); if (item.url) handleNavigation(item.url); }}
                   >
                     <item.icon className="sidebar-menu-btn-icon" />
                     <span className="sidebar-menu-btn-text">{item.title}</span>
                     {item.badge && (
                       <span className="sidebar-menu-btn-badge">{item.badge}</span>
                     )}
-                    
-                    {/* Tooltip for collapsed state */}
                     {state.collapsed && (
                       <span className="sidebar-tooltip">{item.title}</span>
                     )}

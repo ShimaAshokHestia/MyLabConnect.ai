@@ -65,11 +65,14 @@
 /* ── Page content ─────────────────────────── */
 
 .kidu-content {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 1.25rem;
-  background-color: var(--theme-bg);
+  flex           : 1;
+  min-height     : 0;
+  overflow       : hidden;
+  overflow-x     : hidden;
+  padding        : 0.625rem;   
+  background-color : var(--theme-bg);
+  display        : flex;
+  flex-direction : column;
 }
 
 /* ── Mobile overlay ───────────────────────── */

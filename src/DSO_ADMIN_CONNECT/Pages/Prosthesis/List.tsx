@@ -109,6 +109,7 @@ const DSOProsthesisTypeList: React.FC = () => {
         showColumnToggle={true}
         defaultRowsPerPage={10}
         highlightOnHover={true}
+        auditLogTableName="DSO_ProthesisType"
       />
 
       <DSOProsthesisTypeCreateModal

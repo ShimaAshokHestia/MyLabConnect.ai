@@ -10,8 +10,8 @@ export default class DSOProsthesisTypeService {
     // Map "Active"/"Inactive" select filter to showInactive boolean
     let showInactive: boolean | undefined = undefined;
     const statusFilter = params["isActive"];
-    if (statusFilter === "Active")   showInactive = false;  // Active → showInactive = false
-    if (statusFilter === "Inactive") showInactive = true;   // Inactive → showInactive = true
+    if (statusFilter === "Active")   showInactive = true;  // Active → showInactive = false
+    if (statusFilter === "Inactive") showInactive = false;   // Inactive → showInactive = true
 
     const payload = {
       pageNumber:     params.pageNumber,

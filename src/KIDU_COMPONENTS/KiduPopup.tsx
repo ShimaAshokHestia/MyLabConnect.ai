@@ -1,9 +1,9 @@
 // KiduPopup.tsx - Fixed to match POS project (client-side filtering)
 import React, { useState, useCallback, useEffect } from "react";
 import { Modal, Spinner } from "react-bootstrap";
-import type { CustomResponse } from "../Types/ApiTypes";
 import HttpService from "../Services/Common/HttpService";
 import KiduServerTable from "./KiduServerTable";
+import type { CustomResponse } from "../Types/Common/ApiTypes";
 
 interface KiduPopupProps<T> {
   show: boolean;

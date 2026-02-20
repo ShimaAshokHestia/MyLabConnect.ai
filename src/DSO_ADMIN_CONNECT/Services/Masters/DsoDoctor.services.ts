@@ -6,20 +6,30 @@ import type { DSODoctor } from "../../Types/Masters/DsoDoctor.types";
 export default class DSODoctorService {
 
   static async getPaginatedList(params: TableRequestParams): Promise<TableResponse<DSODoctor>> {
+    
+    // Map "Active"/"Inactive" select filter to showInactive boolean
+    let showInactive: boolean | undefined = undefined;
+    const statusFilter = params["isActive"];
+    if (statusFilter === "Active")   showInactive = true;
+    if (statusFilter === "Inactive") showInactive = false;
+
     const payload = {
       pageNumber:     params.pageNumber,
       pageSize:       params.pageSize,
-      searchTerm:     params.searchTerm    ?? "",
-      sortBy:         params.sortBy        ?? "",
-      sortDescending: params.sortDescending ?? false,
+      searchTerm:     params.searchTerm     ?? "",
+      sortBy:         params.sortBy         ?? "",
+      sortDescending: params.sortDescending  ?? false,
+      showDeleted:    false,
+      showInactive:   showInactive,          // undefined = backend default (show all)
 
-      // Column filter keys must match DSODoctorPaginationParams exactly
-      firstName:    params["fullName"]    ?? params["firstName"]  ?? "",
-      lastName:     params["lastName"]    ?? "",
-      licenseNo:    params["licenseNo"]   ?? "",
-      doctorCode:   params["doctorCode"]  ?? "",
-      // DSOMasterId is int — only send if it's a valid number
-      ...(params["dsoName"] ? {} : {}), // dsoName is display-only, not filterable server-side
+      // Column filters — keys match DSODoctorPaginationParams exactly
+      firstName:    params["fullName"]   ?? params["firstName"]   ?? "",
+      lastName:     params["lastName"]   ?? "",
+      licenseNo:    params["licenseNo"]  ?? "",
+      doctorCode:   params["doctorCode"] ?? "",
+      email:        params["email"]      ?? "",
+      phoneNumber:  params["phoneNumber"] ?? "",
+      dsoMasterId:  params["dsoMasterId"] ? Number(params["dsoMasterId"]) : undefined,
     };
 
     const response = await HttpService.callApi<any>(
@@ -31,8 +41,8 @@ export default class DSODoctorService {
     const result = response?.value ?? response;
 
     return {
-      data:       result.data        ?? result.items ?? [],
-      total:      result.totalRecords ?? result.total ?? 0,
+      data:       result.data         ?? result.items ?? [],
+      total:      result.totalRecords  ?? result.total ?? 0,
       totalPages: result.totalPages,
     };
   }

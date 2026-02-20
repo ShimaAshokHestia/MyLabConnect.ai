@@ -21,18 +21,23 @@ const columns: KiduColumn[] = [
     enableSorting: true,
     enableFiltering: true,
     filterType: "text",
+    // sent as firstName to backend
   },
   {
     key: "email",
     label: "Email",
     enableSorting: true,
-    enableFiltering: false,
+    enableFiltering: true,
+    filterType: "text",
+    // now supported by backend ✅
   },
   {
     key: "phoneNumber",
     label: "Phone",
     enableSorting: true,
-    enableFiltering: false,
+    enableFiltering: true,
+    filterType: "text",
+    // now supported by backend ✅
   },
   {
     key: "licenseNo",
@@ -45,13 +50,16 @@ const columns: KiduColumn[] = [
     key: "dsoName",
     label: "DSO Master",
     enableSorting: true,
-    enableFiltering: false,
+    enableFiltering: false, // still int-based (dsoMasterId), not filterable by name
   },
   {
     key: "isActive",
     label: "Status",
     type: "badge",
-    enableFiltering: false,
+    enableSorting: false,
+    enableFiltering: true,
+    filterType: "select",
+    filterOptions: ["Inactive", "Active"], // mapped to showInactive in service ✅
     render: (value) => (
       <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>
         {value ? "Active" : "Inactive"}
@@ -115,7 +123,6 @@ const DSODoctorList: React.FC = () => {
         showColumnToggle={true}
         defaultRowsPerPage={10}
         highlightOnHover={true}
-        auditLogTableName="dso_doctor"
       />
 
       <DSODoctorCreateModal

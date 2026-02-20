@@ -68,7 +68,7 @@ const UserCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }) => {
       phoneNumber:        formData.phoneNumber,
       address:            formData.address,
       passwordHash:       formData.passwordHash,
-      userTypeId:         userTypeId, // Use id from UserType interface
+      userTypeId:         userTypeId,
       companyId:          companyId,
       authenticationType: Number(formData.authenticationType),
       isActive:           formData.isActive  ?? true,
@@ -79,17 +79,28 @@ const UserCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }) => {
     await UserService.create(payload);
   };
 
+  // Popup handlers must match the PopupFieldHandler interface
   const popupHandlers = {
     userTypeId: {
-      value: selectedUserType?.userTypeName || "", // Use userTypeName from UserType interface
-      actualValue: selectedUserType?.id, // Use id from UserType interface
-      onOpen: () => setShowUserTypePopup(true)
+      value: selectedUserType?.userTypeName || "",
+      onOpen: () => setShowUserTypePopup(true),
+      onClear: () => {
+        setSelectedUserType(null);
+      }
     },
     companyId: {
-      value: selectedCompany?.comapanyName || "", // Use comapanyName (note the typo from API)
-      actualValue: selectedCompany?.companyId,
-      onOpen: () => setShowCompanyPopup(true)
+      value: selectedCompany?.comapanyName || "",
+      onOpen: () => setShowCompanyPopup(true),
+      onClear: () => {
+        setSelectedCompany(null);
+      }
     }
+  };
+
+  // Extra values to be merged into formData at submit
+  const extraValues = {
+    userTypeId: selectedUserType?.id,
+    companyId: selectedCompany?.companyId
   };
 
   return (
@@ -105,12 +116,13 @@ const UserCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }) => {
         onSuccess={onSuccess}
         options={{ authenticationType: authenticationTypeOptions }}
         popupHandlers={popupHandlers}
+        extraValues={extraValues}
       />
       
       <CompanyPopup
         show={showCompanyPopup}
         handleClose={() => setShowCompanyPopup(false)}
-        onSelect={(company) => {
+        onSelect={(company: Company) => {
           setSelectedCompany(company);
           setShowCompanyPopup(false);
         }}
@@ -120,9 +132,9 @@ const UserCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }) => {
       <UserTypePopup
         show={showUserTypePopup}
         handleClose={() => setShowUserTypePopup(false)}
-        onSelect={(userType) => {
+        onSelect={(userType: UserType) => {
           setSelectedUserType(userType);
-          setShowCompanyPopup(false);
+          setShowUserTypePopup(false); // Fixed: was incorrectly closing company popup
         }}
         showAddButton={true}
       />

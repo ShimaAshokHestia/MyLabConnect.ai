@@ -51,12 +51,20 @@ const DSODoctorCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }) => {
     await DSODoctorService.create(payload);
   };
 
+  // Popup handlers must match the PopupFieldHandler interface
   const popupHandlers = {
     dsoMasterId: { // This must match the field name exactly
       value: selectedMaster?.name || "",
-      actualValue: selectedMaster?.id,
-      onOpen: () => setShowMasterPopup(true)
+      onOpen: () => setShowMasterPopup(true),
+      onClear: () => {
+        setSelectedMaster(null);
+      }
     }
+  };
+
+  // Extra values to be merged into formData at submit
+  const extraValues = {
+    dsoMasterId: selectedMaster?.id
   };
 
   return (
@@ -71,12 +79,13 @@ const DSODoctorCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }) => {
         successMessage="Doctor created successfully!"
         onSuccess={onSuccess}
         popupHandlers={popupHandlers}
+        extraValues={extraValues}
       />
       
       <MasterPopup
         show={showMasterPopup}
         handleClose={() => setShowMasterPopup(false)}
-        onSelect={(master) => {
+        onSelect={(master: DSOmaster) => {
           setSelectedMaster(master);
           setShowMasterPopup(false);
         }}

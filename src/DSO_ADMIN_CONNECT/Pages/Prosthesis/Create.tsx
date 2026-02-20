@@ -6,7 +6,6 @@ import DSOProsthesisTypeService from "../../Services/Prosthesis/Prosthesis.servi
 import KiduCreateModal from "../../../KIDU_COMPONENTS/KiduCreateModal";
 import MasterPopup from "../../../ADMIN/Pages/Master/MasterPopup";
 
-
 interface Props {
   show:      boolean;
   onHide:    () => void;
@@ -63,12 +62,20 @@ const DSOProsthesisTypeCreateModal: React.FC<Props> = ({ show, onHide, onSuccess
     await DSOProsthesisTypeService.create(payload);
   };
 
+  // Popup handlers must match the PopupFieldHandler interface
   const popupHandlers = {
     dsoMasterId: {
       value: selectedMaster?.name || "",
-      actualValue: selectedMaster?.id,
-      onOpen: () => setShowMasterPopup(true)
+      onOpen: () => setShowMasterPopup(true),
+      onClear: () => {
+        setSelectedMaster(null);
+      }
     }
+  };
+
+  // Extra values to be merged into formData at submit
+  const extraValues = {
+    dsoMasterId: selectedMaster?.id
   };
 
   return (
@@ -83,12 +90,13 @@ const DSOProsthesisTypeCreateModal: React.FC<Props> = ({ show, onHide, onSuccess
         successMessage="Prosthesis Type created successfully!"
         onSuccess={onSuccess}
         popupHandlers={popupHandlers}
+        extraValues={extraValues}
       />
       
       <MasterPopup
         show={showMasterPopup}
         handleClose={() => setShowMasterPopup(false)}
-        onSelect={(master) => {
+        onSelect={(master: DSOmaster) => {
           setSelectedMaster(master);
           setShowMasterPopup(false);
         }}

@@ -14,8 +14,8 @@ interface Props {
 const fields: Field[] = [
   { name: "code",        rules: { type: "text",   label: "Code",       required: true, maxLength: 20,  colWidth: 6 } },
   { name: "name",        rules: { type: "text",   label: "Name",       required: true, maxLength: 100, colWidth: 6 } },
-  { name: "dsoMasterId", rules: { type: "popup", label: "DSO Master", required: true,                 colWidth: 6 } },
-  { name: "isActive",    rules: { type: "toggle", label: "Active",                                     colWidth: 6 } },
+  { name: "dsoMasterId", rules: { type: "popup",  label: "DSO Master", required: true, colWidth: 6 } },
+  { name: "isActive",    rules: { type: "toggle", label: "Active",     colWidth: 6 } },
 ];
 
 const DsoProductGroupCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }) => {
@@ -23,24 +23,36 @@ const DsoProductGroupCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }
   const [selectedMaster, setSelectedMaster] = useState<DSOmaster | null>(null);
 
   const handleSubmit = async (formData: Record<string, any>) => {
-   if (!selectedMaster) {
+    if (!selectedMaster) {
       throw new Error("Please select a DSO Master");
     }
+    
     const payload: Partial<DSOProductGroup> = {
       code:        formData.code,
       name:        formData.name,
-      dsoMasterId: selectedMaster?.id,
+      dsoMasterId: selectedMaster.id, // Use selectedMaster.id directly
       isActive:    formData.isActive ?? true,
     };
+    
     await DSOProductGroupService.create(payload);
   };
- const popupHandlers = {
+
+  // Popup handlers must match the PopupFieldHandler interface
+  const popupHandlers = {
     dsoMasterId: { // This must match the field name exactly
       value: selectedMaster?.name || "",
-      actualValue: selectedMaster?.id,
-      onOpen: () => setShowMasterPopup(true)
+      onOpen: () => setShowMasterPopup(true),
+      onClear: () => {
+        setSelectedMaster(null);
+      }
     }
   };
+
+  // Extra values to be merged into formData at submit
+  const extraValues = {
+    dsoMasterId: selectedMaster?.id
+  };
+
   return (
     <>
       <KiduCreateModal
@@ -53,11 +65,13 @@ const DsoProductGroupCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }
         successMessage="Product group created successfully!"
         onSuccess={onSuccess}
         popupHandlers={popupHandlers}
+        extraValues={extraValues}
       />
+      
       <MasterPopup
         show={showMasterPopup}
         handleClose={() => setShowMasterPopup(false)}
-        onSelect={(master) => {
+        onSelect={(master: DSOmaster) => {
           setSelectedMaster(master);
           setShowMasterPopup(false);
         }}

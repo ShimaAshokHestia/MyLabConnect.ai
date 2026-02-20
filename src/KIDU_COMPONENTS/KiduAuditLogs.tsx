@@ -1,101 +1,136 @@
 // KiduAuditLogs.tsx
 import React, { useEffect, useState } from "react";
 import { Modal, Table, Spinner, Alert, Collapse } from "react-bootstrap";
-import "./KiduAuditLogs.css";
+import "../Styles/KiduStyles/Auditlogs.css";
 import type { AuditTrails } from "../Types/Auditlog.types";
 import AuditLogService from "../Services/KiduServices/Auditlog.services";
 
 interface AuditTrailsProps {
   tableName: string;
-  recordId: string | number;
+  recordId:  string | number;
+
+  /**
+   * Optional: when provided the component is "controlled" — the
+   * parent drives open/close instead of the trigger button.
+   * Pass `open={true}` to show the modal and `onClose` to be
+   * notified when the user dismisses it.
+   */
+  open?:    boolean;
+  onClose?: () => void;
+
+  /**
+   * When `open` is controlled externally the trigger button is
+   * hidden. Set `showTrigger={true}` to keep it visible anyway.
+   */
+  showTrigger?: boolean;
 }
 
-const KiduAuditLogs: React.FC<AuditTrailsProps> = ({ tableName, recordId }) => {
-  const [history, setHistory] = useState<AuditTrails[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+const KiduAuditLogs: React.FC<AuditTrailsProps> = ({
+  tableName,
+  recordId,
+  open:        controlledOpen,
+  onClose:     onControlledClose,
+  showTrigger  = true,
+}) => {
+  const isControlled = controlledOpen !== undefined;
 
-  // UI state only
-  const [modalOpen, setModalOpen] = useState(false);
+  const [history,     setHistory]     = useState<AuditTrails[]>([]);
+  const [loading,     setLoading]     = useState<boolean>(false);
+  const [error,       setError]       = useState<string | null>(null);
+  const [modalOpen,   setModalOpen]   = useState(false);
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
 
+  // ── Sync controlled open prop → internal state ───────────────
   useEffect(() => {
-    if (tableName && recordId) {
+    if (isControlled) {
+      setModalOpen(!!controlledOpen);
+      if (controlledOpen) {
+        setExpandedIdx(null);
+      }
+    }
+  }, [controlledOpen, isControlled]);
+
+  // ── Fetch whenever the modal opens or recordId changes ────────
+  useEffect(() => {
+    if (modalOpen && tableName && recordId !== "" && recordId !== undefined) {
       fetchHistory();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tableName, recordId]);
+  }, [modalOpen, tableName, recordId]);
 
   const fetchHistory = async () => {
     try {
       setLoading(true);
       setError(null);
       const data = await AuditLogService.getByTableAndId(tableName, recordId);
-      console.log("Fetched audit logs:", data);
 
       if (data.isSucess && Array.isArray(data.value)) {
         setHistory(data.value);
-        console.log("History updated:", data.value);
       } else {
-        console.warn("Unexpected data format:", data);
         setHistory([]);
       }
     } catch (err) {
-      console.error("Failed to fetch edit history:", err);
-      setError("Failed to load edit history. Please try again later.");
+      console.error("Failed to fetch audit history:", err);
+      setError("Failed to load audit history. Please try again later.");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    console.log("Updated history:", history);
-  }, [history]);
-
-  const formatDateSafe = (isoOrAny?: string) => {
-    if (!isoOrAny) return "—";
-    const d = new Date(isoOrAny);
-    if (isNaN(d.getTime())) return isoOrAny;
-    return d.toLocaleString("en-GB", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
-  };
-
+  // ── Open / close helpers ─────────────────────────────────────
   const handleOpen = () => {
     setExpandedIdx(null);
+    setHistory([]);
     setModalOpen(true);
   };
 
   const handleClose = () => {
     setModalOpen(false);
     setExpandedIdx(null);
+    // Notify parent when controlled
+    if (isControlled && onControlledClose) {
+      onControlledClose();
+    }
   };
 
+  // ── Date formatter ───────────────────────────────────────────
+  const formatDateSafe = (isoOrAny?: string) => {
+    if (!isoOrAny) return "—";
+    const d = new Date(isoOrAny);
+    if (isNaN(d.getTime())) return isoOrAny;
+    return d.toLocaleString("en-GB", {
+      day:    "2-digit",
+      month:  "long",
+      year:   "numeric",
+      hour:   "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
+  // ─────────────────────────────────────────────────────────────
   return (
     <>
-      {/* ── Trigger Button ── */}
-      <div className="al-trigger-wrap mt-4 mb-2">
-        <button className="al-trigger-btn" onClick={handleOpen}>
-          <span className="al-trigger-icon">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
-              <rect x="9" y="3" width="6" height="4" rx="1" />
-              <line x1="9" y1="12" x2="15" y2="12" />
-              <line x1="9" y1="16" x2="13" y2="16" />
-            </svg>
-          </span>
-          Audit Logs
-          {!loading && history.length > 0 && (
-            <span className="al-count-badge">{history.length}</span>
-          )}
-        </button>
-      </div>
+      {/* ── Trigger Button (hidden when controlled externally) ── */}
+      {(!isControlled || showTrigger) && (
+        <div className="al-trigger-wrap mt-4 mb-2">
+          <button className="al-trigger-btn" onClick={handleOpen}>
+            <span className="al-trigger-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+                <rect x="9" y="3" width="6" height="4" rx="1" />
+                <line x1="9" y1="12" x2="15" y2="12" />
+                <line x1="9" y1="16" x2="13" y2="16" />
+              </svg>
+            </span>
+            Audit Logs
+            {!loading && history.length > 0 && (
+              <span className="al-count-badge">{history.length}</span>
+            )}
+          </button>
+        </div>
+      )}
 
       {/* ── Modal ── */}
       <Modal
@@ -133,9 +168,7 @@ const KiduAuditLogs: React.FC<AuditTrailsProps> = ({ tableName, recordId }) => {
               <span className="al-state-text">Loading audit logs…</span>
             </div>
           ) : error ? (
-            <Alert variant="danger" className="al-alert">
-              {error}
-            </Alert>
+            <Alert variant="danger" className="al-alert">{error}</Alert>
           ) : history.length === 0 ? (
             <div className="al-state-center">
               <span className="al-empty-icon">
@@ -178,8 +211,8 @@ const KiduAuditLogs: React.FC<AuditTrailsProps> = ({ tableName, recordId }) => {
                           stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                           <line x1="16" y1="2" x2="16" y2="6" />
-                          <line x1="8" y1="2" x2="8" y2="6" />
-                          <line x1="3" y1="10" x2="21" y2="10" />
+                          <line x1="8"  y1="2" x2="8"  y2="6" />
+                          <line x1="3"  y1="10" x2="21" y2="10" />
                         </svg>
                         {formatDateSafe(item.changedAt)}
                       </span>
@@ -210,7 +243,7 @@ const KiduAuditLogs: React.FC<AuditTrailsProps> = ({ tableName, recordId }) => {
                             <Table bordered size="sm" className="al-table mb-0">
                               <thead>
                                 <tr>
-                                  <th style={{ width: "5%" }}>#</th>
+                                  <th style={{ width: "5%"  }}>#</th>
                                   <th style={{ width: "25%" }}>Field</th>
                                   <th style={{ width: "35%" }}>Previous</th>
                                   <th style={{ width: "35%" }}>New</th>
@@ -223,7 +256,7 @@ const KiduAuditLogs: React.FC<AuditTrailsProps> = ({ tableName, recordId }) => {
                                       <td className="text-center al-td-muted">{i + 1}</td>
                                       <td className="al-td-field">{change.item || ""}</td>
                                       <td className="al-td-from">{change.from || "—"}</td>
-                                      <td className="al-td-to">{change.to || "—"}</td>
+                                      <td className="al-td-to">{change.to   || "—"}</td>
                                     </tr>
                                   ))
                                 ) : (

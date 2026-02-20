@@ -1,4 +1,4 @@
-import  { useRef } from "react";
+import { useRef } from "react";
 import KiduServerTable, { type KiduServerTableProps, type TableRequestParams, type TableResponse } from "./KiduServerTable";
 
 /**
@@ -92,7 +92,7 @@ function KiduServerTableList<T extends Record<string, any>>({
 
       // Client-side pagination slice
       const start = (params.pageNumber - 1) * params.pageSize;
-      const end   = start + params.pageSize;
+      const end = start + params.pageSize;
 
       return {
         data: filteredData.slice(start, end),

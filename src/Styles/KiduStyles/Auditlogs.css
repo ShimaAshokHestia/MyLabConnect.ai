@@ -62,6 +62,14 @@
   max-width: 680px;
 }
 
+/* Ensure audit modal stacks above any already-open CRUD modal */
+.al-modal.modal {
+  z-index: 1060;
+}
+.al-modal + .modal-backdrop {
+  z-index: 1059;
+}
+
 .al-modal .modal-content {
   background-color: var(--theme-bg-paper);
   border: 1px solid var(--theme-border);
@@ -234,32 +242,55 @@
   flex-shrink: 0;
 }
 
+/* Create */
 .al-pill--create,
 .al-pill--created {
   background: #d1fae5;
   color: #065f46;
 }
 
+/* Update */
 .al-pill--update,
 .al-pill--updated {
   background: #dbeafe;
   color: #1e40af;
 }
 
+/* Delete */
 .al-pill--delete,
 .al-pill--deleted {
   background: #fee2e2;
   color: #991b1b;
 }
 
+/* Soft Delete */
+.al-pill--softdelete {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* Restore */
+.al-pill--restore,
+.al-pill--restored {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+/* ── Dark mode pills ─────────────────────────── */
+
 [data-theme="dark"] .al-pill--create,
-[data-theme="dark"] .al-pill--created  { background: rgba(16,185,129,0.15); color: #6ee7b7; }
+[data-theme="dark"] .al-pill--created    { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; }
 
 [data-theme="dark"] .al-pill--update,
-[data-theme="dark"] .al-pill--updated  { background: rgba(59,130,246,0.15); color: #93c5fd; }
+[data-theme="dark"] .al-pill--updated    { background: rgba(59, 130, 246, 0.15); color: #93c5fd; }
 
 [data-theme="dark"] .al-pill--delete,
-[data-theme="dark"] .al-pill--deleted  { background: rgba(239,68,68,0.15);  color: #fca5a5; }
+[data-theme="dark"] .al-pill--deleted    { background: rgba(239, 68, 68, 0.15);  color: #fca5a5; }
+
+[data-theme="dark"] .al-pill--softdelete { background: rgba(245, 158, 11, 0.15); color: #fcd34d; }
+
+[data-theme="dark"] .al-pill--restore,
+[data-theme="dark"] .al-pill--restored   { background: rgba(139, 92, 246, 0.15); color: #c4b5fd; }
 
 /* ── Meta ─────────────────────────────────────── */
 
@@ -336,10 +367,10 @@
   background: var(--theme-bg-hover);
 }
 
-.al-td-muted  { color: var(--theme-text-disabled) !important; font-size: 0.72rem; }
-.al-td-field  { font-weight: 500; color: var(--theme-text-primary); }
-.al-td-from   { color: #b91c1c; }
-.al-td-to     { color: #065f46; }
+.al-td-muted { color: var(--theme-text-disabled) !important; font-size: 0.72rem; }
+.al-td-field { font-weight: 500; color: var(--theme-text-primary); }
+.al-td-from  { color: #b91c1c; }
+.al-td-to    { color: #065f46; }
 
 [data-theme="dark"] .al-td-from { color: #fca5a5; }
 [data-theme="dark"] .al-td-to   { color: #6ee7b7; }

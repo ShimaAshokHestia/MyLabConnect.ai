@@ -8,19 +8,50 @@ import DSODoctorEditModal from "./Edit";
 import DSODoctorViewModal from "./View";
 
 const columns: KiduColumn[] = [
-  { key: "doctorCode",  label: "Doctor Code", enableSorting: true, enableFiltering: true },
-  { key: "fullName",    label: "Doctor Name", enableSorting: true, enableFiltering: true },
-  { key: "email",       label: "Email",       enableSorting: true, enableFiltering: true },
-  { key: "phoneNumber", label: "Phone",       enableSorting: true, enableFiltering: true },
-  { key: "licenseNo",   label: "License No",  enableSorting: true, enableFiltering: true },
-  { key: "dsoName",     label: "DSO Master",  enableSorting: true, enableFiltering: true },
+  {
+    key: "doctorCode",
+    label: "Doctor Code",
+    enableSorting: true,
+    enableFiltering: true,
+    filterType: "text",
+  },
+  {
+    key: "fullName",
+    label: "Doctor Name",
+    enableSorting: true,
+    enableFiltering: true,
+    filterType: "text",
+  },
+  {
+    key: "email",
+    label: "Email",
+    enableSorting: true,
+    enableFiltering: false,
+  },
+  {
+    key: "phoneNumber",
+    label: "Phone",
+    enableSorting: true,
+    enableFiltering: false,
+  },
+  {
+    key: "licenseNo",
+    label: "License No",
+    enableSorting: true,
+    enableFiltering: true,
+    filterType: "text",
+  },
+  {
+    key: "dsoName",
+    label: "DSO Master",
+    enableSorting: true,
+    enableFiltering: false,
+  },
   {
     key: "isActive",
     label: "Status",
     type: "badge",
-    enableFiltering: true,
-    filterType: "select",
-    filterOptions: ["Active", "Inactive"],
+    enableFiltering: false,
     render: (value) => (
       <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>
         {value ? "Active" : "Inactive"}
@@ -42,15 +73,8 @@ const DSODoctorList: React.FC = () => {
     setTableKey(tableKeyRef.current);
   };
 
-  const handleEditClick = (row: any) => {
-    setRecordId(row.id);
-    setShowEdit(true);
-  };
-
-  const handleViewClick = (row: any) => {
-    setRecordId(row.id);
-    setShowView(true);
-  };
+  const handleEditClick  = (row: any) => { setRecordId(row.id); setShowEdit(true);  };
+  const handleViewClick  = (row: any) => { setRecordId(row.id); setShowView(true);  };
 
   const handleDeleteClick = async (row: any) => {
     const result = await Swal.fire({
@@ -62,7 +86,6 @@ const DSODoctorList: React.FC = () => {
       cancelButtonColor: "#6c757d",
       confirmButtonText: "Yes, delete it!",
     });
-
     if (result.isConfirmed) {
       await DSODoctorService.delete(row.id);
       refreshTable();
@@ -77,7 +100,7 @@ const DSODoctorList: React.FC = () => {
         title="DSO Doctors"
         subtitle="Manage doctor master data"
         columns={columns}
-        fetchService={() => DSODoctorService.getAll()}
+        paginatedFetchService={DSODoctorService.getPaginatedList}
         rowKey="id"
         showAddButton={true}
         addButtonLabel="Add Doctor"
@@ -92,6 +115,7 @@ const DSODoctorList: React.FC = () => {
         showColumnToggle={true}
         defaultRowsPerPage={10}
         highlightOnHover={true}
+        auditLogTableName="dso_doctor"
       />
 
       <DSODoctorCreateModal

@@ -1,3 +1,5 @@
+// src/DSO_ADMIN_CONNECT/Pages/Home/HomePage.tsx
+
 import React, { useState } from 'react';
 import { Container } from 'react-bootstrap';
 import {
@@ -10,56 +12,31 @@ import {
   Users,
   Building2,
 } from 'lucide-react';
-import type {  TabItem } from '../../../Types/Dashboards.types';
+import type { TabItem } from '../../../Types/Dashboards.types';
 import type { StatCardProps } from '../../../Types/KiduTypes/StatCard.types';
 import KiduStatsCardsGrid from '../../../KIDU_COMPONENTS/KiduStatsCardsGrid';
 import CaseTabs from '../../../KIDU_COMPONENTS/KiduCaseTabs';
+import AuthService from '../../../Services/AuthServices/Auth.services';
 
-// Mock data - Replace with actual API calls
-
-// Tab configurations
+// ─── Tabs — matches DSO Admin menu Home children exactly ──────────
 const tabs: TabItem[] = [
-  { id: 'on-hold', label: 'Case on Hold', icon: Clock, count: 12 },
-  { id: 'in-transit', label: 'In Transit', icon: Truck, count: 8 },
-  { id: 'in-production', label: 'In Production', icon: Package, count: 24 },
-  { id: 'submitted', label: 'Submitted', icon: ClipboardList, count: 5 },
-  { id: 'recent', label: 'Recent', icon: FileText, count: null },
+  { id: 'on-hold',       label: 'Case on Hold',  icon: Clock,        count: 12   },
+  { id: 'in-transit',    label: 'In Transit',    icon: Truck,        count: 8    },
+  { id: 'in-production', label: 'In Production', icon: Package,      count: 24   },
+  { id: 'submitted',     label: 'Submitted',     icon: ClipboardList,count: 5    },
+  { id: 'recent',        label: 'Recent',        icon: FileText,     count: null },
 ];
 
-/**
- * Dashboard Page Component
- * 
- * Main dashboard displaying:
- * - Statistics cards
- * - Case filtering tabs
- * - Case table
- * 
- * Features:
- * - Real-time stats
- * - Tab-based filtering
- * - Clickable cases
- * - Responsive layout
- */
+// ─── HomePage ─────────────────────────────────────────────────────
 const HomePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('on-hold');
-  const [_loading, _setLoading] = useState(false);
+  const user = AuthService.getUser();
 
-  // Filter cases based on active tab
-
-  // Handle tab change
+  // Replace with API fetch filtered by activeTab
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId);
-    // Optionally trigger data fetch here
   };
 
-  // Handle case row click
-  // const handleCaseClick = (caseItem: Case) => {
-  //   console.log('Case clicked:', caseItem);
-  //   // Navigate to case details or open modal
-  //   // navigate(`/cases/${caseItem.id}`);
-  // };
-
-  // Statistics cards configuration
   const statsCards: StatCardProps[] = [
     {
       title: 'Total Cases',
@@ -96,18 +73,19 @@ const HomePage: React.FC = () => {
 
   return (
     <Container fluid className="dashboard-page py-4">
-      {/* Page Header */}
+
+      {/* ── Page Header ───────────────────────────────────────────── */}
       <div className="page-header mb-4">
         <h1 className="page-title">Dashboard</h1>
         <p className="page-description">
-          Welcome back! Here's an overview of your dental cases.
+          Welcome back, <strong>{user?.userName ?? 'DSO Admin'}</strong>! Here's an overview of your dental cases.
         </p>
       </div>
 
-      {/* Statistics Cards */}
+      {/* ── Stats Cards ───────────────────────────────────────────── */}
       <KiduStatsCardsGrid cards={statsCards} columns={4} />
 
-      {/* Case Tabs */}
+      {/* ── Case Tabs ─────────────────────────────────────────────── */}
       <CaseTabs
         tabs={tabs}
         activeTab={activeTab}
@@ -115,12 +93,9 @@ const HomePage: React.FC = () => {
         className="mb-4"
       />
 
-      {/* Case Table ======= TABLE NEED TO BE CREATD*/} 
-      {/* <CaseTable
-        cases={filteredCases}
-        loading={loading}
-        onRowClick={handleCaseClick}
-      /> */}
+      {/* Case Table — create when ready */}
+      {/* <CaseTable activeTab={activeTab} /> */}
+
     </Container>
   );
 };

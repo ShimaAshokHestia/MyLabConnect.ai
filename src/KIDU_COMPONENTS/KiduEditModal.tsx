@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Form, Button, Row, Col, Modal, InputGroup } from "react-bootstrap";
 import toast, { Toaster } from "react-hot-toast";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { BsSearch } from "react-icons/bs";
 import Swal from 'sweetalert2';
 import "../Styles/KiduStyles/EditModal.css";
 import KiduValidation from "./KiduValidation";
+import { KiduSelectInputPill } from "./KiduSelectPopup"; // ← added
 
 // ==================== TYPES ====================
 export interface FieldRule {
@@ -33,6 +33,7 @@ export interface SelectOption {
 export interface PopupHandler {
   value: string;
   onOpen: () => void;
+  onClear: () => void; // ← added (was missing, needed by KiduSelectInputPill)
   actualValue?: any;
 }
 
@@ -394,28 +395,20 @@ if (onSuccess) {
     const fieldPlaceholder = placeholder || `Enter ${rules.label.toLowerCase()}`;
 
     switch (type) {
-      /* ---------- POPUP ---------- */
+      /* ---------- POPUP ← only this case changed ---------- */
       case "popup": {
-        const popup = popupHandlers[name];
+        const handler = popupHandlers[name];
         return (
-          <InputGroup className="kidu-input-group">
-            <Form.Control
-              type="text"
-              value={popup?.value || ""}
-              placeholder={`Select ${rules.label}`}
-              readOnly
-              isInvalid={!!errors[name]}
-              disabled={rules.disabled}
-              className={`kidu-input-grouped ${rules.disabled ? 'kidu-input-disabled' : ''}`}
-            />
-            <Button 
-              variant="outline-secondary" 
-              onClick={popup?.onOpen}
-              className="kidu-input-btn"
-            >
-              <BsSearch />
-            </Button>
-          </InputGroup>
+          <KiduSelectInputPill
+            value={handler?.value ?? ""}
+            onOpen={handler?.onOpen ?? (() => {})}
+            onClear={handler?.onClear ?? (() => {})}
+            placeholder={`Select ${rules.label}...`}
+            required={rules.required}
+            disabled={rules.disabled}
+            error={errors[name]}
+            inputWidth="100%"
+          />
         );
       }
 
@@ -591,7 +584,7 @@ if (onSuccess) {
     }
   };
 
-  // ==================== RENDER FIELD ====================
+  // ==================== RENDER FIELD ← only label skip changed ====================
   const renderField = (field: Field, index: number) => {
     const { name, rules } = field;
 
@@ -604,13 +597,18 @@ if (onSuccess) {
 
     return (
       <Col md={colWidth} className="mb-3" key={name}>
-        <Form.Label className="kidu-form-label">
-          {rules.label}
-          {rules.required && <span className="kidu-required-star">*</span>}
-        </Form.Label>
+        {/* Popup fields render their own label inside KiduSelectInputPill */}
+        {rules.type !== "popup" && (
+          <Form.Label className="kidu-form-label">
+            {rules.label}
+            {rules.required && <span className="kidu-required-star">*</span>}
+          </Form.Label>
+        )}
 
         {renderFormControl(field)}
-        {errors[name] && (
+
+        {/* Popup errors already shown inside KiduSelectInputPill */}
+        {rules.type !== "popup" && errors[name] && (
           <div className="kidu-error-message">{errors[name]}</div>
         )}
       </Col>

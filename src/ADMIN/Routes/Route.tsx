@@ -6,8 +6,8 @@ import { Navigate, Route } from 'react-router-dom';
 import AppAdminLayout from '../Layout/AppAdminLayout';
 import HomePage from '../Layout/HomePage';
 import DSOmasterList from '../Pages/Master/List';
-import UserTypeList from '../Pages/UserType/List';
 import UserList from '../Pages/User Management/User/List';
+import UserTypeList from '../Pages/User Management/User Type/List';
 
 // ── Add page imports here as you build them ────────────────────────
 // import DSOmasterList from '../Pages/Master/List';

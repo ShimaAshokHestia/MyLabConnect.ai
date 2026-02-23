@@ -15,7 +15,7 @@ interface Props {
 }
 
 const fields: Field[] = [
-  { name: "userName",           rules: { type: "text",     label: "User Name",           required: true,  minLength: 2,  maxLength: 200, colWidth: 6 } },
+  { name: "userName",           rules: { type: "text",     label: "User Name",           required: true,  minLength: 3,  maxLength: 200, colWidth: 6 } },
   { name: "userEmail",          rules: { type: "email",    label: "Email",               required: true,  minLength: 7,  maxLength: 100, colWidth: 6 } },
   { name: "phoneNumber",        rules: { type: "text",     label: "Phone Number",        required: true,  minLength: 7,  maxLength: 20,  colWidth: 6 } },
   { name: "address",            rules: { type: "text",     label: "Address",             required: false,               maxLength: 500, colWidth: 6 } },

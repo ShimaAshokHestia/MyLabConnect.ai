@@ -159,7 +159,7 @@ const UserTypeList: React.FC = () => {
         showColumnToggle={true}
         defaultRowsPerPage={10}
         highlightOnHover={true}
-        auditLogTableName="user_type"
+        auditLogTableName="UserType"
       />
 
       <UserTypeCreateModal

@@ -95,6 +95,7 @@ const DSOmasterList: React.FC = () => {
         defaultRowsPerPage={10}
         highlightOnHover={true}
         striped={false}
+        auditLogTableName="DSO_Master"
       />
 
       {/* Create Modal */}

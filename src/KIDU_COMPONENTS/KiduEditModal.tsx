@@ -6,10 +6,13 @@ import Swal from 'sweetalert2';
 import "../Styles/KiduStyles/EditModal.css";
 import KiduValidation from "./KiduValidation";
 import { KiduSelectInputPill } from "./KiduSelectPopup"; // ← added
+import type { KiduDropdownOption, KiduDropdownPaginatedParams, KiduDropdownPaginatedResult } from "./KiduDropdown";
+import type { DropdownHandlers } from "./KiduCreateModal";
+import KiduDropdown from "./KiduDropdown";
 
 // ==================== TYPES ====================
 export interface FieldRule {
-  type: "text" | "number" | "email" | "password" | "select" | "textarea" | "popup" | "date" | "radio" | "url" | "checkbox" | "toggle" | "rowbreak" | "dropdown" | "file";
+  type: "text" | "number" | "email" | "password" | "select" | "textarea" | "popup" | "date" | "radio" | "url" | "checkbox" | "toggle" | "rowbreak" | "dropdown"  | "smartdropdown"  | "file";
   label: string;
   required?: boolean;
   minLength?: number;
@@ -36,6 +39,28 @@ export interface PopupHandler {
   onClear: () => void; // ← added (was missing, needed by KiduSelectInputPill)
   actualValue?: any;
 }
+export interface PopupFieldHandler {
+  /** Display label shown in the pill input */
+  value: string;
+  /** Called when the user clicks the pill to open the picker */
+  onOpen: () => void;
+  /** Called when the user clicks ✕ to clear the selection */
+  onClear: () => void;
+}
+
+export interface KiduDropdownHandler {
+  /** Static options list (mutually exclusive with paginatedFetch) */
+  staticOptions?: KiduDropdownOption[];
+  /** Async paginated fetch function */
+  paginatedFetch?: (params: KiduDropdownPaginatedParams) => Promise<KiduDropdownPaginatedResult>;
+  /** Maps a raw API row to { value, label } */
+  mapOption?: (row: any) => KiduDropdownOption;
+  /** Items per page for paginated fetch (default: 10) */
+  pageSize?: number;
+  /** Custom placeholder override */
+  placeholder?: string;
+}
+
 
 export interface KiduEditModalProps {
   show: boolean;
@@ -50,6 +75,7 @@ export interface KiduEditModalProps {
   cancelButtonText?: string;
   options?: Record<string, SelectOption[] | string[]>;
   popupHandlers?: Record<string, PopupHandler>;
+  dropdownHandlers?: DropdownHandlers;
   loadingState?: boolean;
   successMessage?: string;
   errorMessage?: string;
@@ -73,6 +99,7 @@ const KiduEditModal: React.FC<KiduEditModalProps> = ({
   cancelButtonText = "Cancel",
   options = {},
   popupHandlers = {},
+  dropdownHandlers = {},
   loadingState = false,
   successMessage = "Updated successfully!",
   errorMessage,
@@ -106,6 +133,9 @@ const KiduEditModal: React.FC<KiduEditModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(false);
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
+  // ── smartdropdown selected values (value = the ID sent to backend) ────────
+  const [dropdownValues, setDropdownValues] = useState<Record<string, any>>({});
+  const [initialDropdownValues, setInitialDropdownValues] = useState<Record<string, any>>({});
 
   // Check if form has changes
   const hasChanges = () => {
@@ -122,7 +152,9 @@ const KiduEditModal: React.FC<KiduEditModalProps> = ({
       }
     });
 
-    return formDataChanged || popupChanged;
+    const dropdownChanged = JSON.stringify(dropdownValues) !== JSON.stringify(initialDropdownValues);
+
+    return formDataChanged || popupChanged || dropdownChanged;
   };
 
   // Fetch data when modal opens
@@ -141,8 +173,19 @@ const KiduEditModal: React.FC<KiduEditModalProps> = ({
         const data = response.value;
 
         const formattedData: Record<string, any> = {};
+        const preloadedDropdowns: Record<string, any> = {};
+
         fields.forEach(f => {
           if (f.rules.type === "rowbreak") return;
+
+           if (f.rules.type === "smartdropdown") {
+            // Pre-populate the dropdown with the saved ID from fetched data
+            const savedId = data[f.name];
+            if (savedId !== undefined && savedId !== null) {
+              preloadedDropdowns[f.name] = savedId;
+            }
+            return;
+          }
 
           if (f.rules.type === "toggle" || f.rules.type === "checkbox") {
             const rawValue = data[f.name];
@@ -181,6 +224,8 @@ const KiduEditModal: React.FC<KiduEditModalProps> = ({
 
         setFormData(formattedData);
         setInitialData(formattedData);
+         setDropdownValues(preloadedDropdowns);
+        setInitialDropdownValues(preloadedDropdowns);
 
       } catch (error: any) {
         console.error("Failed to load data:", error);
@@ -200,6 +245,8 @@ const KiduEditModal: React.FC<KiduEditModalProps> = ({
       setFormData(initialValues);
       setInitialData(initialValues);
       setErrors(initialErrors);
+       setDropdownValues({});
+      setInitialDropdownValues({});
       setTouchedFields({});
       setIsSubmitting(false);
     }
@@ -247,6 +294,15 @@ const KiduEditModal: React.FC<KiduEditModalProps> = ({
         }
       }
       setErrors(prev => ({ ...prev, [name]: "" }));
+      return true;
+    }
+
+    if (rule.type === "smartdropdown") {
+      if (rule.required && (dropdownValues[name] === null || dropdownValues[name] === undefined || dropdownValues[name] === "")) {
+        setErrors((prev) => ({ ...prev, [name]: `${rule.label} is required` }));
+        return false;
+      }
+      setErrors((prev) => ({ ...prev, [name]: "" }));
       return true;
     }
 
@@ -329,6 +385,11 @@ const KiduEditModal: React.FC<KiduEditModalProps> = ({
         if (f.rules.type === "popup" && popupHandlers[f.name]?.actualValue !== undefined) {
           submitData[f.name] = popupHandlers[f.name].actualValue;
         }
+         // Include smartdropdown values
+        if (f.rules.type === "smartdropdown" && dropdownValues[f.name] !== undefined) {
+          submitData[f.name] = dropdownValues[f.name];
+        }
+      
       });
 
       const updateResult = await onUpdate(recordId, submitData);
@@ -338,6 +399,7 @@ const KiduEditModal: React.FC<KiduEditModalProps> = ({
       // Update initial data to reflect changes
       setInitialData(updatedData);
       setFormData(updatedData);
+      setInitialDropdownValues({ ...dropdownValues });
 
      // ✅ Fixed — close Bootstrap modal first, then show Swal
 onHide();
@@ -395,6 +457,29 @@ if (onSuccess) {
     const fieldPlaceholder = placeholder || `Enter ${rules.label.toLowerCase()}`;
 
     switch (type) {
+
+       // ── SMARTDROPDOWN ────────────────────────────────────────────────────
+      case "smartdropdown": {
+        const handler = dropdownHandlers[name];
+        return (
+          <KiduDropdown
+            value={dropdownValues[name] ?? null}
+            onChange={(val) => {
+              setDropdownValues((prev) => ({ ...prev, [name]: val }));
+              if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
+            }}
+            staticOptions={handler?.staticOptions}
+            paginatedFetch={handler?.paginatedFetch}
+            mapOption={handler?.mapOption}
+            pageSize={handler?.pageSize}
+            placeholder={handler?.placeholder ?? `Select ${rules.label}...`}
+            required={rules.required}
+            disabled={rules.disabled}
+            error={errors[name]}
+            inputWidth="100%"
+          />
+        );
+      }
       /* ---------- POPUP ← only this case changed ---------- */
       case "popup": {
         const handler = popupHandlers[name];
@@ -607,7 +692,7 @@ if (onSuccess) {
         {renderFormControl(field)}
 
         {/* Popup errors already shown inside KiduSelectInputPill */}
-        {rules.type !== "popup" && errors[name] && (
+        {rules.type !== "popup" && rules.type !== "smartdropdown" && errors[name] && (
           <div className="kidu-error-message">{errors[name]}</div>
         )}
       </Col>

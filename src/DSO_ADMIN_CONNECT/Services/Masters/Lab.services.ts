@@ -6,6 +6,7 @@ import type { LabMaster } from "../../Types/Masters/Lab.types";
 export default class LabMasterService {
 
   static async getPaginatedList(params: TableRequestParams): Promise<TableResponse<LabMaster>> {
+
     let showInactive: boolean | undefined = undefined;
     const statusFilter = params["isActive"];
     if (statusFilter === "Active")   showInactive = true;
@@ -18,14 +19,17 @@ export default class LabMasterService {
       sortBy:         params.sortBy         ?? "",
       sortDescending: params.sortDescending  ?? false,
       showDeleted:    false,
-      showInactive:   showInactive,
+      showInactive,
 
       // Column filters
-      labCode:     params["labCode"]     ?? "",
-      labName:     params["labName"]     ?? "",
-      displayName: params["displayName"] ?? "",
-      email:       params["email"]       ?? "",
-      labGroupId:  params["labGroupId"]  ? Number(params["labGroupId"]) : undefined,
+      labCode:         params["labCode"]       ?? "",
+      labName:         params["labName"]       ?? "",
+      displayName:     params["displayName"]   ?? "",
+      email:           params["email"]         ?? "",
+      labGroupId:      params["labGroupId"]    ? Number(params["labGroupId"]) : undefined,
+      authenticationType: params["authenticationType"]
+        ? Number(params["authenticationType"])
+        : undefined,
     };
 
     const response = await HttpService.callApi<any>(
@@ -37,8 +41,8 @@ export default class LabMasterService {
     const result = response?.value ?? response;
 
     return {
-      data:       result.data        ?? result.items ?? [],
-      total:      result.totalRecords ?? result.total ?? 0,
+      data:       result.data         ?? result.items ?? [],
+      total:      result.totalRecords  ?? result.total ?? 0,
       totalPages: result.totalPages,
     };
   }
@@ -50,7 +54,7 @@ export default class LabMasterService {
   static async create(data: Partial<LabMaster>): Promise<any> {
     const payload = {
       ...data,
-      isActive:  data.isActive ?? true,
+      isActive:  data.isActive  ?? true,
       isDeleted: false,
     };
     return await HttpService.callApi<any>(API_ENDPOINTS.LAB_MASTER.CREATE, "POST", payload);

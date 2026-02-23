@@ -107,7 +107,31 @@ export const API_ENDPOINTS = {
     DELETE: (id: number) => `${API_BASE_URL}/DSORestorationType/${id}`,
     UPDATE_PAGINATION: `${API_BASE_URL}/DSORestorationType/getall-paginated`,
   },
-
+  DSO_SCHEMA: {
+    GET_ALL: `${API_BASE_URL}/DSOSchema`,
+    CREATE: `${API_BASE_URL}/DSOSchema`,
+    GET_BY_ID: (id: number) => `${API_BASE_URL}/DSOSchema/${id}`,
+    UPDATE: (id: number) => `${API_BASE_URL}/DSOSchema/${id}`,
+    DELETE: (id: number) => `${API_BASE_URL}/DSOSchema/${id}`,
+    UPDATE_PAGINATION: `${API_BASE_URL}/DSOSchema/getall-paginated`,
+  },
+  //-------LAB-CONNECT-------LAB-CONNECT-------LAB-CONNECT-------LAB-CONNECT-------LAB-CONNECT-------LAB-CONNECT-------LAB-CONNECT-------LAB-CONNECT-------LAB-CONNECT-------//
+  LAB_SUPPORT_SUB_TYPE: {
+    GET: `${API_BASE_URL}/LabSupportSubType`,
+    CREATE: `${API_BASE_URL}/LabSupportSubType`,
+    GET_BY_ID: (id: number) => `${API_BASE_URL}/LabSupportSubType/${id}`,
+    UPDATE: (id: number) => `${API_BASE_URL}/LabSupportSubType/${id}`,
+    DELETE: (id: number) => `${API_BASE_URL}/LabSupportSubType/${id}`,
+    GET_PAGINATION: `${API_BASE_URL}/LabSupportSubType/getall-pagination`
+  },
+  LAB_SUPPORT_TYPE: {
+    GET: `${API_BASE_URL}/LabSupportType`,
+    CREATE: `${API_BASE_URL}/LabSupportType`,
+    GET_BY_ID: (id: number) => `${API_BASE_URL}/LabSupportType/${id}`,
+    UPDATE: (id: number) => `${API_BASE_URL}/LabSupportType/${id}`,
+    DELETE: (id: number) => `${API_BASE_URL}/LabSupportType/${id}`,
+    GET_PAGINATION: `${API_BASE_URL}/LabSupportType/getall-pagination`
+  },
 
 
 
@@ -175,14 +199,7 @@ export const API_ENDPOINTS = {
     UPDATE_PAGINATION: `${API_BASE_URL}/DSORegion/getall-paginated`,
   },
 
-  DSO_SCHEMA: {
-    GET_ALL: `${API_BASE_URL}/DSOSchema`,
-    CREATE: `${API_BASE_URL}/DSOSchema`,
-    GET_BY_ID: (id: number) => `${API_BASE_URL}/DSOSchema/${id}`,
-    UPDATE: (id: number) => `${API_BASE_URL}/DSOSchema/${id}`,
-    DELETE: (id: number) => `${API_BASE_URL}/DSOSchema/${id}`,
-    UPDATE_PAGINATION: `${API_BASE_URL}/DSOSchema/getall-paginated`,
-  },
+
   DSO_SETTING: {
     GET_ALL: `${API_BASE_URL}/DSOSetting`,
     CREATE: `${API_BASE_URL}/DSOSetting`,

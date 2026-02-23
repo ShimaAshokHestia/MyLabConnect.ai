@@ -35,9 +35,19 @@ const DsoProductGroupEditModal: React.FC<Props> = ({ show, onHide, onSuccess, re
     }
   }, [show]);
 
-  // ── Fetch handler ─────────────────────────────────────────────────────────
+  // ── Fetch handler — also pre-fills the popup pill ─────────────────────────
   const handleFetch = async (id: string | number) => {
-    return await DSOProductGroupService.getById(Number(id));
+    const response = await DSOProductGroupService.getById(Number(id));
+
+    // Extract the record from whatever response shape the API returns
+    const data = response?.value ?? response?.data ?? response;
+
+    // Pre-populate the master pill so it shows the current value
+    if (data?.dsoMasterId && data?.dsoName) {
+      setSelectedMaster({ id: data.dsoMasterId, name: data.dsoName } as DSOmaster);
+    }
+
+    return response;
   };
 
   // ── Update handler ────────────────────────────────────────────────────────

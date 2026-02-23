@@ -28,16 +28,21 @@ const DSOProsthesisTypeEditModal: React.FC<Props> = ({ show, onHide, onSuccess, 
   const [selectedMaster, setSelectedMaster] = useState<DSOmaster | null>(null);
   const [masterOpen, setMasterOpen] = useState(false);
 
-  // Reset selection when modal closes
   useEffect(() => {
-    if (!show) {
-      setSelectedMaster(null);
-    }
+    if (!show) setSelectedMaster(null);
   }, [show]);
 
-  // ── Fetch handler ─────────────────────────────────────────────────────────
+  // ── Fetch handler — pre-fills the popup pill ──────────────────────────────
   const handleFetch = async (id: string | number) => {
-    return await DSOProsthesisTypeService.getById(Number(id));
+    const response = await DSOProsthesisTypeService.getById(Number(id));
+
+    const data = response?.value ?? response?.data ?? response;
+
+    if (data?.dsoMasterId && data?.dsoName) {
+      setSelectedMaster({ id: data.dsoMasterId, name: data.dsoName } as DSOmaster);
+    }
+
+    return response;
   };
 
   // ── Update handler ────────────────────────────────────────────────────────

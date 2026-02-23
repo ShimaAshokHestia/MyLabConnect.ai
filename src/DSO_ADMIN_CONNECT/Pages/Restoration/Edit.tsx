@@ -32,9 +32,20 @@ const DSORestorationTypeEditModal: React.FC<Props> = ({ show, onHide, onSuccess,
     if (!show) setSelectedProsthesis(null);
   }, [show]);
 
-  // ── Fetch handler ─────────────────────────────────────────────────────────
+  // ── Fetch handler — pre-fills the popup pill ──────────────────────────────
   const handleFetch = async (id: string | number) => {
-    return await DSORestorationTypeService.getById(Number(id));
+    const response = await DSORestorationTypeService.getById(Number(id));
+
+    const data = response?.value ?? response?.data ?? response;
+
+    if (data?.dsoProthesisTypeId && data?.dsoProthesisname) {
+      setSelectedProsthesis({
+        id:   data.dsoProthesisTypeId,
+        name: data.dsoProthesisname,
+      } as DSOProsthesisType);
+    }
+
+    return response;
   };
 
   // ── Update handler ────────────────────────────────────────────────────────

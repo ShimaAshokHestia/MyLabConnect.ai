@@ -1,838 +1,657 @@
 /* ============================================
-   KiduModalCreate - Responsive & Theme-Aware Styles
+   KiduCreateModal — Modern UI v2
+   Toggle FIXED · Scrollable body · Modern design
    ============================================ */
 
-/* ==================== MODAL CONTAINER ==================== */
-.kidu-modal-content {
-  border-radius: 16px !important;
-  border: none !important;
-  background-color: var(--theme-bg-paper) !important;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+/* ── CSS Custom Properties ───────────────────────────────────────────────── */
+:root {
+  --kidu-modal-max-width: 620px;
+  --kidu-modal-body-max-height: 62vh;
+  --kidu-modal-radius: 18px;
+  --kidu-field-radius: 9px;
+  --kidu-field-height: 38px;
+  --kidu-field-font-size: 0.8rem;
+  --kidu-label-font-size: 0.72rem;
+  --kidu-gap: 14px;
+  --kidu-row-gap: 2px;
+
+  --kidu-accent: var(--theme-primary, #ef0d50);
+  --kidu-accent-rgb: 239, 13, 80;
+  --kidu-bg: var(--theme-bg, #f8fafc);
+  --kidu-bg-paper: var(--theme-bg-paper, #ffffff);
+  --kidu-border: var(--theme-border, #e2e8f0);
+  --kidu-divider: var(--theme-divider, #f1f5f9);
+  --kidu-text-primary: var(--theme-text-primary, #0f172a);
+  --kidu-text-secondary: var(--theme-text-secondary, #64748b);
+  --kidu-text-disabled: var(--theme-text-disabled, #94a3b8);
+
+  --kidu-toggle-width: 44px;
+  --kidu-toggle-height: 24px;
+  --kidu-toggle-thumb-size: 18px;
 }
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MODAL SHELL
+══════════════════════════════════════════════════════════════════════════ */
 
 .kidu-modal-dialog {
-  margin: 1.75rem auto;
-}
-
-/* ==================== MODAL HEADER ==================== */
-.kidu-modal-header {
-  border-bottom: none !important;
-  padding: 32px 32px 20px 32px;
-  background-color: var(--theme-bg-paper);
-}
-
-.kidu-modal-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--theme-text-primary);
-  margin-bottom: 4px;
-  line-height: 1.4;
-}
-
-.kidu-modal-subtitle {
-  font-size: 14px;
-  color: var(--theme-text-secondary);
-  margin: 0;
-  line-height: 1.5;
-}
-
-/* Close button styling */
-.kidu-modal-header .btn-close {
-  padding: 0.5rem;
-  opacity: 0.5;
-  transition: opacity 0.2s ease;
-}
-
-.kidu-modal-header .btn-close:hover {
-  opacity: 1;
-}
-
-[data-theme="dark"] .kidu-modal-header .btn-close {
-  filter: invert(1) grayscale(100%) brightness(200%);
-}
-
-/* ==================== MODAL BODY ==================== */
-.kidu-modal-body {
-  padding: 20px 32px 32px 32px;
-  background-color: var(--theme-bg-paper);
-}
-
-/* ==================== MODAL FOOTER ==================== */
-.kidu-modal-footer {
-  border-top: none !important;
-  padding: 20px 32px 32px 32px;
-  background-color: var(--theme-bg-paper);
-  gap: 12px;
-}
-
-/* ==================== FORM LABELS ==================== */
-.kidu-form-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--theme-text-primary);
-  margin-bottom: 6px;
-  display: block;
-}
-
-.kidu-required-star {
-  color: var(--theme-primary, #ef0d50);
-  margin-left: 2px;
-  font-weight: 600;
-}
-
-/* ==================== FORM INPUTS ==================== */
-.kidu-input,
-.kidu-select,
-.kidu-textarea {
-  border-radius: 8px !important;
-  border: 1px solid var(--theme-border) !important;
-  padding: 10px 12px !important;
-  font-size: 14px !important;
-  background-color: var(--theme-bg-paper) !important;
-  color: var(--theme-text-primary) !important;
-  transition: all 0.2s ease;
-}
-
-.kidu-input::placeholder,
-.kidu-textarea::placeholder {
-  color: var(--theme-text-disabled);
-}
-
-/* Focus states */
-.kidu-input:focus,
-.kidu-select:focus,
-.kidu-textarea:focus {
-  border-color: var(--theme-primary) !important;
-  box-shadow: 0 0 0 0.2rem rgba(239, 13, 80, 0.15) !important;
-  outline: none !important;
-}
-
-/* Invalid states */
-.kidu-input.is-invalid,
-.kidu-select.is-invalid,
-.kidu-textarea.is-invalid {
-  border-color: var(--theme-primary) !important;
-  background-image: none !important;
-}
-
-.kidu-input.is-invalid:focus,
-.kidu-select.is-invalid:focus,
-.kidu-textarea.is-invalid:focus {
-  border-color: var(--theme-primary) !important;
-  box-shadow: 0 0 0 0.2rem rgba(239, 68, 68, 0.15) !important;
-}
-
-/* Disabled states */
-.kidu-input-disabled {
-  background-color: var(--theme-bg-hover) !important;
-  cursor: not-allowed !important;
-  opacity: 0.6;
-}
-
-/* Textarea specific */
-.kidu-textarea {
-  resize: vertical;
-  min-height: 80px;
-}
-
-/* ==================== INPUT GROUPS (Password, Popup) ==================== */
-.kidu-input-group {
-  display: flex;
-}
-
-.kidu-input-grouped {
-  border-radius: 8px 0 0 8px !important;
-  border: 1px solid var(--theme-border) !important;
-  border-right: none !important;
-  padding: 10px 12px !important;
-  font-size: 14px !important;
-  background-color: var(--theme-bg-paper) !important;
-  color: var(--theme-text-primary) !important;
-  flex: 1;
-}
-
-.kidu-input-grouped:focus {
-  border-color: var(--theme-primary) !important;
-  box-shadow: none !important;
-  z-index: 3;
-}
-
-.kidu-input-btn {
-  border-radius: 0 8px 8px 0 !important;
-  border: 1px solid var(--theme-border) !important;
-  border-left: none !important;
-  background-color: var(--theme-bg-paper) !important;
-  color: var(--theme-text-secondary) !important;
-  padding: 10px 16px !important;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.kidu-input-btn:hover {
-  background-color: var(--theme-bg-hover) !important;
-  color: var(--theme-text-primary) !important;
-  border-color: var(--theme-primary) !important;
-}
-
-.kidu-input-btn:focus {
-  box-shadow: none !important;
-  border-color: var(--theme-primary) !important;
-}
-
-/* ==================== CHECKBOXES & RADIO BUTTONS ==================== */
-.form-check-input {
-  border: 1px solid var(--theme-border) !important;
-  background-color: var(--theme-bg-paper) !important;
-}
-
-.form-check-input:checked {
-  background-color: var(--theme-primary) !important;
-  border-color: var(--theme-primary) !important;
-}
-
-.form-check-input:focus {
-  border-color: var(--theme-primary) !important;
-  box-shadow: 0 0 0 0.2rem rgba(239, 13, 80, 0.15) !important;
-}
-
-.form-check-label {
-  color: var(--theme-text-primary);
-  font-size: 14px;
-  margin-left: 8px;
-}
-
-/* ==================== TOGGLE SWITCHES ==================== */
-.form-switch .form-check-input {
-  width: 48px;
-  height: 24px;
-  background-color: var(--theme-border);
-  border: none !important;
-  cursor: pointer;
-}
-
-.form-switch .form-check-input:checked {
-  background-color: var(--theme-primary) !important;
-}
-
-.form-switch .form-check-input:focus {
-  box-shadow: 0 0 0 0.2rem rgba(239, 13, 80, 0.15) !important;
-}
-
-/* ==================== ERROR MESSAGES ==================== */
-.kidu-error-message {
-  color: var(--theme-primary);
-  font-size: 13px;
-  margin-top: 4px;
-  display: block;
-}
-
-/* ==================== BUTTONS ==================== */
-.kidu-btn-cancel {
-  border: 1px solid var(--theme-border) !important;
-  color: var(--theme-text-primary) !important;
-  background-color: var(--theme-bg-paper) !important;
-  font-weight: 500;
-  padding: 10px 20px;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  font-size: 14px;
-}
-
-.kidu-btn-cancel:hover {
-  background-color: var(--theme-bg-hover) !important;
-  border-color: var(--theme-text-disabled) !important;
-}
-
-.kidu-btn-cancel:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.kidu-btn-submit {
-  border: none !important;
-  color: white !important;
-  font-weight: 500;
-  padding: 10px 20px;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  font-size: 14px;
-}
-
-.kidu-btn-submit:hover:not(:disabled) {
-  opacity: 0.9;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.kidu-btn-submit:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.kidu-btn-submit:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* ==================== RESPONSIVE DESIGN ==================== */
-
-/* Tablets and below (768px) */
-@media (max-width: 768px) {
-  .kidu-modal-header {
-    padding: 24px 24px 16px 24px;
-  }
-
-  .kidu-modal-body {
-    padding: 16px 24px 24px 24px;
-  }
-
-  .kidu-modal-footer {
-    padding: 16px 24px 24px 24px;
-    flex-direction: column-reverse;
-  }
-
-  .kidu-modal-title {
-    font-size: 18px;
-  }
-
-  .kidu-modal-subtitle {
-    font-size: 13px;
-  }
-
-  .kidu-btn-cancel,
-  .kidu-btn-submit {
-    width: 100%;
-    justify-content: center;
-  }
-
-  /* Stack all fields in single column on mobile */
-  .kidu-modal-body .col-md-6,
-  .kidu-modal-body .col-md-4,
-  .kidu-modal-body .col-md-3,
-  .kidu-modal-body .col-md-2 {
-    width: 100% !important;
-  }
-}
-
-/* Mobile phones (576px and below) */
-@media (max-width: 576px) {
-  .kidu-modal-dialog {
-    margin: 0.5rem;
-    max-width: calc(100% - 1rem);
-  }
-
-  .kidu-modal-header {
-    padding: 20px 20px 12px 20px;
-  }
-
-  .kidu-modal-body {
-    padding: 12px 20px 20px 20px;
-  }
-
-  .kidu-modal-footer {
-    padding: 12px 20px 20px 20px;
-  }
-
-  .kidu-modal-title {
-    font-size: 16px;
-  }
-
-  .kidu-modal-subtitle {
-    font-size: 12px;
-  }
-
-  .kidu-input,
-  .kidu-select,
-  .kidu-textarea,
-  .kidu-input-grouped {
-    font-size: 16px !important; /* Prevent zoom on iOS */
-  }
-
-  .kidu-form-label {
-    font-size: 13px;
-  }
-
-  .kidu-btn-cancel,
-  .kidu-btn-submit {
-    padding: 12px 20px;
-  }
-}
-
-/* Large tablets and small desktops */
-@media (min-width: 769px) and (max-width: 992px) {
-  .kidu-modal-header {
-    padding: 28px 28px 18px 28px;
-  }
-
-  .kidu-modal-body {
-    padding: 18px 28px 28px 28px;
-  }
-
-  .kidu-modal-footer {
-    padding: 18px 28px 28px 28px;
-  }
-}
-
-/* Extra large screens */
-@media (min-width: 1400px) {
-  .kidu-modal-content {
-    max-width: 720px;
-  }
-}
-
-/* ==================== DARK THEME SPECIFIC ==================== */
-[data-theme="dark"] .kidu-modal-content {
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2) !important;
-}
-
-[data-theme="dark"] .kidu-input:focus,
-[data-theme="dark"] .kidu-select:focus,
-[data-theme="dark"] .kidu-textarea:focus {
-  box-shadow: 0 0 0 0.2rem rgba(255, 36, 100, 0.25) !important;
-}
-
-[data-theme="dark"] .form-check-input:focus {
-  box-shadow: 0 0 0 0.2rem rgba(255, 36, 100, 0.25) !important;
-}
-
-[data-theme="dark"] .form-switch .form-check-input:focus {
-  box-shadow: 0 0 0 0.2rem rgba(255, 36, 100, 0.25) !important;
-}
-
-/* ==================== ANIMATIONS ==================== */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  max-width: var(--kidu-modal-max-width);
+  margin: 1.5rem auto;
 }
 
 .kidu-modal-content {
-  animation: fadeIn 0.2s ease-out;
-}
-
-/* ==================== ACCESSIBILITY ==================== */
-.kidu-input:focus-visible,
-.kidu-select:focus-visible,
-.kidu-textarea:focus-visible,
-.kidu-btn-cancel:focus-visible,
-.kidu-btn-submit:focus-visible {
-  outline: 2px solid var(--theme-primary);
-  outline-offset: 2px;
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  .kidu-input,
-  .kidu-select,
-  .kidu-textarea {
-    border-width: 2px !important;
-  }
-
-  .kidu-btn-cancel,
-  .kidu-btn-submit {
-    border-width: 2px !important;
-  }
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  .kidu-modal-content {
-    animation: none;
-  }
-
-  .kidu-input,
-  .kidu-select,
-  .kidu-textarea,
-  .kidu-btn-cancel,
-  .kidu-btn-submit,
-  .kidu-input-btn {
-    transition: none !important;
-  }
-}
-
-/* ==================== PRINT STYLES ==================== */
-@media print {
-  .kidu-modal-footer {
-    display: none;
-  }
-
-  .kidu-modal-header .btn-close {
-    display: none;
-  }/* ─────────────────────────────────────────────────────────────────────────────
-   KiduCreateModal.css
-   Styles for KiduCreateModal — including the popup pill field that appears
-   inside the modal form. No inline styles anywhere.
-
-   Place in: src/Styles/KiduStyles/KiduCreateModal.css
-   Import once in KiduCreateModal.tsx.
-───────────────────────────────────────────────────────────────────────────── */
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   Modal shell
-═══════════════════════════════════════════════════════════════════════════ */
-
-.kidu-modal-content {
-  border: none;
-  border-radius: 18px;
+  border: none !important;
+  border-radius: var(--kidu-modal-radius) !important;
   overflow: hidden;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
-  background: var(--theme-bg-paper, #fff);
+  background: var(--kidu-bg-paper) !important;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.07),
+    0 16px 40px -4px rgba(0, 0, 0, 0.13),
+    0 0 0 1px rgba(0, 0, 0, 0.04) !important;
+  animation: kiduFadeIn 0.18s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.kidu-modal-dialog {
-  max-width: 680px;
+@keyframes kiduFadeIn {
+  from { opacity: 0; transform: scale(0.96) translateY(6px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);   }
 }
 
 /* ── Header ── */
 .kidu-modal-header {
-  padding: 20px 24px 12px;
-  border-bottom: 1px solid var(--theme-divider, #f1f5f9) !important;
-  background: var(--theme-bg-paper, #fff);
+  padding: 18px 22px 14px !important;
+  border-bottom: 1px solid var(--kidu-divider) !important;
+  background: var(--kidu-bg-paper) !important;
+  position: relative;
+}
+
+.kidu-modal-header::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--kidu-accent), rgba(var(--kidu-accent-rgb), 0.35));
+  border-radius: var(--kidu-modal-radius) var(--kidu-modal-radius) 0 0;
 }
 
 .kidu-modal-title {
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: -0.3px;
-  color: var(--theme-text-primary, #0f172a);
-  margin: 0;
+  font-size: 0.97rem !important;
+  font-weight: 700 !important;
+  color: var(--kidu-text-primary) !important;
+  letter-spacing: -0.25px;
+  margin: 0 !important;
 }
 
 .kidu-modal-subtitle {
-  font-size: 0.75rem;
-  margin: 4px 0 0;
-  color: var(--theme-text-secondary, #64748b);
+  font-size: 0.72rem !important;
+  margin: 3px 0 0 !important;
+  color: var(--kidu-text-secondary) !important;
+  line-height: 1.45;
 }
 
-/* ── Body ── */
-.kidu-modal-body {
-  padding: 20px 24px 8px;
-  background: var(--theme-bg-paper, #fff);
+.kidu-modal-header .btn-close {
+  padding: 0.4rem !important;
+  opacity: 0.45;
+  transition: opacity 0.15s, background 0.15s;
+  border-radius: 6px !important;
 }
+.kidu-modal-header .btn-close:hover { opacity: 1; background: var(--kidu-bg); }
+[data-theme="dark"] .kidu-modal-header .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* ── Body — SCROLLABLE ── */
+.kidu-modal-body {
+  padding: 16px 20px 10px !important;
+  background: var(--kidu-bg-paper) !important;
+  max-height: var(--kidu-modal-body-max-height);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--kidu-border) transparent;
+}
+.kidu-modal-body::-webkit-scrollbar { width: 5px; }
+.kidu-modal-body::-webkit-scrollbar-track { background: transparent; }
+.kidu-modal-body::-webkit-scrollbar-thumb { background: var(--kidu-border); border-radius: 99px; }
+.kidu-modal-body::-webkit-scrollbar-thumb:hover { background: var(--kidu-text-disabled); }
 
 /* ── Footer ── */
 .kidu-modal-footer {
-  padding: 12px 24px 20px;
-  border-top: 1px solid var(--theme-divider, #f1f5f9) !important;
-  background: var(--theme-bg-paper, #fff);
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
+  padding: 12px 20px 16px !important;
+  border-top: 1px solid var(--kidu-divider) !important;
+  background: var(--kidu-bg-paper) !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
 }
 
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   Form labels
-═══════════════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════════════
+   GRID ADJUSTMENT UTILITIES
+══════════════════════════════════════════════════════════════════════════ */
+
+.kidu-modal-body .row { --bs-gutter-x: var(--kidu-gap); --bs-gutter-y: var(--kidu-row-gap); }
+.kidu-modal-body .row.kidu-gap-xs { --bs-gutter-x: 6px;  --bs-gutter-y: 0; }
+.kidu-modal-body .row.kidu-gap-sm { --bs-gutter-x: 10px; --bs-gutter-y: 0; }
+.kidu-modal-body .row.kidu-gap-md { --bs-gutter-x: 16px; --bs-gutter-y: 4px; }
+.kidu-modal-body .row.kidu-gap-lg { --bs-gutter-x: 24px; --bs-gutter-y: 8px; }
+
+.kidu-input.kidu-h-sm { height: 32px; padding-top: 6px; padding-bottom: 6px; font-size: 0.76rem; }
+.kidu-input.kidu-h-md { height: var(--kidu-field-height); }
+.kidu-input.kidu-h-lg { height: 46px; padding-top: 12px; padding-bottom: 12px; font-size: 0.88rem; }
+
+.kidu-modal-body .mb-3           { margin-bottom: 12px !important; }
+.kidu-modal-body .mb-3.kidu-mb-xs { margin-bottom: 4px  !important; }
+.kidu-modal-body .mb-3.kidu-mb-sm { margin-bottom: 8px  !important; }
+.kidu-modal-body .mb-3.kidu-mb-lg { margin-bottom: 18px !important; }
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   FORM LABELS
+══════════════════════════════════════════════════════════════════════════ */
 
 .kidu-form-label {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--theme-text-secondary, #64748b);
-  margin-bottom: 5px;
+  font-size: var(--kidu-label-font-size) !important;
+  font-weight: 600 !important;
+  color: var(--kidu-text-secondary) !important;
+  margin-bottom: 4px !important;
   display: flex;
   align-items: center;
   gap: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.35px;
 }
 
 .kidu-required-star {
-  color: var(--theme-primary, #ef0d50);
-  font-size: 0.9rem;
+  color: var(--kidu-accent);
+  font-size: 0.85rem;
   line-height: 1;
+  font-weight: 700;
 }
 
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   Text / email / url / number / date inputs
-═══════════════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════════════
+   INPUTS
+══════════════════════════════════════════════════════════════════════════ */
 
 .kidu-input,
 .kidu-textarea,
 .kidu-select {
   width: 100%;
-  padding: 9px 12px;
-  border: 1.5px solid var(--theme-border, #e2e8f0);
-  border-radius: 10px;
-  font-size: 0.83rem;
-  outline: none;
+  height: var(--kidu-field-height);
+  padding: 0 11px;
+  border: 1.5px solid var(--kidu-border) !important;
+  border-radius: var(--kidu-field-radius) !important;
+  font-size: var(--kidu-field-font-size) !important;
   font-family: inherit;
-  background: var(--theme-bg, #f8fafc);
-  color: var(--theme-text-primary, #0f172a);
-  transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+  background: var(--kidu-bg) !important;
+  color: var(--kidu-text-primary) !important;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
   -webkit-appearance: none;
   appearance: none;
+}
+
+.kidu-textarea {
+  height: auto;
+  padding: 9px 11px;
+  resize: vertical;
+  min-height: 72px;
+}
+
+.kidu-input:hover:not(:disabled),
+.kidu-textarea:hover:not(:disabled),
+.kidu-select:hover:not(:disabled) {
+  border-color: var(--kidu-text-disabled) !important;
 }
 
 .kidu-input:focus,
 .kidu-textarea:focus,
 .kidu-select:focus {
-  border-color: var(--theme-primary, #ef0d50);
-  box-shadow: 0 0 0 3px rgba(239, 13, 80, 0.09);
-  background: var(--theme-bg-paper, #fff);
-  outline: none;
+  border-color: var(--kidu-accent) !important;
+  box-shadow: 0 0 0 3px rgba(var(--kidu-accent-rgb), 0.1) !important;
+  background: var(--kidu-bg-paper) !important;
+  outline: none !important;
 }
 
 .kidu-input::placeholder,
 .kidu-textarea::placeholder {
-  color: var(--theme-text-disabled, #94a3b8);
+  color: var(--kidu-text-disabled);
 }
 
-/* Bootstrap invalid state override */
 .kidu-input.is-invalid,
 .kidu-textarea.is-invalid,
 .kidu-select.is-invalid {
-  border-color: #ef4444;
-  box-shadow: none;
+  border-color: #ef4444 !important;
+  box-shadow: none !important;
+  background-image: none !important;
 }
-
 .kidu-input.is-invalid:focus,
 .kidu-textarea.is-invalid:focus,
 .kidu-select.is-invalid:focus {
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12) !important;
 }
 
-/* Select arrow */
-.kidu-select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  padding-right: 34px;
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-/* Disabled state */
-.kidu-input-disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+.kidu-input-disabled,
+.kidu-input:disabled,
+.kidu-textarea:disabled,
+.kidu-select:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
   pointer-events: none;
 }
 
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   Input group (password / search combo)
-═══════════════════════════════════════════════════════════════════════════ */
-
-.kidu-input-group {
-  position: relative;
-  display: flex;
-  align-items: stretch;
+.kidu-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 11px center !important;
+  padding-right: 30px !important;
 }
 
+
+/* ══════════════════════════════════════════════════════════════════════════
+   INPUT GROUP — password
+══════════════════════════════════════════════════════════════════════════ */
+
+.kidu-input-group { display: flex; align-items: stretch; }
+
 .kidu-input-grouped {
-  border-radius: 10px 0 0 10px !important;
+  border-radius: var(--kidu-field-radius) 0 0 var(--kidu-field-radius) !important;
+  border-right: none !important;
   flex: 1;
+  height: var(--kidu-field-height);
 }
 
 .kidu-input-btn {
-  border-radius: 0 10px 10px 0 !important;
-  border: 1.5px solid var(--theme-border, #e2e8f0) !important;
+  border-radius: 0 var(--kidu-field-radius) var(--kidu-field-radius) 0 !important;
+  border: 1.5px solid var(--kidu-border) !important;
   border-left: none !important;
-  background: var(--theme-bg, #f8fafc) !important;
-  color: var(--theme-text-secondary, #64748b) !important;
+  background: var(--kidu-bg) !important;
+  color: var(--kidu-text-secondary) !important;
+  height: var(--kidu-field-height);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 12px;
+  padding: 0 11px;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.13s, color 0.13s;
+  font-size: 0.8rem;
 }
-
 .kidu-input-btn:hover {
-  background: var(--theme-border, #e2e8f0) !important;
-  color: var(--theme-text-primary, #0f172a) !important;
+  background: var(--kidu-border) !important;
+  color: var(--kidu-text-primary) !important;
 }
+.kidu-input-btn:focus { box-shadow: none !important; }
 
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   Popup pill field — lives inside the modal form
-   (KiduSelectInputPill from KiduSelectPopup is used; these classes customise
-    its appearance so it matches the modal's design language exactly)
-═══════════════════════════════════════════════════════════════════════════ */
-
-/*
-  Override the pill trigger so it matches kidu-input visually when used
-  inside the create modal. The overrides are scoped to .kidu-modal-body so
-  they never affect standalone pill usage.
-*/
-.kidu-modal-body .ksp-pill-trigger {
-  border-radius: 10px;
-  background: var(--theme-bg, #f8fafc);
-  border-color: var(--theme-border, #e2e8f0);
-  min-height: 40px;
-  transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
-}
-
-.kidu-modal-body .ksp-pill-trigger:hover:not([data-disabled]) {
-  border-color: var(--theme-primary, #ef0d50);
-  box-shadow: 0 0 0 3px rgba(239, 13, 80, 0.09);
-  background: var(--theme-bg-paper, #fff);
-}
-
-/* Error border when validation fails */
-.kidu-modal-body .ksp-pill-trigger.ksp-pill-error-border {
-  border-color: #ef4444;
-}
-
-.kidu-modal-body .ksp-pill-trigger.ksp-pill-error-border:hover:not([data-disabled]) {
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
-}
-
-/*
-  The pill label inside the modal is rendered by KiduCreateModal as a
-  .kidu-form-label (same style as other fields), so hide the built-in
-  ksp-pill-label to avoid a double label.
-*/
-.kidu-modal-body .ksp-pill-wrap > .ksp-pill-label {
-  display: none;
-}
-
-/* Error message below pill */
-.kidu-modal-body .ksp-pill-error-msg {
-  font-size: 0.73rem;
-  color: #ef4444;
-  margin-top: 4px;
-  display: block;
-}
-
-/* Selected tag inside the pill */
-.kidu-modal-body .ksp-pill-tag {
-  background: rgba(239, 13, 80, 0.08);
-  border: 1px solid rgba(239, 13, 80, 0.25);
-  color: var(--theme-primary, #ef0d50);
-  border-radius: 20px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 3px 10px 3px 11px;
-}
-
-/* Clear (✕) button on the selected tag */
-.kidu-modal-body .ksp-pill-clear {
-  background: rgba(239, 13, 80, 0.15);
-  color: var(--theme-primary, #ef0d50);
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  font-size: 9px;
-  cursor: pointer;
-  transition: background 0.13s;
-  padding: 0;
-  flex-shrink: 0;
-}
-
-.kidu-modal-body .ksp-pill-clear:hover {
-  background: rgba(239, 13, 80, 0.3);
-}
-
-/* Search icon inside pill */
-.kidu-modal-body .ksp-pill-search-ico {
-  color: var(--theme-text-disabled, #94a3b8);
-  margin-left: auto;
-  flex-shrink: 0;
-}
-
-/* Placeholder text */
-.kidu-modal-body .ksp-pill-placeholder {
-  font-size: 0.83rem;
-  color: var(--theme-text-disabled, #94a3b8);
-}
-
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   Radio group layout
-═══════════════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════════════
+   RADIO GROUP
+══════════════════════════════════════════════════════════════════════════ */
 
 .kidu-radio-group {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px 20px;
-  padding-top: 4px;
+  gap: 8px 16px;
+  padding-top: 3px;
 }
-
+.kidu-radio-group .form-check {
+  display: flex; align-items: center; gap: 6px; margin: 0; padding: 0;
+}
+.kidu-radio-group .form-check-input {
+  margin: 0; width: 16px; height: 16px;
+  border: 2px solid var(--kidu-border) !important;
+  background: var(--kidu-bg) !important;
+  flex-shrink: 0; cursor: pointer;
+}
 .kidu-radio-group .form-check-input:checked {
-  background-color: var(--theme-primary, #ef0d50);
-  border-color: var(--theme-primary, #ef0d50);
+  background-color: var(--kidu-accent) !important;
+  border-color: var(--kidu-accent) !important;
+}
+.kidu-radio-group .form-check-input:focus {
+  box-shadow: 0 0 0 3px rgba(var(--kidu-accent-rgb), 0.15) !important;
+}
+.kidu-radio-group .form-check-label {
+  font-size: 0.8rem; color: var(--kidu-text-primary); cursor: pointer; margin: 0;
 }
 
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   Toggle / checkbox
-═══════════════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════════════
+   CHECKBOX
+══════════════════════════════════════════════════════════════════════════ */
 
-.form-check-input:checked {
-  background-color: var(--theme-primary, #ef0d50);
-  border-color: var(--theme-primary, #ef0d50);
+.form-check-input[type="checkbox"] {
+  width: 16px; height: 16px;
+  border: 2px solid var(--kidu-border) !important;
+  border-radius: 5px !important;
+  background: var(--kidu-bg) !important;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+.form-check-input[type="checkbox"]:checked {
+  background-color: var(--kidu-accent) !important;
+  border-color: var(--kidu-accent) !important;
+}
+.form-check-input[type="checkbox"]:focus {
+  box-shadow: 0 0 0 3px rgba(var(--kidu-accent-rgb), 0.15) !important;
+  border-color: var(--kidu-accent) !important;
 }
 
+.form-check-label {
+  font-size: 0.8rem;
+  color: var(--kidu-text-primary);
+  cursor: pointer;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   TOGGLE SWITCH — FULLY FIXED
+   
+   Problem: Bootstrap's .form-switch applies its own background-image SVG
+   (a white circle) AND our overrides were stacking, creating a "double
+   pill / double circle" rendering. 
+   
+   Solution:
+   1. Strip ALL Bootstrap background-image with `background-image: none`
+   2. Build the thumb purely with box-shadow on a ::before pseudo approach
+      — but since <input> can't have pseudo elements, we use a carefully
+      crafted radial-gradient as the single background-image so only ONE
+      white circle appears.
+   3. Animate position via background-position (left→right on :checked).
+   4. The border + glow on :checked state fulfils the "ON border" request.
+══════════════════════════════════════════════════════════════════════════ */
+
+/* Wrapper */
+.form-switch {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding-left: 0 !important;
+  min-height: unset !important;
+}
+
+/* Input element */
+.form-switch .form-check-input {
+  /* Dimensions */
+  width: var(--kidu-toggle-width) !important;
+  height: var(--kidu-toggle-height) !important;
+  flex-shrink: 0 !important;
+
+  /* Shape */
+  border-radius: 999px !important;
+
+  /* --- CRITICAL: nuke ALL default Bootstrap background-image first --- */
+  background-image: none !important;
+
+  /* OFF track colour */
+  background-color: #cbd5e1 !important;
+  border: 2px solid #cbd5e1 !important;
+
+  /* Single white circle thumb via radial-gradient */
+  background-image: radial-gradient(
+    circle at center,
+    #ffffff 0%,
+    #ffffff 45%,
+    transparent 46%,
+    transparent 100%
+  ) !important;
+
+  /* Thumb size and starting position (left = OFF) */
+  background-size: var(--kidu-toggle-thumb-size) var(--kidu-toggle-thumb-size) !important;
+  background-repeat: no-repeat !important;
+  background-position: 3px center !important;
+
+  /* Reset */
+  margin: 0 !important;
+  padding: 0 !important;
+  cursor: pointer;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  box-shadow: none !important;
+
+  transition:
+    background-color 0.22s ease,
+    border-color 0.22s ease,
+    background-position 0.22s ease,
+    box-shadow 0.22s ease !important;
+}
+
+/* OFF hover */
+.form-switch .form-check-input:hover:not(:disabled):not(:checked) {
+  background-color: #94a3b8 !important;
+  border-color: #94a3b8 !important;
+}
+
+/* ON state — thumb moves right, accent colour, border, glow */
 .form-switch .form-check-input:checked {
-  background-color: var(--theme-primary, #ef0d50);
-  border-color: var(--theme-primary, #ef0d50);
+  background-color: var(--kidu-accent) !important;
+  border: 2px solid rgba(var(--kidu-accent-rgb), 0.55) !important;
+  /* Move thumb to the right: total_width - thumb_size - 3px gap */
+  background-position: calc(var(--kidu-toggle-width) - var(--kidu-toggle-thumb-size) - 3px) center !important;
+  box-shadow: 0 0 0 3px rgba(var(--kidu-accent-rgb), 0.18) !important;
+}
+
+/* ON hover */
+.form-switch .form-check-input:checked:hover:not(:disabled) {
+  box-shadow: 0 0 0 4px rgba(var(--kidu-accent-rgb), 0.26) !important;
+}
+
+/* Focus ring */
+.form-switch .form-check-input:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(var(--kidu-accent-rgb), 0.2) !important;
+}
+
+/* Disabled */
+.form-switch .form-check-input:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Label — hidden because kidu-form-label above the toggle already shows it.
+   The <Form.Check label={rules.label}> would duplicate the text. */
+.form-switch .form-check-label {
+  display: none !important;
 }
 
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   Error message
-═══════════════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════════════
+   POPUP PILL
+══════════════════════════════════════════════════════════════════════════ */
+
+.kidu-modal-body .ksp-pill-trigger {
+  border-radius: var(--kidu-field-radius);
+  background: var(--kidu-bg);
+  border-color: var(--kidu-border);
+  min-height: var(--kidu-field-height);
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.kidu-modal-body .ksp-pill-trigger:hover:not([data-disabled]) {
+  border-color: var(--kidu-accent);
+  box-shadow: 0 0 0 3px rgba(var(--kidu-accent-rgb), 0.1);
+  background: var(--kidu-bg-paper);
+}
+.kidu-modal-body .ksp-pill-trigger.ksp-pill-error-border { border-color: #ef4444; }
+.kidu-modal-body .ksp-pill-trigger.ksp-pill-error-border:hover:not([data-disabled]) {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+.kidu-modal-body .ksp-pill-wrap > .ksp-pill-label { display: none; }
+.kidu-modal-body .ksp-pill-error-msg {
+  font-size: 0.72rem; color: #ef4444; margin-top: 3px; display: block;
+}
+.kidu-modal-body .ksp-pill-tag {
+  background: rgba(var(--kidu-accent-rgb), 0.08);
+  border: 1px solid rgba(var(--kidu-accent-rgb), 0.22);
+  color: var(--kidu-accent);
+  border-radius: 20px;
+  font-size: 0.76rem; font-weight: 600;
+  padding: 2px 9px 2px 10px;
+}
+.kidu-modal-body .ksp-pill-clear {
+  background: rgba(var(--kidu-accent-rgb), 0.14);
+  color: var(--kidu-accent);
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: none; font-size: 8px; cursor: pointer;
+  transition: background 0.13s; padding: 0; flex-shrink: 0;
+}
+.kidu-modal-body .ksp-pill-clear:hover { background: rgba(var(--kidu-accent-rgb), 0.28); }
+.kidu-modal-body .ksp-pill-search-ico { color: var(--kidu-text-disabled); margin-left: auto; flex-shrink: 0; }
+.kidu-modal-body .ksp-pill-placeholder { font-size: var(--kidu-field-font-size); color: var(--kidu-text-disabled); }
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ERROR MESSAGE
+══════════════════════════════════════════════════════════════════════════ */
 
 .kidu-error-message {
-  font-size: 0.73rem;
+  font-size: 0.71rem;
   color: #ef4444;
-  margin-top: 4px;
-  display: block;
+  margin-top: 3px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.kidu-error-message::before {
+  content: "●";
+  font-size: 5px;
+  opacity: 0.7;
+  flex-shrink: 0;
 }
 
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   Buttons
-═══════════════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════════════
+   BUTTONS
+══════════════════════════════════════════════════════════════════════════ */
 
 .kidu-btn-cancel {
-  padding: 8px 20px;
-  border-radius: 9px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  border: 1.5px solid var(--theme-border, #e2e8f0) !important;
-  color: var(--theme-text-secondary, #64748b) !important;
-  background: var(--theme-bg, #f8fafc) !important;
-  transition: border-color 0.15s, color 0.15s;
+  padding: 7px 18px !important;
+  border-radius: 8px !important;
+  font-size: 0.79rem !important;
+  font-weight: 600 !important;
+  border: 1.5px solid var(--kidu-border) !important;
+  color: var(--kidu-text-secondary) !important;
+  background: var(--kidu-bg) !important;
+  transition: border-color 0.14s, color 0.14s, background 0.14s;
+  line-height: 1.4;
 }
-
 .kidu-btn-cancel:hover {
-  border-color: var(--theme-text-secondary, #64748b) !important;
-  color: var(--theme-text-primary, #0f172a) !important;
+  border-color: var(--kidu-text-secondary) !important;
+  color: var(--kidu-text-primary) !important;
+  background: var(--kidu-border) !important;
 }
+.kidu-btn-cancel:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .kidu-btn-submit {
-  padding: 8px 22px;
-  border-radius: 9px;
-  font-size: 0.82rem;
-  font-weight: 700;
+  padding: 7px 20px !important;
+  border-radius: 8px !important;
+  font-size: 0.79rem !important;
+  font-weight: 700 !important;
   border: none !important;
   color: #fff !important;
-  letter-spacing: 0.15px;
-  transition: opacity 0.15s, transform 0.1s;
+  letter-spacing: 0.1px;
+  transition: opacity 0.14s, transform 0.1s, box-shadow 0.14s;
+  line-height: 1.4;
+  position: relative;
+  overflow: hidden;
 }
-
 .kidu-btn-submit:hover:not(:disabled) {
-  opacity: 0.88;
+  box-shadow: 0 4px 12px rgba(var(--kidu-accent-rgb), 0.38);
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+.kidu-btn-submit:active:not(:disabled) { transform: scale(0.97); }
+.kidu-btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+.kidu-btn-submit .spinner-border-sm { width: 0.85rem; height: 0.85rem; border-width: 2px; }
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DARK THEME
+══════════════════════════════════════════════════════════════════════════ */
+
+[data-theme="dark"] .kidu-modal-content {
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.4),
+    0 20px 50px -8px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.06) !important;
 }
 
-.kidu-btn-submit:active:not(:disabled) {
-  transform: scale(0.97);
+[data-theme="dark"] .form-switch .form-check-input {
+  background-color: #334155 !important;
+  border-color: #334155 !important;
+}
+[data-theme="dark"] .form-switch .form-check-input:checked {
+  background-color: var(--kidu-accent) !important;
+  border-color: rgba(var(--kidu-accent-rgb), 0.6) !important;
+  box-shadow: 0 0 0 3px rgba(var(--kidu-accent-rgb), 0.25) !important;
 }
 
-.kidu-btn-submit:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+[data-theme="dark"] .kidu-input:focus,
+[data-theme="dark"] .kidu-textarea:focus,
+[data-theme="dark"] .kidu-select:focus {
+  box-shadow: 0 0 0 3px rgba(var(--kidu-accent-rgb), 0.18) !important;
 }
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .kidu-modal-dialog { margin: 0.75rem; max-width: calc(100% - 1.5rem); }
+  .kidu-modal-header { padding: 16px 18px 12px !important; }
+  .kidu-modal-body   { padding: 12px 18px 8px !important; --kidu-modal-body-max-height: 58vh; }
+  .kidu-modal-footer { padding: 10px 18px 16px !important; flex-direction: column-reverse !important; }
+  .kidu-btn-cancel, .kidu-btn-submit { width: 100%; justify-content: center; }
+  .kidu-modal-body [class*="col-md-"] { width: 100% !important; }
+}
+
+@media (max-width: 480px) {
+  :root { --kidu-field-font-size: 16px; }
+  .kidu-modal-title    { font-size: 0.9rem  !important; }
+  .kidu-modal-subtitle { font-size: 0.68rem !important; }
+}
+
+@media (min-width: 769px) and (max-width: 992px) {
+  .kidu-modal-header { padding: 16px 20px 12px !important; }
+  .kidu-modal-body   { padding: 14px 20px 8px  !important; }
+  .kidu-modal-footer { padding: 10px 20px 14px !important; }
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ACCESSIBILITY
+══════════════════════════════════════════════════════════════════════════ */
+
+.kidu-input:focus-visible,
+.kidu-select:focus-visible,
+.kidu-textarea:focus-visible,
+.kidu-btn-cancel:focus-visible,
+.kidu-btn-submit:focus-visible {
+  outline: 2px solid var(--kidu-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-contrast: high) {
+  .kidu-input, .kidu-select, .kidu-textarea { border-width: 2px !important; }
+  .kidu-btn-cancel, .kidu-btn-submit { border-width: 2px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kidu-modal-content { animation: none; }
+  .form-switch .form-check-input,
+  .kidu-input, .kidu-select, .kidu-textarea,
+  .kidu-btn-cancel, .kidu-btn-submit,
+  .kidu-input-btn { transition: none !important; }
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PRINT
+══════════════════════════════════════════════════════════════════════════ */
+
+@media print {
+  .kidu-modal-footer,
+  .kidu-modal-header .btn-close { display: none; }
 }

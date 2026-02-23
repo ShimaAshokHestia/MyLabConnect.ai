@@ -597,13 +597,12 @@ if (onSuccess) {
 
     return (
       <Col md={colWidth} className="mb-3" key={name}>
-        {/* Popup fields render their own label inside KiduSelectInputPill */}
-        {rules.type !== "popup" && (
+       
           <Form.Label className="kidu-form-label">
             {rules.label}
             {rules.required && <span className="kidu-required-star">*</span>}
           </Form.Label>
-        )}
+      
 
         {renderFormControl(field)}
 

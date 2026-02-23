@@ -48,10 +48,11 @@ export const KiduValidation = {
       return { isValid: true, label };
     }
 
-    if (rules.type === "select") {
-      if (rules.required && (!val || String(val).trim() === ""))
-        return { isValid: false, message: `${rawLabel} is required.`, label };
-    }
+   if (rules.type === "select") {
+  if (rules.required && (!val || String(val).trim() === ""))
+    return { isValid: false, message: `${rawLabel} is required.`, label };
+  return { isValid: true, label };  
+}
 
     if (rules.type === "radio") {
       if (rules.required && (!val || String(val).trim() === ""))
@@ -104,12 +105,11 @@ export const KiduValidation = {
       // if (!/[!@#$%^&*(),.?":{}|<>]/.test(strVal))
       //   return { isValid: false, message: `${rawLabel} must contain a special character.`, label };
     }
+if (rules.minLength && strVal.length < rules.minLength)
+  return { isValid: false, message: `${rawLabel} must be at least ${rules.minLength} characters`, label };
 
-    if (rules.minLength && strVal.length < rules.minLength)
-      return { isValid: false, message: `${rawLabel} must be at least ${rules.minLength} characters.`, label };
-
-    if (rules.maxLength && strVal.length > rules.maxLength)
-      return { isValid: false, message: `${rawLabel} must be less than ${rules.maxLength} characters.`, label };
+if (rules.maxLength && strVal.length > rules.maxLength)
+  return { isValid: false, message: `${rawLabel} must be less than ${rules.maxLength} characters`, label };
 
     if (rules.pattern && strVal && !rules.pattern.test(strVal))
       return { isValid: false, message: `Invalid ${rawLabel.toLowerCase()}.`, label };

@@ -19,6 +19,7 @@ import DSOProsthesisTypeList from '../Pages/Prosthesis/List';
 import DSOSchemaList from '../Pages/Schema/List';
 import DSORestorationTypeList from '../Pages/Restoration/List';
 import DSOUserList from '../Pages/Setup/DSO - User Login/List';
+import LabMasterList from '../Pages/Masters/Lab/List';
 
 // ── Add more page imports here as you build them ──────────────────
 // import DsoLabList       from '../Pages/Masters/Lab/List';
@@ -34,6 +35,7 @@ export const dsoadminConnectRoutes = (
     <Route path="analytics" element={<div><h5>Analytics</h5></div>} />
 
     {/* Masters */}
+     <Route path="masters/lab-list" element={<LabMasterList />} />
     <Route path="masters/labgroup-list" element={<LabGroupList />} />
     <Route path="masters/doctor-list" element={<DsoDoctorList />} />
     <Route path="masters/productGroup-list" element={<DsoProductGroupList />} />

@@ -54,7 +54,7 @@ export const dsoAdminMenuItems: MenuItem[] = [
         title: 'Masters',
         icon: Users,
         children: [
-            { title: 'Lab', url: '/dsoadmin-connect/masters/lab', icon: Microscope },
+            { title: 'Lab', url: '/dsoadmin-connect/masters/lab-list', icon: Microscope },
              { title: 'Lab Group', url: '/dsoadmin-connect/masters/labgroup-list', icon: LucideMicroscope },
             { title: 'Practice', url: '/dsoadmin-connect/masters/practice', icon: Building2 },
             { title: 'Doctor', url: '/dsoadmin-connect/masters/doctor-list', icon: UserCog },

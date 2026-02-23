@@ -37,7 +37,7 @@ const columns: KiduColumn[] = [
     enableSorting: false,
     enableFiltering: true,
     filterType: "select",
-    filterOptions: ["Active", "Inactive"],
+   filterOptions: ["Inactive", "Active"],
     render: (value) => (
       <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>
         {value ? "Active" : "Inactive"}

@@ -19,11 +19,14 @@ export interface User {
   userTypeName?: string;
   companyId?: number;
 
-  // Audit Fields
+  // Status Fields
   isActive?: boolean;
   isDeleted?: boolean;
   createdAt?: string;
   updatedAt?: string | null;
+  lastlogin?: string | null;
+  lastloginString?: string;
+  createAtString?: string;
 
   // Pagination/Filtering Fields
   pageNumber?: number;
@@ -31,8 +34,6 @@ export interface User {
   searchTerm?: string;
   sortBy?: string;
   sortDescending?: boolean;
-  showDeleted?: boolean;
-  showInactive?: boolean;
 
   // Filtering Fields
   userId?: number;
@@ -41,7 +42,6 @@ export interface User {
   auditlog?: AuditTrails[];
 }
 
-// Password Change Type
 export interface UserPasswordChange {
   userId?: number;
   oldPassword?: string;

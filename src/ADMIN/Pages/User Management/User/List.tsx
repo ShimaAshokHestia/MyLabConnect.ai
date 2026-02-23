@@ -7,45 +7,45 @@ import type { KiduColumn } from "../../../../KIDU_COMPONENTS/KiduServerTable";
 import UserService from "../../../Services/User Management/User.services";
 import KiduServerTableList from "../../../../KIDU_COMPONENTS/KiduServerTableList";
 
-const authTypeLabels: Record<number, string> = { 
-  1: "Normal", 
-  2: "SSO", 
-  3: "Basic" 
+const authTypeLabels: Record<number, string> = {
+  1: "Normal",
+  2: "SSO",
+  3: "Basic",
 };
 
 const columns: KiduColumn[] = [
-  { 
-    key: "userName",     
-    label: "User Name",   
-    enableSorting: true, 
+  {
+    key: "userName",
+    label: "User Name",
+    enableSorting: true,
     enableFiltering: true,
     filterType: "text",
   },
-  { 
-    key: "userEmail",    
-    label: "Email",        
-    enableSorting: true, 
+  {
+    key: "userEmail",
+    label: "Email",
+    enableSorting: true,
     enableFiltering: true,
     filterType: "text",
   },
-  { 
-    key: "phoneNumber",  
-    label: "Phone Number", 
-    enableSorting: true, 
+  {
+    key: "phoneNumber",
+    label: "Phone Number",
+    enableSorting: true,
     enableFiltering: true,
     filterType: "text",
   },
-  { 
-    key: "companyName",  
-    label: "Company",      
-    enableSorting: true, 
-    enableFiltering: false, // Not filterable by name (uses companyId)
+  {
+    key: "companyName",
+    label: "Company",
+    enableSorting: true,
+    enableFiltering: false,
   },
-  { 
-    key: "userTypeName", 
-    label: "User Type",    
-    enableSorting: true, 
-    enableFiltering: false, // Not filterable by name (uses userTypeId)
+  {
+    key: "userTypeName",
+    label: "User Type",
+    enableSorting: true,
+    enableFiltering: false,
   },
   {
     key: "authenticationType",
@@ -53,9 +53,10 @@ const columns: KiduColumn[] = [
     enableSorting: true,
     enableFiltering: true,
     filterType: "select",
-    filterOptions: ["Normal", "SSO", "Basic"], // Match your auth type values
+    // These string values are mapped → numbers in the service
+    filterOptions: ["Normal", "SSO", "Basic"],
     render: (value) => {
-      const label = typeof value === 'number' ? authTypeLabels[value] : value;
+      const label = typeof value === "number" ? authTypeLabels[value] : value;
       return <span>{label ?? "Unknown"}</span>;
     },
   },
@@ -66,7 +67,8 @@ const columns: KiduColumn[] = [
     enableSorting: false,
     enableFiltering: true,
     filterType: "select",
-    filterOptions: ["Inactive", "Active"], // Order matters for backend mapping
+    // "Active" → true, "Inactive" → false mapped in service
+    filterOptions: ["Active", "Inactive"],
     render: (value) => (
       <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>
         {value ? "Active" : "Inactive"}

@@ -5,42 +5,40 @@ import type { LabSupportType } from "../../Types/Masters/SupportTypes.types";
 
 export default class LabSupportTypeService {
 
-  static async getPaginatedList(params: TableRequestParams): Promise<TableResponse<LabSupportType>> {
-    
-    // Map "Active"/"Inactive" select filter to showInactive boolean
-    let showInactive: boolean | undefined = undefined;
-    const statusFilter = params["isActive"];
-    if (statusFilter === "Active") showInactive = true;
-    if (statusFilter === "Inactive") showInactive = false;
+ static async getPaginatedList(params: TableRequestParams): Promise<TableResponse<LabSupportType>> {
+  
+  // Map "Active"/"Inactive" select filter to showInactive boolean
+  let showInactive: boolean | undefined = undefined;
+  const statusFilter = params["isActive"];
+  if (statusFilter === "Active") showInactive = true;
+  if (statusFilter === "Inactive") showInactive = false;
 
-    const payload = {
-      pageNumber: params.pageNumber,
-      pageSize: params.pageSize,
-      searchTerm: params.searchTerm ?? "",
-      sortBy: params.sortBy ?? "",
-      sortDescending: params.sortDescending ?? false,
-      showDeleted: false,
-      showInactive: showInactive,
+  // Build query parameters for GET request
+  const queryParams = new URLSearchParams({
+    pageNumber: params.pageNumber.toString(),
+    pageSize: params.pageSize.toString(),
+    searchTerm: params.searchTerm ?? "",
+    sortBy: params.sortBy ?? "",
+    sortDescending: params.sortDescending?.toString() ?? "false",
+    showDeleted: "false",
+    showInactive: showInactive?.toString() ?? "",
+    labSupportTypeName: params["labSupportTypeName"] ?? "",
+    labMasterId: params["labSupportTypeName"] ? params["labSupportTypeName"].toString() : "",
+  });
 
-      // Column filters
-      labSupportTypeName: params["labSupportTypeName"] ?? "",
-      labMasterId: params["labMasterId"] ? Number(params["labMasterId"]) : undefined,
-    };
+  const response = await HttpService.callApi<any>(
+    `${API_ENDPOINTS.LAB_SUPPORT_TYPE.GET_PAGINATION}?${queryParams}`,
+    "GET"  // Changed from POST to GET
+  );
 
-    const response = await HttpService.callApi<any>(
-      API_ENDPOINTS.LAB_SUPPORT_TYPE.GET_PAGINATION,
-      "POST",
-      payload
-    );
+  const result = response?.value ?? response;
 
-    const result = response?.value ?? response;
-
-    return {
-      data: result.data ?? result.items ?? [],
-      total: result.totalRecords ?? result.total ?? 0,
-      totalPages: result.totalPages,
-    };
-  }
+  return {
+    data: result.data ?? result.items ?? [],
+    total: result.totalRecords ?? result.total ?? 0,
+    totalPages: result.totalPages,
+  };
+}
 
   static async getById(id: number): Promise<any> {
     return await HttpService.callApi<any>(

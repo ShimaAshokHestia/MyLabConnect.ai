@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { FaTrash, FaPlus } from "react-icons/fa";
-import "./KiduTabbedFormModal.css";
+import "../Styles/KiduStyles/KiduTabbedFormModal.css";
 
 // ==================== TYPES ====================
 

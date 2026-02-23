@@ -5,6 +5,7 @@
 import { Navigate, Route } from 'react-router-dom';
 import LabLayout from '../Layout/LabLayout';
 import HomePage from '../Layout/HomePage';
+import LabSupportTypeList from '../Pages/Masters/Support Types/List';
 
 // ── Add page imports here as you build them ───────────────────────
 // import ActiveOrdersList    from '../Pages/Orders/Active/List';
@@ -16,28 +17,34 @@ export const labConnectRoutes = (
     {/* Home / Dashboard */}
     <Route index element={<HomePage />} />
 
-    {/* Analytics */}
-    <Route path="analytics" element={<div><h5>Analytics</h5></div>} />
+    {/* Case Communication */}
+    <Route path="caseCommunication/internal-list" element={<div><h5>All Orders</h5></div>} />
+    <Route path="caseCommunication/external-list" element={<LabSupportTypeList />} />
+    <Route path="caseCommunication/openTicketForAction-list" element={<div><h5>In Production</h5></div>} />
 
-    {/* Orders */}
-    <Route path="orders"                element={<div><h5>All Orders</h5></div>} />
-    <Route path="orders/active"         element={<div><h5>Active Orders</h5></div>} />
-    <Route path="orders/in-production"  element={<div><h5>In Production</h5></div>} />
-    <Route path="orders/ready"          element={<div><h5>Ready to Ship</h5></div>} />
 
-    {/* Production */}
-    <Route path="production/queue"    element={<div><h5>Production Queue</h5></div>} />
-    <Route path="production/progress" element={<div><h5>In Progress</h5></div>} />
-    <Route path="production/quality"  element={<div><h5>Quality Check</h5></div>} />
-    <Route path="production"          element={<div><h5>Production</h5></div>} />
+    {/* MASTERS */}
+    <Route path="masters/supportTypes-list" element={<LabSupportTypeList />} />
+    <Route path="masters/queryTypes-list" element={<div><h5>In Production</h5></div>} />
+    <Route path="masters/caseRatingNotification-list" element={<div><h5>Ready to Ship</h5></div>} />
+    <Route path="masters/labSupply-list" element={<div><h5>Ready to Ship</h5></div>} />
 
-    {/* Reports */}
-    <Route path="reports/production" element={<div><h5>Production Report</h5></div>} />
-    <Route path="reports/revenue"    element={<div><h5>Revenue Report</h5></div>} />
-    <Route path="reports"            element={<div><h5>Reports</h5></div>} />
+    {/* USER MANAGEMENT */}
+    <Route path="userManagement/labLogin-list" element={<div><h5>Production Queue</h5></div>} />
+    <Route path="userManagement/labControlSetting-list" element={<div><h5>In Progress</h5></div>} />
 
-    {/* Settings */}
-    <Route path="settings" element={<div><h5>Settings</h5></div>} />
+    {/* UTILITY */}
+    <Route path="utility/triosOrderCreation-list" element={<div><h5>Production Report</h5></div>} />
+
+    {/* LAB REPORTS */}
+    <Route path="labReports/caseList-list" element={<div><h5>Settings</h5></div>} />
+    <Route path="labReports/iosList-list" element={<div><h5>Settings</h5></div>} />
+    <Route path="labReports/dailyScanqc-list" element={<div><h5>Settings</h5></div>} />
+    <Route path="labReports/caseRating-list" element={<div><h5>Settings</h5></div>} />
+    <Route path="labReports/ticketStatus-list" element={<div><h5>Settings</h5></div>} />
+
+    {/* Invoice */}
+    <Route path="invoices-list" element={<div><h5>Settings</h5></div>} />
 
     {/* Catch-all */}
     <Route path="*" element={<Navigate to="/lab-connect" replace />} />

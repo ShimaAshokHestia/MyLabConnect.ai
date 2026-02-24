@@ -2,6 +2,7 @@ import React from 'react';
 import { Nav } from 'react-bootstrap';
 import '../Styles/KiduStyles/Castabs.css';
 import type { CaseTabsProps } from '../Types/Dashboards.types';
+import { useTheme } from '../ThemeProvider/ThemeProvider';
 
 /**
  * Reusable CaseTabs Component
@@ -14,6 +15,7 @@ import type { CaseTabsProps } from '../Types/Dashboards.types';
  * - Active state highlighting
  * - Fully responsive
  * - Smooth animations
+ * - Theme support (light/dark)
  * 
  * @param tabs - Array of tab configurations
  * @param activeTab - Currently active tab ID
@@ -26,8 +28,10 @@ const CaseTabs: React.FC<CaseTabsProps> = ({
   onTabChange,
   className = '',
 }) => {
+  const { theme } = useTheme();
+
   return (
-    <div className={`case-tabs-container ${className}`}>
+    <div className={`case-tabs-container ${className}`} data-theme={theme}>
       <Nav
         variant="pills"
         activeKey={activeTab}

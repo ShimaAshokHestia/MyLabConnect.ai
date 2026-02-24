@@ -1,12 +1,14 @@
 import React, { useState, useRef } from "react";
 import KiduServerTableList from "../../../../KIDU_COMPONENTS/KiduServerTableList";
 import type { KiduColumn } from "../../../../KIDU_COMPONENTS/KiduServerTable";
-import Swal from "sweetalert2";
+import { FaEdit } from "react-icons/fa";
 import LabSupportTypeService from "../../../Services/Masters/SupportTypes.services";
 import LabSupportTypeCreateModal from "./Create";
 import LabSupportTypeEditModal from "./Edit";
 
-const columns: KiduColumn[] = [
+// ── Columns ───────────────────────────────────────────────────────────────────
+
+const getColumns = (onEditClick: (row: any) => void): KiduColumn[] => [
   {
     key: "labSupportTypeName",
     label: "Support Type",
@@ -37,7 +39,7 @@ const columns: KiduColumn[] = [
     enableSorting: false,
     enableFiltering: true,
     filterType: "select",
-   filterOptions: ["Inactive", "Active"],
+    filterOptions: ["Inactive", "Active"],
     render: (value) => (
       <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>
         {value ? "Active" : "Inactive"}
@@ -51,14 +53,46 @@ const columns: KiduColumn[] = [
     enableSorting: true,
     enableFiltering: false,
   },
+  {
+    key: "actions",
+    label: "Actions",
+    enableSorting: false,
+    enableFiltering: false,
+    width: 80,
+    render: (_value, row) => (
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onEditClick(row);
+        }}
+        style={{
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          color: "#0d9488",
+          fontSize: "1rem",
+          padding: "4px 8px",
+          borderRadius: "6px",
+          transition: "background 0.15s",
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(13,148,136,0.08)")}
+        onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+        title="Edit"
+      >
+        <FaEdit />
+      </button>
+    ),
+  },
 ];
+
+// ── Component ─────────────────────────────────────────────────────────────────
 
 const LabSupportTypeList: React.FC = () => {
   const [showCreate, setShowCreate] = useState(false);
-  const [showEdit, setShowEdit] = useState(false);
-  const [recordId, setRecordId] = useState<number>(0);
+  const [showEdit,   setShowEdit]   = useState(false);
+  const [recordId,   setRecordId]   = useState<number>(0);
   const tableKeyRef = useRef(0);
-  const [tableKey, setTableKey] = useState(0);
+  const [tableKey,   setTableKey]   = useState(0);
 
   const refreshTable = () => {
     tableKeyRef.current += 1;
@@ -70,27 +104,7 @@ const LabSupportTypeList: React.FC = () => {
     setShowEdit(true);
   };
 
-  const handleDeleteClick = async (row: any) => {
-    const result = await Swal.fire({
-      title: "Are you sure?",
-      text: "This support type will be permanently deleted.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#ef0d50",
-      cancelButtonColor: "#6c757d",
-      confirmButtonText: "Yes, delete it!",
-    });
-
-    if (result.isConfirmed) {
-      try {
-        await LabSupportTypeService.delete(row.id);
-        refreshTable();
-        Swal.fire("Deleted!", "Support type has been deleted.", "success");
-      } catch (error) {
-        Swal.fire("Error!", "Failed to delete support type.", "error");
-      }
-    }
-  };
+  const columns = getColumns(handleEditClick);
 
   return (
     <>
@@ -104,9 +118,7 @@ const LabSupportTypeList: React.FC = () => {
         showAddButton={true}
         addButtonLabel="Add Support Type"
         onAddClick={() => setShowCreate(true)}
-        onEditClick={handleEditClick}
-        onDeleteClick={handleDeleteClick}
-        showActions={true}
+        showActions={false}        // ← disable built-in dropdown actions
         showSearch={true}
         showFilters={true}
         showExport={true}

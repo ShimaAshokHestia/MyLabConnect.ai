@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
-import KiduTabbedFormModal, { 
-  type TabbedFormField, 
-  type TabConfig 
-} from "../../../../KIDU_COMPONENTS/KiduTabbedFormModal";
-import type { LabSupportType } from "../../../Types/Masters/SupportTypes.types";
+import KiduTabbedFormEditModal, {
+  type TabbedFormField,
+  type TabConfig,
+} from "../../../../KIDU_COMPONENTS/KiduTabbedFormEditModal";
 import LabSupportTypeService from "../../../Services/Masters/SupportTypes.services";
 import LabSupportSubTypeService from "../../../Services/Masters/SupportSubTypes.services";
 
@@ -14,105 +13,89 @@ interface Props {
   recordId: number;
 }
 
+// ── Lab Master options ────────────────────────────────────────────────────────
+const labMasterOptions = [
+  { value: 0, label: "Lab 1" },
+  { value: 1, label: "Lab 2" },
+];
+
+// ── Header Fields ─────────────────────────────────────────────────────────────
+const headerFields: TabbedFormField[] = [
+  { name: "labMasterId", label: "Lab", type: "select", required: true, placeholder: "Choose a lab...", colWidth: 4, options: labMasterOptions },
+  { name: "labSupportTypeName", label: "Support Type", type: "text", required: true, placeholder: "Enter support type", colWidth: 4 },
+  { name: "escalationDays", label: "Escalation in Days", type: "number", required: false, placeholder: "Enter escalation in days", colWidth: 4 },
+];
+
+// ── Sub Types Tab Configuration ───────────────────────────────────────────────
+const tabs: TabConfig[] = [
+  {
+    key: "subTypes",
+    label: "Sub Types",
+    columns: [
+      { key: "labSupportSubTypeName", label: "Sub Type", type: "text", required: true, placeholder: "Enter Sub Type" },
+    ],
+  },
+];
+
+// ── Component ─────────────────────────────────────────────────────────────────
 const LabSupportTypeEditModal: React.FC<Props> = ({ show, onHide, onSuccess, recordId }) => {
   const [loading, setLoading] = useState(false);
-  const [initialHeaderData, setInitialHeaderData] = useState<Record<string, any>>({});
-  const [initialTabData, setInitialTabData] = useState<Record<string, Record<string, any>[]>>({});
+  const [fetchedData, setFetchedData] = useState<{
+    headerData: Record<string, any>;
+    tabData: Record<string, Record<string, any>[]>;
+  } | null>(null);
 
-  // ── Header Fields ───────────────────────────────────────────────────────
-  const headerFields: TabbedFormField[] = [
-    {
-      name: "labMasterId",
-      label: "Lab",
-      type: "select",
-      required: true,
-      placeholder: "Choose a lab...",
-      options: [
-        { value: 1, label: "Lab 1" },
-        { value: 2, label: "Lab 2" },
-        // This should come from an API/master data
-      ],
-      colWidth: 4,
-    },
-    {
-      name: "labSupportTypeName",
-      label: "Support Type",
-      type: "text",
-      required: true,
-      placeholder: "Enter support type",
-      colWidth: 4,
-    },
-    {
-      name: "escalationDays",
-      label: "Escalation in Days",
-      type: "number",
-      required: false,
-      placeholder: "Enter escalation in days",
-      colWidth: 4,
-    },
-  ];
-
-  // ── Sub Types Tab Configuration ─────────────────────────────────────────
-  const tabs: TabConfig[] = [
-    {
-      key: "subTypes",
-      label: "Sub Types",
-      columns: [
-        {
-          key: "labSupportSubTypeName",
-          label: "Sub Type",
-          type: "text",
-          required: true,
-          placeholder: "Enter Sub Type",
-        },
-      ],
-    },
-  ];
-
-  // ── Fetch existing data when modal opens ─────────────────────────────────
+  // Reset when modal closes
   useEffect(() => {
-    const fetchData = async () => {
-      if (!show || !recordId) return;
+    if (!show) {
+      setFetchedData(null);
+      setLoading(false);
+    }
+  }, [show]);
 
+  // Fetch when recordId changes
+  useEffect(() => {
+    if (!recordId || recordId <= 0) return;
+
+    const fetchData = async () => {
       setLoading(true);
+      setFetchedData(null);
       try {
-        // 1. Fetch main Support Type
-        const mainResponse = await LabSupportTypeService.getById(recordId);
+        // ✅ Fetch both — but subTypes failure won't block the modal
+        const [mainResponse, subTypes] = await Promise.all([
+          LabSupportTypeService.getById(recordId),
+          LabSupportSubTypeService.getBySupportTypeId(recordId), // always returns [] on error
+        ]);
+
         console.log("Edit - Main Response:", mainResponse);
-        
+        console.log("Edit - SubTypes:", subTypes);
+
         const mainData = mainResponse?.value || mainResponse;
 
-        setInitialHeaderData({
-          labMasterId: mainData.labMasterId,
-          labSupportTypeName: mainData.labSupportTypeName,
-          escalationDays: mainData.escalationDays,
-          isActive: mainData.isActive,
+        setFetchedData({
+          headerData: {
+            labMasterId: mainData.labMasterId,
+            labSupportTypeName: mainData.labSupportTypeName,
+            escalationDays: mainData.escalationDays,
+            isActive: mainData.isActive,
+          },
+          tabData: {
+            subTypes: Array.isArray(subTypes) && subTypes.length > 0 ? subTypes : [{}],
+          },
         });
-
-        // 2. Fetch Sub Types for this Support Type
-        // Note: You need to add this method to your service
-        const subTypesResponse = await LabSupportSubTypeService.getBySupportTypeId(recordId);
-        console.log("Edit - SubTypes Response:", subTypesResponse);
-        
-        const subTypes = subTypesResponse?.value || subTypesResponse || [];
-
-        setInitialTabData({
-          subTypes: subTypes.length > 0 ? subTypes : [{}],
-        });
-
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching support type:", error);
+        // ✅ Even if main fetch fails, close gracefully
+        setFetchedData(null);
       } finally {
         setLoading(false);
       }
     };
 
-    if (show && recordId) {
-      fetchData();
-    }
-  }, [show, recordId]);
+    fetchData();
+  }, [recordId]);
 
-  // ── Submit Handler ───────────────────────────────────────────────────────
+  // ── Submit ────────────────────────────────────────────────────────────────
   const handleSubmit = async (data: {
     headerData: Record<string, any>;
     tabData: Record<string, Record<string, any>[]>;
@@ -120,49 +103,28 @@ const LabSupportTypeEditModal: React.FC<Props> = ({ show, onHide, onSuccess, rec
     try {
       const { headerData, tabData } = data;
 
-      console.log("Edit Submit Data:", { headerData, tabData });
-
-      // 1. Update main Support Type
-      const updatePayload: Partial<LabSupportType> = {
+      await LabSupportTypeService.update(recordId, {
         id: recordId,
         labSupportTypeName: headerData.labSupportTypeName,
         escalationDays: headerData.escalationDays ? Number(headerData.escalationDays) : 0,
         labMasterId: Number(headerData.labMasterId),
         isActive: headerData.isActive ?? true,
-      };
+      });
 
-      console.log("Update Payload:", updatePayload);
-      await LabSupportTypeService.update(recordId, updatePayload);
-
-      // 2. Handle Sub Types
-      const subTypes = tabData.subTypes || [];
-      const validSubTypes = subTypes.filter(
-        (row) => row.labSupportSubTypeName && row.labSupportSubTypeName.trim() !== ""
+      const validSubTypes = (tabData.subTypes || []).filter(
+        (row) => row.labSupportSubTypeName?.trim()
       );
 
-      console.log("Valid SubTypes:", validSubTypes);
-
-      // You need to implement sync logic based on your API requirements
-      // Option 1: Delete all and recreate
       if (validSubTypes.length > 0) {
-        // First delete existing sub types (you need to add this method)
-        // await LabSupportSubTypeService.deleteBySupportTypeId(recordId);
-        
-        // Then create new ones
         await Promise.all(
-          validSubTypes.map(async (subType) => {
-            const subTypePayload = {
+          validSubTypes.map((subType) =>
+            LabSupportSubTypeService.create({
               labSupportSubTypeName: subType.labSupportSubTypeName,
               labSupportTypeId: recordId,
               isActive: true,
-            };
-            console.log("SubType Payload:", subTypePayload);
-            return LabSupportSubTypeService.create(subTypePayload);
-          })
+            })
+          )
         );
-      } else {
-        // If no valid subTypes, you might want to delete all existing ones
-        // await LabSupportSubTypeService.deleteBySupportTypeId(recordId);
       }
 
       onSuccess();
@@ -171,19 +133,34 @@ const LabSupportTypeEditModal: React.FC<Props> = ({ show, onHide, onSuccess, rec
     }
   };
 
+  // ── Loading overlay ───────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="text-center py-4">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "rgba(0,0,0,0.4)",
+          zIndex: 1055,
+        }}
+      >
+        <div className="text-center">
+          <div className="spinner-border text-light" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p className="mt-2 text-white">Loading data...</p>
         </div>
-        <p className="mt-2 text-muted">Loading data...</p>
       </div>
     );
   }
 
+  if (!fetchedData) return null;
+
   return (
-    <KiduTabbedFormModal
+    <KiduTabbedFormEditModal
       show={show}
       onHide={onHide}
       title="Edit Support Type"
@@ -192,6 +169,8 @@ const LabSupportTypeEditModal: React.FC<Props> = ({ show, onHide, onSuccess, rec
       onSubmit={handleSubmit}
       submitButtonText="Update"
       themeColor="#ef0d50"
+      initialHeaderData={fetchedData.headerData}
+      initialTabData={fetchedData.tabData}
     />
   );
 };

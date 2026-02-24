@@ -1,41 +1,72 @@
-// src/APPADMIN_CONNECT/Layout/AppAdminLayout.tsx
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import KiduLayout from '../../KIDU_COMPONENTS/KiduLayout';
+import KiduProfileModal from '../../KIDU_COMPONENTS/KiduProfileModal';
 import type { NotificationItem } from '../../Types/KiduTypes/Navbar.types';
 import { appAdminConnectConfig } from './AppAdminLayoutConfig';
 import AuthService from '../../Services/AuthServices/Auth.services';
+import toast from 'react-hot-toast';
 
 export const AppAdminLayout: React.FC = () => {
   const navigate = useNavigate();
+
   const [notifications, setNotifications] = useState<NotificationItem[]>(
     appAdminConnectConfig.notifications
   );
+  const [showProfile, setShowProfile] = useState(false);
+  const [, setShowPasswordModal] = useState(false); // ✅ fixed
 
   const handleSignOut = () => {
     AuthService.logout();
     navigate('/', { replace: true });
   };
 
+  const handleChangePassword = async (currentPassword: string, newPassword: string) => {
+    const result = await AuthService.changePassword({ currentPassword, newPassword });
+    if (result.isSucess) {
+      toast.success('Password changed successfully!');
+    } else {
+      toast.error(result.customMessage ?? 'Failed to change password.');
+    }
+  };
+
   return (
-    <KiduLayout
-      menuItems={appAdminConnectConfig.menuItems}
-      logoTitle="{my}labconnect.ai"
-      logoSubtitle="App Admin Connect"
-      user={appAdminConnectConfig.user}
-      notifications={notifications}
-      profileMenuActions={appAdminConnectConfig.profileActions}
-      onNotificationClick={(notification) =>
-        setNotifications((prev) =>
-          prev.map((n) => n.id === notification.id ? { ...n, read: true } : n)
-        )
-      }
-      onMarkAllAsRead={() =>
-        setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-      }
-      onSignOut={handleSignOut}
-    />
+    <>
+      <KiduLayout
+        menuItems={appAdminConnectConfig.menuItems}
+        logoTitle="{my}labconnect.ai"
+        logoSubtitle="App Admin Connect"
+        user={appAdminConnectConfig.user}
+        notifications={notifications}
+        onNotificationClick={(notification) =>
+          setNotifications((prev) =>
+            prev.map((n) => n.id === notification.id ? { ...n, read: true } : n)
+          )
+        }
+        onMarkAllAsRead={() =>
+          setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+        }
+        onProfileClick={() => setShowProfile(true)}
+        onChangePassword={handleChangePassword}
+        onSignOut={handleSignOut}
+      />
+
+      <KiduProfileModal
+        show={showProfile}
+        onHide={() => setShowProfile(false)}
+        onChangePassword={() => {
+          setShowProfile(false);
+          setShowPasswordModal(true);
+        }}
+      />
+
+      {/* TODO: Render your ChangePasswordModal here when ready */}
+      {/* <KiduChangePasswordModal
+        show={showPasswordModal}
+        onHide={() => setShowPasswordModal(false)}
+        onSubmit={handleChangePassword}
+      /> */}
+    </>
   );
 };
 

@@ -24,17 +24,22 @@ import {
 import { useTheme } from '../ThemeProvider/ThemeProvider';
 import type {
   NavbarProps,
-  NavbarState,
   NotificationItem,
 } from '../Types/KiduTypes/Navbar.types';
 import '../Styles/KiduStyles/Navbar.css';
 
-/**
- * KiduNavbar Component
- *
- * Theme toggle now driven by ThemeContext (single source of truth).
- * Sidebar toggle arrow button is built-in — no separate wrapper button needed.
- */
+interface NavbarState {
+  searchFocused: boolean;
+  showSignOutDialog: boolean;
+  showPasswordModal: boolean;
+  showNotifications: boolean;
+  searchQuery: string;
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+  passwordError: string;
+}
+
 const KiduNavbar: React.FC<NavbarProps & {
   sidebarCollapsed?: boolean;
   onSidebarToggle?: () => void;
@@ -69,6 +74,10 @@ const KiduNavbar: React.FC<NavbarProps & {
     showPasswordModal: false,
     showNotifications: false,
     searchQuery: '',
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+    passwordError: '',
   });
 
   const searchRef = useRef<HTMLInputElement>(null);
@@ -92,6 +101,42 @@ const KiduNavbar: React.FC<NavbarProps & {
     setState((p) => ({ ...p, showNotifications: false }));
   };
 
+  const handlePasswordModalClose = () => {
+    setState((p) => ({
+      ...p,
+      showPasswordModal: false,
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+      passwordError: '',
+    }));
+  };
+
+  const handleChangePasswordSubmit = () => {
+    if (!state.currentPassword) {
+      setState((p) => ({ ...p, passwordError: 'Current password is required.' }));
+      return;
+    }
+    if (!state.newPassword) {
+      setState((p) => ({ ...p, passwordError: 'New password is required.' }));
+      return;
+    }
+    if (state.newPassword.length < 6) {
+      setState((p) => ({ ...p, passwordError: 'New password must be at least 6 characters.' }));
+      return;
+    }
+    if (state.newPassword !== state.confirmPassword) {
+      setState((p) => ({ ...p, passwordError: 'Passwords do not match.' }));
+      return;
+    }
+
+    if (onChangePassword) {
+      onChangePassword(state.currentPassword, state.newPassword);
+    }
+
+    handlePasswordModalClose();
+  };
+
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const getUserInitials = (name: string): string =>
@@ -106,19 +151,14 @@ const KiduNavbar: React.FC<NavbarProps & {
       >
         <Container fluid className="px-3 px-lg-4">
 
-          {/* Sidebar Arrow Toggle (desktop) */}
+          {/* Sidebar Arrow Toggle */}
           {onSidebarToggle && (
             <button
               className="navbar-sidebar-arrow d-none d-lg-flex"
               onClick={onSidebarToggle}
               aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
-              {sidebarCollapsed ? (
-                <ChevronRight size={18} />
-              ) : (
-                <ChevronLeft size={18} />
-              )}
+              {sidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
             </button>
           )}
 
@@ -134,7 +174,7 @@ const KiduNavbar: React.FC<NavbarProps & {
             </Button>
           )}
 
-          {/* Logo (Optional) */}
+          {/* Logo */}
           {(logoSrc || logoText) && (
             <BSNavbar.Brand href="#" className="navbar-logo d-none d-lg-flex">
               {logoSrc && <img src={logoSrc} alt="Logo" className="navbar-logo-img" />}
@@ -144,11 +184,7 @@ const KiduNavbar: React.FC<NavbarProps & {
 
           {/* Search Bar */}
           {showSearch && (
-            <div
-              className={`navbar-search-wrapper flex-grow-1 ${
-                state.searchFocused ? 'search-focused' : ''
-              }`}
-            >
+            <div className={`navbar-search-wrapper flex-grow-1 ${state.searchFocused ? 'search-focused' : ''}`}>
               <InputGroup className="navbar-search">
                 <InputGroup.Text className="search-icon">
                   <Search className="icon-size" />
@@ -167,7 +203,6 @@ const KiduNavbar: React.FC<NavbarProps & {
             </div>
           )}
 
-          {/* Spacer */}
           <div className="flex-grow-1" />
 
           {/* Right Side Actions */}
@@ -182,11 +217,7 @@ const KiduNavbar: React.FC<NavbarProps & {
                 onClick={toggleTheme}
                 aria-label="Toggle theme"
               >
-                {theme === 'light' ? (
-                  <Moon className="icon-size" />
-                ) : (
-                  <Sun className="icon-size" />
-                )}
+                {theme === 'light' ? <Moon className="icon-size" /> : <Sun className="icon-size" />}
               </Button>
             )}
 
@@ -200,11 +231,7 @@ const KiduNavbar: React.FC<NavbarProps & {
                 >
                   <Bell className="icon-size" />
                   {unreadCount > 0 && (
-                    <Badge
-                      bg="danger"
-                      pill
-                      className="notification-badge position-absolute"
-                    >
+                    <Badge bg="danger" pill className="notification-badge position-absolute">
                       {unreadCount}
                     </Badge>
                   )}
@@ -214,18 +241,12 @@ const KiduNavbar: React.FC<NavbarProps & {
                   <div className="notifications-header d-flex justify-content-between align-items-center px-3 py-2">
                     <h6 className="mb-0">Notifications</h6>
                     {unreadCount > 0 && onMarkAllAsRead && (
-                      <Button
-                        variant="link"
-                        size="sm"
-                        className="p-0 text-primary"
-                        onClick={onMarkAllAsRead}
-                      >
+                      <Button variant="link" size="sm" className="p-0 text-primary" onClick={onMarkAllAsRead}>
                         Mark all as read
                       </Button>
                     )}
                   </div>
                   <Dropdown.Divider />
-
                   {notifications.length === 0 ? (
                     <div className="text-center py-4 text-muted">
                       <Bell className="mb-2" size={32} />
@@ -240,9 +261,7 @@ const KiduNavbar: React.FC<NavbarProps & {
                           onClick={() => handleNotificationClick(notification)}
                         >
                           <div className="d-flex gap-2">
-                            {notification.icon && (
-                              <notification.icon className="notification-icon" />
-                            )}
+                            {notification.icon && <notification.icon className="notification-icon" />}
                             <div className="flex-grow-1">
                               <div className="notification-title">{notification.title}</div>
                               <div className="notification-message">{notification.message}</div>
@@ -285,36 +304,48 @@ const KiduNavbar: React.FC<NavbarProps & {
                 </div>
                 <Dropdown.Divider />
 
+                {/* Profile */}
                 {onProfileClick && (
-                  <Dropdown.Item onClick={onProfileClick}>
-                    <User className="me-2 icon-size-sm" />
+                  <Dropdown.Item
+                    onClick={onProfileClick}
+                    className="d-flex align-items-center gap-2"
+                  >
+                    <User className="icon-size-sm" />
                     Profile
                   </Dropdown.Item>
                 )}
 
+                {/* Change Password */}
                 {onChangePassword && (
                   <Dropdown.Item
                     onClick={() => setState((p) => ({ ...p, showPasswordModal: true }))}
+                    className="d-flex align-items-center gap-2"
                   >
-                    <Key className="me-2 icon-size-sm" />
+                    <Key className="icon-size-sm" />
                     Change Password
                   </Dropdown.Item>
                 )}
 
+                {/* Extra profile actions */}
                 {profileMenuActions.map((action, index) => (
-                  <Dropdown.Item key={index} onClick={action.onClick}>
-                    <action.icon className="me-2 icon-size-sm" />
+                  <Dropdown.Item
+                    key={index}
+                    onClick={action.onClick}
+                    className="d-flex align-items-center gap-2"
+                  >
+                    <action.icon className="icon-size-sm" />
                     {action.label}
                   </Dropdown.Item>
                 ))}
 
                 <Dropdown.Divider />
 
+                {/* Sign Out */}
                 <Dropdown.Item
-                  className="text-danger"
+                  className="d-flex align-items-center gap-2 text-danger"
                   onClick={() => setState((p) => ({ ...p, showSignOutDialog: true }))}
                 >
-                  <LogOut className="me-2 icon-size-sm" />
+                  <LogOut className="icon-size-sm" />
                   Sign Out
                 </Dropdown.Item>
               </Dropdown.Menu>
@@ -323,7 +354,7 @@ const KiduNavbar: React.FC<NavbarProps & {
         </Container>
       </BSNavbar>
 
-      {/* Sign Out Confirmation Modal */}
+      {/* ── Sign Out Confirmation Modal ───────────────────────────── */}
       <Modal
         show={state.showSignOutDialog}
         onHide={() => setState((p) => ({ ...p, showSignOutDialog: false }))}
@@ -351,11 +382,11 @@ const KiduNavbar: React.FC<NavbarProps & {
         </Modal.Footer>
       </Modal>
 
-      {/* Change Password Modal */}
+      {/* ── Change Password Modal ─────────────────────────────────── */}
       {onChangePassword && (
         <Modal
           show={state.showPasswordModal}
-          onHide={() => setState((p) => ({ ...p, showPasswordModal: false }))}
+          onHide={handlePasswordModalClose}
           centered
         >
           <Modal.Header closeButton>
@@ -363,33 +394,70 @@ const KiduNavbar: React.FC<NavbarProps & {
           </Modal.Header>
           <Modal.Body>
             <Form>
+              {/* Error Alert */}
+              {state.passwordError && (
+                <div className="alert alert-danger py-2 mb-3" role="alert">
+                  {state.passwordError}
+                </div>
+              )}
+
               <Form.Group className="mb-3">
                 <Form.Label>Current Password</Form.Label>
-                <Form.Control type="password" placeholder="Enter current password" />
+                <Form.Control
+                  type="password"
+                  placeholder="Enter current password"
+                  value={state.currentPassword}
+                  onChange={(e) =>
+                    setState((p) => ({ ...p, currentPassword: e.target.value, passwordError: '' }))
+                  }
+                />
               </Form.Group>
+
               <Form.Group className="mb-3">
                 <Form.Label>New Password</Form.Label>
-                <Form.Control type="password" placeholder="Enter new password" />
+                <Form.Control
+                  type="password"
+                  placeholder="Enter new password"
+                  value={state.newPassword}
+                  onChange={(e) =>
+                    setState((p) => ({ ...p, newPassword: e.target.value, passwordError: '' }))
+                  }
+                />
               </Form.Group>
+
               <Form.Group className="mb-3">
                 <Form.Label>Confirm New Password</Form.Label>
-                <Form.Control type="password" placeholder="Confirm new password" />
+                <Form.Control
+                  type="password"
+                  placeholder="Confirm new password"
+                  value={state.confirmPassword}
+                  isInvalid={
+                    !!state.confirmPassword &&
+                    state.newPassword !== state.confirmPassword
+                  }
+                  onChange={(e) =>
+                    setState((p) => ({ ...p, confirmPassword: e.target.value, passwordError: '' }))
+                  }
+                />
+                <Form.Control.Feedback type="invalid">
+                  Passwords do not match
+                </Form.Control.Feedback>
               </Form.Group>
             </Form>
           </Modal.Body>
           <Modal.Footer>
-            <Button
-              variant="secondary"
-              onClick={() => setState((p) => ({ ...p, showPasswordModal: false }))}
-            >
+            <Button variant="secondary" onClick={handlePasswordModalClose}>
               Cancel
             </Button>
             <Button
               variant="primary"
-              onClick={() => {
-                onChangePassword();
-                setState((p) => ({ ...p, showPasswordModal: false }));
-              }}
+              onClick={handleChangePasswordSubmit}
+              disabled={
+                !state.currentPassword ||
+                !state.newPassword ||
+                !state.confirmPassword ||
+                state.newPassword !== state.confirmPassword
+              }
             >
               Change Password
             </Button>

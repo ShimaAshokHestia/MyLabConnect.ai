@@ -24,7 +24,7 @@ interface KiduLayoutProps {
   showNotifications?: boolean;
   profileMenuActions?: NavbarAction[];
   onProfileClick?: () => void;
-  onChangePassword?: () => void;
+  onChangePassword?: (currentPassword: string, newPassword: string) => void;
   onSignOut: () => void;
 
   // Additional

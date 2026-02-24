@@ -1,15 +1,19 @@
-// src/APPADMIN_CONNECT/Config/LayoutConfig.ts
-
-import { Home, BarChart3, Users, Settings, FileText, Building2, UserCog, UserPlus, FileBarChart, DollarSign, HelpCircle, Microscope, User, Key, CalendarRange } from 'lucide-react';
+import {
+  Home, BarChart3, Users, Settings, FileText,
+  Building2, UserCog, UserPlus, FileBarChart,
+  DollarSign, HelpCircle, Microscope, CalendarRange,
+} from 'lucide-react';
 import type { MenuItem } from '../../Types/KiduTypes/Sidebar.types';
-import type { UserProfile, NotificationItem, NavbarAction } from '../../Types/KiduTypes/Navbar.types';
+import type { UserProfile, NotificationItem } from '../../Types/KiduTypes/Navbar.types';
 import AuthService from '../../Services/AuthServices/Auth.services';
 
 // ─── Menu Items ───────────────────────────────────────────────────
 export const appAdminMenuItems: MenuItem[] = [
-  {title: 'Dashboard',url: '/appadmin-connect',icon: Home,},
-  {title: 'Analytics',url: '/appadmin-connect/analytics',icon: BarChart3,},
-  {title: 'Masters',icon: Microscope,
+  { title: 'Dashboard', url: '/appadmin-connect', icon: Home },
+  { title: 'Analytics', url: '/appadmin-connect/analytics', icon: BarChart3 },
+  {
+    title: 'Masters',
+    icon: Microscope,
     children: [
       { title: 'DSO Master List', url: '/appadmin-connect/masters/master-list', icon: Microscope },
     ],
@@ -45,20 +49,6 @@ export const appAdminMenuItems: MenuItem[] = [
   },
 ];
 
-// ─── Profile Actions ──────────────────────────────────────────────
-export const appAdminProfileActions: NavbarAction[] = [
-  {
-    label: 'Profile',
-    icon: User,
-    onClick: () => console.log('Profile'),
-  },
-  {
-    label: 'Change Password',
-    icon: Key,
-    onClick: () => console.log('Change Password'),
-  },
-];
-
 // ─── Default Notifications ────────────────────────────────────────
 export const appAdminNotifications: NotificationItem[] = [
   {
@@ -71,7 +61,7 @@ export const appAdminNotifications: NotificationItem[] = [
   },
 ];
 
-// ─── Main Config (user pulled from localStorage at render time) ───
+// ─── Main Config ──────────────────────────────────────────────────
 export const appAdminConnectConfig = {
   get user(): UserProfile {
     const u = AuthService.getUser();
@@ -82,6 +72,5 @@ export const appAdminConnectConfig = {
     } as UserProfile;
   },
   menuItems: appAdminMenuItems,
-  profileActions: appAdminProfileActions,
   notifications: appAdminNotifications,
 };

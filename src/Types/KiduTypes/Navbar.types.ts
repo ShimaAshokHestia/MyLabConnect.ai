@@ -1,3 +1,5 @@
+import React from 'react';
+
 // ============================================
 // Navbar Types and Interfaces
 // ============================================
@@ -29,38 +31,38 @@ export interface NavbarAction {
 export interface NavbarProps {
   // User Information
   user: UserProfile;
-  
+
   // Search Configuration
   searchPlaceholder?: string;
   onSearch?: (query: string) => void;
   showSearch?: boolean;
-  
+
   // Notifications
   notifications?: NotificationItem[];
   onNotificationClick?: (notification: NotificationItem) => void;
   onMarkAllAsRead?: () => void;
   showNotifications?: boolean;
-  
+
   // Theme
   showThemeToggle?: boolean;
-  
-  // Profile Menu Actions
+
+  // Profile Menu Actions (extra custom actions beyond Profile & Change Password)
   profileMenuActions?: NavbarAction[];
-  
+
   // Callbacks
   onProfileClick?: () => void;
-  onChangePassword?: () => void;
+  onChangePassword?: (currentPassword: string, newPassword: string) => void; // ✅ updated signature
   onSignOut: () => void;
-  
+
   // Customization
   logoSrc?: string;
   logoText?: string;
   className?: string;
-  
+
   // Mobile Menu
   showMobileMenuToggle?: boolean;
   onMobileMenuToggle?: () => void;
-  
+
   // Additional Actions
   additionalActions?: React.ReactNode;
 }
@@ -71,4 +73,9 @@ export interface NavbarState {
   showPasswordModal: boolean;
   showNotifications: boolean;
   searchQuery: string;
+  // ✅ added for change password modal form
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+  passwordError: string;
 }

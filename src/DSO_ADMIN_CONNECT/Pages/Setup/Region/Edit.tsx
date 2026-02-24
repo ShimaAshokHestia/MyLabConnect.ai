@@ -12,7 +12,7 @@ import DSORegionService from "../../../Services/Setup/DSORegion.services";
 const fields: Field[] = [
   {
     name: "name",
-    rules: { type: "text", label: "Region Name", required: true, maxLength: 100, colWidth: 12 },
+    rules: { type: "text", label: "Region Name", required: true, minLength: 3, maxLength: 100, colWidth: 12 },
   },
   {
     name: "dsoMasterId",
@@ -42,10 +42,10 @@ const DSORegionEditModal: React.FC<Props> = ({ show, onHide, onSuccess, recordId
   // ── Popup handlers wired into KiduEditModal ───────────────────────────────
   const popupHandlers: Record<string, PopupHandler> = {
     dsoMasterId: {
-      value:       selectedMaster?.name ?? "",
+      value: selectedMaster?.name ?? "",
       actualValue: selectedMaster?.id ?? undefined,
-      onOpen:      () => setMasterOpen(true),
-      onClear:     () => setSelectedMaster(null),
+      onOpen: () => setMasterOpen(true),
+      onClear: () => setSelectedMaster(null),
     },
   };
 
@@ -55,7 +55,7 @@ const DSORegionEditModal: React.FC<Props> = ({ show, onHide, onSuccess, recordId
     // Pre-fill the pill label when the record loads
     if (response?.isSucess && response?.value?.dsoName) {
       setSelectedMaster({
-        id:   response.value.dsoMasterId,
+        id: response.value.dsoMasterId,
         name: response.value.dsoName,
       } as DSOmaster);
     }

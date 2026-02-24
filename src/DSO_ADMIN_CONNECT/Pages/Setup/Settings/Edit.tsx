@@ -12,15 +12,15 @@ import DSOSettingService from "../../../Services/Setup/DSOSetting.services";
 const fields: Field[] = [
   {
     name: "settingType",
-    rules: { type: "text", label: "Setting Type", required: true, maxLength: 100, colWidth: 6 },
+    rules: { type: "text", label: "Setting Type", required: true, minLength: 3, maxLength: 100, colWidth: 6 },
   },
   {
     name: "key",
-    rules: { type: "text", label: "Key", required: true, maxLength: 200, colWidth: 6 },
+    rules: { type: "text", label: "Key", required: true, minLength: 3, maxLength: 100, colWidth: 6 },
   },
   {
     name: "value",
-    rules: { type: "text", label: "Value", required: true, maxLength: 500, colWidth: 12 },
+    rules: { type: "text", label: "Value", required: true, minLength: 3, maxLength: 100, colWidth: 12 },
   },
   {
     name: "dsoMasterId",
@@ -50,10 +50,10 @@ const DSOSettingEditModal: React.FC<Props> = ({ show, onHide, onSuccess, recordI
   // ── Popup handlers wired into KiduEditModal ───────────────────────────────
   const popupHandlers: Record<string, PopupHandler> = {
     dsoMasterId: {
-      value:       selectedMaster?.name ?? "",
+      value: selectedMaster?.name ?? "",
       actualValue: selectedMaster?.id ?? undefined,
-      onOpen:      () => setMasterOpen(true),
-      onClear:     () => setSelectedMaster(null),
+      onOpen: () => setMasterOpen(true),
+      onClear: () => setSelectedMaster(null),
     },
   };
 
@@ -63,7 +63,7 @@ const DSOSettingEditModal: React.FC<Props> = ({ show, onHide, onSuccess, recordI
     // Pre-fill the pill label when the record loads
     if (response?.isSucess && response?.value?.dsoName) {
       setSelectedMaster({
-        id:   response.value.dsoMasterId,
+        id: response.value.dsoMasterId,
         name: response.value.dsoName,
       } as DSOmaster);
     }

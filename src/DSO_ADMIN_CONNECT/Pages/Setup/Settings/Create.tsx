@@ -16,15 +16,15 @@ import DSOSettingService from "../../../Services/Setup/DSOSetting.services";
 const fields: Field[] = [
   {
     name: "settingType",
-    rules: { type: "text", label: "Setting Type", required: true, maxLength: 100, colWidth: 6 },
+    rules: { type: "text", label: "Setting Type", required: true, minLength: 3, maxLength: 100, colWidth: 6 },
   },
   {
     name: "key",
-    rules: { type: "text", label: "Key", required: true, maxLength: 200, colWidth: 6 },
+    rules: { type: "text", label: "Key", required: true, minLength: 3, maxLength: 100, colWidth: 6 },
   },
   {
     name: "value",
-    rules: { type: "text", label: "Value", required: true, maxLength: 500, colWidth: 12 },
+    rules: { type: "text", label: "Value", required: true, minLength: 3, maxLength: 100, colWidth: 12 },
   },
   {
     name: "dsoMasterId",
@@ -70,10 +70,10 @@ const DSOSettingCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }) => 
     // formData already includes dsoMasterId from extraValues (merged by KiduCreateModal)
     const payload: Partial<DSOSetting> = {
       settingType: formData.settingType,
-      key:         formData.key,
-      value:       formData.value,
+      key: formData.key,
+      value: formData.value,
       dsoMasterId: Number(formData.dsoMasterId),
-      isActive:    formData.isActive ?? true,
+      isActive: formData.isActive ?? true,
     };
     await DSOSettingService.create(payload);
   };

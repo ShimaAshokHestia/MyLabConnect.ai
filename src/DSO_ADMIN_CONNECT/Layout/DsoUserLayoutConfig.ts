@@ -75,6 +75,8 @@ export const dsoAdminMenuItems: MenuItem[] = [
             { title: 'DSO - User Login', url: '/dsoadmin-connect/setup/dso-user', icon: Users },
             { title: 'Lab Products Rate', url: '/dsoadmin-connect/setup/lab-products-rate', icon: DollarSign },
             { title: 'Zone', url: '/dsoadmin-connect/setup/zone-list', icon: MapPin },
+            { title: 'Region', url: '/dsoadmin-connect/setup/region-list', icon: Building2 },
+            { title: 'Setting', url: '/dsoadmin-connect/setup/setting-list', icon: Settings },
         ],
     },
     {

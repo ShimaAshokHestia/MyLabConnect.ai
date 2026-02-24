@@ -22,6 +22,8 @@ import DSOUserList from '../Pages/Setup/DSO - User Login/List';
 import LabMasterList from '../Pages/Masters/Lab/List';
 import DSODentalOfficeList from '../Pages/Masters/Dental Office/List';
 import DSOMaterialList from '../Pages/Masters/Material/List';
+import DSORegionList from '../Pages/Setup/Region/List';
+import DSOSettingList from '../Pages/Setup/Settings/List';
 
 // ── Add more page imports here as you build them ──────────────────
 // import DsoLabList       from '../Pages/Masters/Lab/List';
@@ -50,6 +52,8 @@ export const dsoadminConnectRoutes = (
 
     {/* Setup */}
     <Route path="setup/zone-list" element={<DSOZoneList />} />
+     <Route path="setup/region-list" element={<DSORegionList />} />
+      <Route path="setup/setting-list" element={<DSOSettingList />} />
     <Route path="setup/practice-manager" element={<div><h5>Practice Manager Login</h5></div>} />
     <Route path="setup/dso-user" element={<DSOUserList />} />
     <Route path="setup/lab-products-rate" element={<div><h5>Lab Products Rate</h5></div>} />

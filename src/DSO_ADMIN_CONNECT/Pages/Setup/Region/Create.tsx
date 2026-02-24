@@ -16,7 +16,7 @@ import type { DSORegion } from "../../../Types/Setup/DSORegion.types";
 const fields: Field[] = [
   {
     name: "name",
-    rules: { type: "text", label: "Region Name", required: true, maxLength: 100, colWidth: 12 },
+    rules: { type: "text", label: "Region Name", required: true, minLength: 3, maxLength: 100, colWidth: 12 },
   },
   {
     name: "dsoMasterId",
@@ -61,9 +61,9 @@ const DSORegionCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }) => {
   const handleSubmit = async (formData: Record<string, any>) => {
     // formData already includes dsoMasterId from extraValues (merged by KiduCreateModal)
     const payload: Partial<DSORegion> = {
-      name:        formData.name,
+      name: formData.name,
       dsoMasterId: Number(formData.dsoMasterId),
-      isActive:    formData.isActive ?? true,
+      isActive: formData.isActive ?? true,
     };
     await DSORegionService.create(payload);
   };

@@ -1,4 +1,19 @@
-// src/Services/Auth/AuthService.ts
+// src/Services/AuthServices/Auth.services.ts
+//
+// ─── Hybrid: Encrypted localStorage + Sync In-Memory Cache ───────────────────
+//
+// HOW IT WORKS:
+//   • All data is AES-GCM encrypted in localStorage via KiduSecureStorage.
+//   • An in-memory cache (_cache) holds a plain copy for synchronous access.
+//   • On login  → cache is filled instantly, then encrypted to localStorage.
+//   • On refresh → AuthService.init() decrypts localStorage back into cache.
+//   • getUser(), getToken(), getUserTypeName(), isAuthenticated(),
+//     getDashboardRoute() are ALL still synchronous — zero config changes needed.
+//
+// SETUP (one line in main.tsx, before ReactDOM.render):
+//   await AuthService.init();
+//   ReactDOM.createRoot(document.getElementById('root')!).render(<App />);
+// ─────────────────────────────────────────────────────────────────────────────
 
 import { API_ENDPOINTS } from '../../CONSTANTS/API_ENDPOINTS';
 import HttpService from '../Common/HttpService';
@@ -12,8 +27,9 @@ import {
   type LoginRequest,
   type RegisterRequest,
 } from '../../Types/Auth/Auth.types';
+import KiduSecureStorage from '../Common/KiduSecureStorage';
 
-// ─── localStorage keys ────────────────────────────────────────────
+// ─── Storage keys ─────────────────────────────────────────────────
 const KEYS = {
   TOKEN:      'jwt_token',
   USER:       'auth_user',
@@ -21,8 +37,60 @@ const KEYS = {
   EXPIRES_AT: 'token_expires_at',
 } as const;
 
+// ─── In-memory cache ──────────────────────────────────────────────
+// Survives re-renders. Cleared on page refresh (repopulated by init()).
+interface AuthCache {
+  token:     string | null;
+  user:      AuthUser | null;
+  userType:  string | null;
+  expiresAt: string | null;
+}
+
+let _cache: AuthCache = {
+  token:     null,
+  user:      null,
+  userType:  null,
+  expiresAt: null,
+};
+
+// ─── Helpers ──────────────────────────────────────────────────────
+async function persistToStorage(token: string, user: AuthUser, expiresAt: string) {
+  await Promise.all([
+    KiduSecureStorage.setItem(KEYS.TOKEN,      token),
+    KiduSecureStorage.setItem(KEYS.USER,       user),
+    KiduSecureStorage.setItem(KEYS.USER_TYPE,  user.userTypeName),
+    KiduSecureStorage.setItem(KEYS.EXPIRES_AT, expiresAt),
+  ]);
+}
+
 // ─── AuthService ──────────────────────────────────────────────────
 class AuthService {
+
+  // ── init ──────────────────────────────────────────────────────────
+  /**
+   * Call ONCE at app startup in main.tsx BEFORE ReactDOM.render().
+   * Decrypts localStorage into memory so synchronous getters work immediately.
+   *
+   * main.tsx example:
+   *   import AuthService from './Services/AuthServices/Auth.services';
+   *
+   *   AuthService.init().then(() => {
+   *     ReactDOM.createRoot(document.getElementById('root')!).render(<App />);
+   *   });
+   */
+  static async init(): Promise<void> {
+    try {
+      const [token, user, userType, expiresAt] = await Promise.all([
+        KiduSecureStorage.getItem<string>(KEYS.TOKEN),
+        KiduSecureStorage.getItem<AuthUser>(KEYS.USER),
+        KiduSecureStorage.getItem<string>(KEYS.USER_TYPE),
+        KiduSecureStorage.getItem<string>(KEYS.EXPIRES_AT),
+      ]);
+      _cache = { token, user, userType, expiresAt };
+    } catch {
+      _cache = { token: null, user: null, userType: null, expiresAt: null };
+    }
+  }
 
   // ── Login ─────────────────────────────────────────────────────────
   static async login(credentials: LoginRequest): Promise<LoginApiResponse> {
@@ -30,13 +98,12 @@ class AuthService {
       API_ENDPOINTS.AUTH.LOGIN,
       'POST',
       credentials,
-      true  // isPublic — no token needed
+      true
     );
 
     if (response.isSucess && response.value) {
       const { token, expiresAt, user } = response.value;
 
-      // Validate userTypeName is one we recognise
       if (!isValidUserTypeName(user.userTypeName)) {
         return {
           ...response,
@@ -46,11 +113,11 @@ class AuthService {
         };
       }
 
-      // Persist auth data
-      localStorage.setItem(KEYS.TOKEN,      token);
-      localStorage.setItem(KEYS.USER,       JSON.stringify(user));
-      localStorage.setItem(KEYS.USER_TYPE,  user.userTypeName);
-      localStorage.setItem(KEYS.EXPIRES_AT, expiresAt);
+      // Fill cache immediately — synchronous getters work right away
+      _cache = { token, user, userType: user.userTypeName, expiresAt };
+
+      // Encrypt and persist to localStorage in the background
+      await persistToStorage(token, user, expiresAt);
     }
 
     return response;
@@ -67,71 +134,67 @@ class AuthService {
 
     if (response.isSucess && response.value) {
       const { token, expiresAt, user } = response.value;
-      localStorage.setItem(KEYS.TOKEN,      token);
-      localStorage.setItem(KEYS.USER,       JSON.stringify(user));
-      localStorage.setItem(KEYS.USER_TYPE,  user.userTypeName);
-      localStorage.setItem(KEYS.EXPIRES_AT, expiresAt);
+      _cache = { token, user, userType: user.userTypeName, expiresAt };
+      await persistToStorage(token, user, expiresAt);
     }
 
     return response;
   }
 
-  // ── Forgot Password ───────────────────────────────────────────────
+  // ── Forgot / Change Password ──────────────────────────────────────
   static async forgotPassword(data: ForgotPasswordRequest): Promise<LoginApiResponse> {
     return HttpService.callApi<LoginApiResponse>(
-      API_ENDPOINTS.AUTH.FORGOT_PASSWORD,
-      'POST',
-      data,
-      true
+      API_ENDPOINTS.AUTH.FORGOT_PASSWORD, 'POST', data, true
     );
   }
 
-  // ── Change Password ───────────────────────────────────────────────
   static async changePassword(data: ChangePasswordRequest): Promise<LoginApiResponse> {
     return HttpService.callApi<LoginApiResponse>(
-      API_ENDPOINTS.AUTH.CHANGE_PASSWORD,
-      'POST',
-      data
+      API_ENDPOINTS.AUTH.CHANGE_PASSWORD, 'POST', data
     );
   }
 
   // ── Logout ────────────────────────────────────────────────────────
   static logout(): void {
-    Object.values(KEYS).forEach(key => localStorage.removeItem(key));
+    _cache = { token: null, user: null, userType: null, expiresAt: null };
+    Object.values(KEYS).forEach(key => KiduSecureStorage.removeItem(key));
   }
 
-  // ── Getters ───────────────────────────────────────────────────────
+  // ── Synchronous Getters ── (API is IDENTICAL to the original) ─────
+
+  /** Returns the cached JWT token synchronously. */
   static getToken(): string | null {
-    return localStorage.getItem(KEYS.TOKEN);
+    return _cache.token;
   }
 
+  /** Returns the cached userTypeName synchronously. */
   static getUserTypeName(): string | null {
-    return localStorage.getItem(KEYS.USER_TYPE);
+    return _cache.userType;
   }
 
+  /**
+   * Returns the cached AuthUser synchronously.
+   * AppAdminLayoutConfig getter works without any changes:
+   *
+   *   get user(): UserProfile {
+   *     const u = AuthService.getUser(); ✅ still sync, zero changes
+   *     return { name: u?.userName ?? 'App Admin', ... };
+   *   }
+   */
   static getUser(): AuthUser | null {
-    try {
-      const raw = localStorage.getItem(KEYS.USER);
-      return raw ? (JSON.parse(raw) as AuthUser) : null;
-    } catch {
-      return null;
-    }
+    return _cache.user;
   }
 
-  // ── isAuthenticated ───────────────────────────────────────────────
+  /** Synchronous auth check — identical behaviour to original. */
   static isAuthenticated(): boolean {
-    const token = this.getToken();
-    if (!token) return false;
+    if (!_cache.token) return false;
 
-    // Token expiry check
-    const expiresAt = localStorage.getItem(KEYS.EXPIRES_AT);
-    if (expiresAt && new Date() >= new Date(expiresAt)) {
+    if (_cache.expiresAt && new Date() >= new Date(_cache.expiresAt)) {
       this.logout();
       return false;
     }
 
-    // userTypeName must be valid
-    if (!isValidUserTypeName(this.getUserTypeName())) {
+    if (!isValidUserTypeName(_cache.userType)) {
       this.logout();
       return false;
     }
@@ -139,9 +202,9 @@ class AuthService {
     return true;
   }
 
-  // ── getDashboardRoute ─────────────────────────────────────────────
+  /** Synchronous route resolver — identical to original. */
   static getDashboardRoute(): string {
-    return getDashboardRouteByType(this.getUserTypeName() ?? '');
+    return getDashboardRouteByType(_cache.userType ?? '');
   }
 }
 

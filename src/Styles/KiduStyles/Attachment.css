@@ -1,0 +1,504 @@
+/* ============================================================
+   Attachments.css
+   Compact, modern attachment panel — uses project theme vars
+   ============================================================ */
+
+/* ── Panel shell ─────────────────────────────────────────── */
+.att-panel {
+    border: 1px solid var(--theme-border);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background-color: var(--theme-bg-paper);
+    font-size: 0.8rem;
+    width: 100%;
+}
+
+/* ── Header toggle ───────────────────────────────────────── */
+.att-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.45rem 0.75rem;
+    background-color: #173a6a;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.18s ease;
+    color: #ffffff;
+    text-align: left;
+}
+
+.att-header:hover {
+    background-color: #1a4480;
+}
+
+.att-header__left {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.att-header__title {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.att-header__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9999px;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.att-header__right {
+    display: flex;
+    align-items: center;
+    opacity: 0.75;
+}
+
+/* ── Body ────────────────────────────────────────────────── */
+.att-body {
+    padding: 0.6rem 0.75rem 0.65rem;
+    background-color: var(--theme-bg-paper);
+}
+
+/* ── Toolbar ─────────────────────────────────────────────── */
+.att-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 0.5rem;
+}
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.att-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.65rem;
+    border-radius: 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+.att-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.att-btn--primary {
+    background-color: #173a6a;
+    border-color: #173a6a;
+    color: #fff;
+}
+.att-btn--primary:hover:not(:disabled) {
+    background-color: #1a4480;
+    border-color: #1a4480;
+}
+
+.att-btn--ghost {
+    background-color: transparent;
+    border-color: var(--theme-border);
+    color: var(--theme-text-secondary);
+}
+.att-btn--ghost:hover:not(:disabled) {
+    background-color: var(--theme-bg-hover);
+}
+
+.att-btn--danger {
+    background-color: #ef4444;
+    border-color: #ef4444;
+    color: #fff;
+}
+.att-btn--danger:hover:not(:disabled) {
+    background-color: #dc2626;
+    border-color: #dc2626;
+}
+
+/* ── State (loading / empty) ─────────────────────────────── */
+.att-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem 0;
+    color: var(--theme-text-disabled);
+    font-size: 0.78rem;
+}
+
+.att-state--empty {
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 1.1rem 0;
+}
+
+.att-state__icon {
+    opacity: 0.35;
+}
+
+.att-spinner {
+    color: #173a6a;
+}
+
+/* ── Alert ───────────────────────────────────────────────── */
+.att-alert {
+    font-size: 0.78rem;
+    padding: 0.35rem 0.65rem;
+    margin-bottom: 0.5rem;
+}
+
+/* ── Attachment list ─────────────────────────────────────── */
+.att-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    border: 1px solid var(--theme-border);
+    border-radius: 0.4rem;
+    overflow: hidden;
+}
+
+/* ── Single attachment row ───────────────────────────────── */
+.att-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    background-color: var(--theme-bg-paper);
+    border-bottom: 1px solid var(--theme-divider);
+    transition: background-color 0.13s ease;
+}
+
+.att-item:last-child {
+    border-bottom: none;
+}
+
+.att-item:hover {
+    background-color: var(--theme-bg-hover);
+}
+
+.att-item__num {
+    flex-shrink: 0;
+    width: 16px;
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--theme-text-disabled);
+}
+
+.att-item__icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+.att-item__info {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.att-item__name {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--theme-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.att-item__desc {
+    font-size: 0.7rem;
+    color: var(--theme-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.att-item__meta {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1px;
+    min-width: 0;
+}
+
+.att-item__size {
+    font-size: 0.68rem;
+    color: var(--theme-text-secondary);
+    font-weight: 500;
+}
+
+.att-item__date {
+    font-size: 0.67rem;
+    color: var(--theme-text-disabled);
+    white-space: nowrap;
+}
+
+.att-item__by {
+    font-size: 0.65rem;
+    color: var(--theme-text-disabled);
+    white-space: nowrap;
+}
+
+.att-item__actions {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* ── Icon action buttons ─────────────────────────────────── */
+.att-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 0.3rem;
+    border: 1px solid transparent;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.14s ease;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.att-action--download {
+    color: #173a6a;
+    border-color: rgba(23, 58, 106, 0.13);
+}
+.att-action--download:hover {
+    background-color: rgba(23, 58, 106, 0.07);
+    border-color: rgba(23, 58, 106, 0.27);
+}
+
+.att-action--delete {
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.13);
+}
+.att-action--delete:hover {
+    background-color: rgba(239, 68, 68, 0.07);
+    border-color: rgba(239, 68, 68, 0.27);
+}
+
+/* ── File type icon colors ───────────────────────────────── */
+.att-icon            { flex-shrink: 0; }
+.att-icon--pdf       { color: #ef4444; }
+.att-icon--excel     { color: #10b981; }
+.att-icon--word      { color: #3b82f6; }
+.att-icon--image     { color: #f59e0b; }
+.att-icon--archive   { color: #6b7280; }
+.att-icon--audio     { color: #8b5cf6; }
+.att-icon--video     { color: #06b6d4; }
+.att-icon--json      { color: #64748b; }
+.att-icon--code      { color: #7c3aed; }
+.att-icon--default   { color: var(--theme-text-secondary); }
+
+/* ── Modal overrides ─────────────────────────────────────── */
+.att-modal .modal-content {
+    border-radius: 0.6rem;
+    border: 1px solid var(--theme-border);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    overflow: hidden;
+}
+
+.att-modal__header {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--theme-divider);
+    background-color: var(--theme-bg-paper);
+}
+
+.att-modal__title {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--theme-text-primary);
+    margin: 0;
+}
+
+.att-modal__body {
+    padding: 0.85rem 1rem;
+    background-color: var(--theme-bg-paper);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.att-modal__footer {
+    padding: 0.55rem 1rem;
+    border-top: 1px solid var(--theme-divider);
+    background-color: var(--theme-bg-paper);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.4rem;
+}
+
+/* ── Dropzone ────────────────────────────────────────────── */
+.att-dropzone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    padding: 1.2rem 1rem;
+    border: 2px dashed var(--theme-border);
+    border-radius: 0.5rem;
+    background-color: var(--theme-bg-elevated);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.att-dropzone:hover,
+.att-dropzone--active {
+    border-color: #173a6a;
+    background-color: rgba(23, 58, 106, 0.05);
+}
+
+.att-dropzone__icon {
+    color: var(--theme-text-disabled);
+    transition: color 0.2s ease;
+}
+
+.att-dropzone:hover .att-dropzone__icon,
+.att-dropzone--active .att-dropzone__icon {
+    color: #173a6a;
+}
+
+.att-dropzone__text {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--theme-text-secondary);
+}
+
+.att-dropzone__link {
+    color: #173a6a;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.att-dropzone__hint {
+    margin: 0;
+    font-size: 0.7rem;
+    color: var(--theme-text-disabled);
+}
+
+/* ── Selected file preview ───────────────────────────────── */
+.att-selected-file {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.45rem 0.65rem;
+    border: 1px solid var(--theme-border);
+    border-radius: 0.4rem;
+    background-color: var(--theme-bg-elevated);
+}
+
+.att-selected-file__info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.att-selected-file__name {
+    margin: 0;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--theme-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 260px;
+}
+
+.att-selected-file__size {
+    margin: 0;
+    font-size: 0.7rem;
+    color: var(--theme-text-disabled);
+}
+
+/* ── Form elements ───────────────────────────────────────── */
+.att-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin: 0;
+}
+
+.att-form-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--theme-text-primary);
+    margin: 0;
+}
+
+.att-form-label__opt {
+    font-weight: 400;
+    color: var(--theme-text-disabled);
+}
+
+.att-textarea {
+    font-size: 0.8rem !important;
+    resize: vertical;
+    min-height: 58px;
+    border-color: var(--theme-border) !important;
+    background-color: var(--theme-bg-paper) !important;
+    color: var(--theme-text-primary) !important;
+    border-radius: 0.4rem !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.att-textarea:focus {
+    border-color: #173a6a !important;
+    box-shadow: 0 0 0 2px rgba(23, 58, 106, 0.12) !important;
+    outline: none;
+}
+
+.att-char-count {
+    margin: 0;
+    font-size: 0.68rem;
+    color: var(--theme-text-disabled);
+    text-align: right;
+}
+
+/* ── Confirm delete text ─────────────────────────────────── */
+.att-confirm-text {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--theme-text-secondary);
+    line-height: 1.55;
+}
+
+/* ── Dark-theme adjustments ──────────────────────────────── */
+[data-theme="dark"] .att-dropzone:hover,
+[data-theme="dark"] .att-dropzone--active {
+    background-color: rgba(23, 58, 106, 0.18);
+}
+
+[data-theme="dark"] .att-action--download {
+    color: #93c5fd;
+    border-color: rgba(147, 197, 253, 0.13);
+}
+[data-theme="dark"] .att-action--download:hover {
+    background-color: rgba(147, 197, 253, 0.08);
+    border-color: rgba(147, 197, 253, 0.27);
+}

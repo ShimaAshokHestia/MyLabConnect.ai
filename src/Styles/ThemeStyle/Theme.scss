@@ -194,3 +194,9 @@ body {
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out;
 }
+
+// Add to your existing _theme.scss
+$step-pending: #cbd5e1;
+$bg-glass: rgba(255, 255, 255, 0.5);
+$bg-glass-strong: rgba(255, 255, 255, 0.88);
+$border-soft: rgba(180, 210, 225, 0.4);

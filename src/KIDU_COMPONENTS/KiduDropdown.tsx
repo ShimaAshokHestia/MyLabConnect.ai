@@ -61,7 +61,7 @@ const KiduDropdown: React.FC<KiduDropdownProps> = ({
   value,
   onChange,
   placeholder = "Select an option...",
-  required,
+
   disabled,
   error,
   inputWidth = "100%",

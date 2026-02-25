@@ -31,7 +31,7 @@ const CaseTabs: React.FC<CaseTabsProps> = ({
   const { theme } = useTheme();
 
   return (
-    <div className={`case-tabs-container ${className}`} data-theme={theme}>
+    <div className={`case-tabs-container mt-3 ${className}`} data-theme={theme}>
       <Nav
         variant="pills"
         activeKey={activeTab}

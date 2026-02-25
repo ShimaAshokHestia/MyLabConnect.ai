@@ -3,6 +3,7 @@
 import { Navigate, Route } from 'react-router-dom';
 import { DoctorLayout } from '../Layout/DoctorLayout';
 import HomePage from '../Layout/HomePage';
+import AddNewCase from '../Pages/Analog Case Prescription/Create';
 
 // ── Add page imports here as you build them ───────────────────────
 // import ActiveCasesList   from '../Pages/Cases/Active/List';
@@ -14,6 +15,8 @@ export const doctorConnectRoutes = (
 
     {/* Home / Dashboard */}
     <Route index element={<HomePage />} />
+
+     <Route path="add-new-case" element={<AddNewCase/>} />
 
     {/* Analytics */}
     <Route path="analytics" element={<div><h5>Analytics</h5></div>} />

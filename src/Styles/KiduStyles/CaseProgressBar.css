@@ -1,0 +1,136 @@
+/* ============================================
+   CaseProgressStepper Component Styles
+   ============================================ */
+
+.stepper-wrapper {
+  display: flex;
+  align-items: center;
+  background: var(--theme-bg-glass);
+  border: 1px solid var(--theme-border-soft);
+  border-radius: 12px;
+  padding: 10px 14px;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.stepper-wrapper::-webkit-scrollbar {
+  height: 0;
+}
+
+/* ── Step node ── */
+.stepper-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  flex: 1;
+  z-index: 1;
+  min-width: 48px;
+}
+
+.step-dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  position: relative;
+  transition: box-shadow 0.3s ease;
+}
+
+.step-dot.done {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.step-dot.hold {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #fff;
+  animation: pulseHold 1.5s infinite;
+}
+
+@keyframes pulseHold {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.35);
+  }
+  50% {
+    box-shadow: 0 2px 18px rgba(239, 68, 68, 0.65);
+  }
+}
+
+.step-dot.pending {
+  background: var(--theme-step-pending);
+  color: var(--theme-text-muted);
+}
+
+.step-label {
+  font-size: 0.54rem;
+  color: var(--theme-text-muted);
+  text-align: center;
+  line-height: 1.2;
+  white-space: nowrap;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 400;
+}
+
+/* ── Connector line ── */
+.step-line {
+  flex: 1;
+  height: 2px;
+  margin: 0 -1px;
+  margin-bottom: 16px; /* visual offset to align with dots */
+  border-radius: 1px;
+  background: var(--theme-step-pending);
+  transition: background 0.4s ease;
+}
+
+.step-line.done {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.step-line.active {
+  background: linear-gradient(90deg, #10b981, #ef0d50);
+}
+
+/* ── Theme variables (extend base vars) ── */
+:root {
+  --theme-step-pending: #cbd5e1;
+}
+
+[data-theme='dark'] {
+  --theme-step-pending: #334155;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .stepper-wrapper {
+    padding: 8px 10px;
+    border-radius: 10px;
+  }
+
+  .step-dot {
+    width: 22px;
+    height: 22px;
+    font-size: 0.55rem;
+  }
+
+  .step-label {
+    font-size: 0.48rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .step-label {
+    display: none;
+  }
+
+  .step-dot {
+    width: 20px;
+    height: 20px;
+  }
+}

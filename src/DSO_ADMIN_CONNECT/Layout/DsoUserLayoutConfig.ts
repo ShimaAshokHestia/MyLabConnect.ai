@@ -7,7 +7,6 @@ import {
     Settings,
     Link2,
     FileText,
-    Receipt,
     Building2,
     UserCog,
     Package,
@@ -26,8 +25,16 @@ import {
     Sparkles,
     RefreshCw,
     LucideMicroscope,
-    Syringe,
-    Box
+    Activity,
+    Receipt,
+    FileSpreadsheet,
+    Gauge,
+    Shield,
+    Calendar,
+    Eye,
+    Palette,
+    Droplet,
+    Layers
 } from 'lucide-react';
 import type { MenuItem } from '../../Types/KiduTypes/Sidebar.types';
 import type { UserProfile, NotificationItem, NavbarAction } from '../../Types/KiduTypes/Navbar.types';
@@ -56,15 +63,15 @@ export const dsoAdminMenuItems: MenuItem[] = [
         title: 'Masters',
         icon: Users,
         children: [
-            { title: 'Lab', url: '/dsoadmin-connect/masters/lab-list', icon: Microscope },
             { title: 'Lab Group', url: '/dsoadmin-connect/masters/labgroup-list', icon: LucideMicroscope },
+            { title: 'Lab', url: '/dsoadmin-connect/masters/lab-list', icon: Microscope },
             { title: 'Practice', url: '/dsoadmin-connect/masters/practice', icon: Building2 },
             { title: 'Doctor', url: '/dsoadmin-connect/masters/doctor-list', icon: UserCog },
             { title: 'Product Group', url: '/dsoadmin-connect/masters/productGroup-list', icon: Package },
             { title: 'User Role Creation', url: '/dsoadmin-connect/masters/user-roles', icon: UserPlus },
-            { title: 'Dental Office', url: '/dsoadmin-connect/masters/dentalOffice-list', icon: Syringe },
-            { title: 'Material', url: '/dsoadmin-connect/masters/material-list', icon: Box },
-            { title: 'Territory', url:'/dsoadmin-connect/masters/territory-list', icon: Box}
+            // { title: 'Dental Office', url: '/dsoadmin-connect/masters/dentalOffice-list', icon: Syringe },
+            // { title: 'Material', url: '/dsoadmin-connect/masters/material-list', icon: Box },
+            // { title: 'Territory', url: '/dsoadmin-connect/masters/territory-list', icon: Box }
 
         ],
     },
@@ -76,8 +83,8 @@ export const dsoAdminMenuItems: MenuItem[] = [
             { title: 'DSO - User Login', url: '/dsoadmin-connect/setup/dso-user', icon: Users },
             { title: 'Lab Products Rate', url: '/dsoadmin-connect/setup/lab-products-rate', icon: DollarSign },
             { title: 'Zone', url: '/dsoadmin-connect/setup/zone-list', icon: MapPin },
-            { title: 'Region', url: '/dsoadmin-connect/setup/region-list', icon: Building2 },
-            { title: 'Setting', url: '/dsoadmin-connect/setup/setting-list', icon: Settings },
+            // { title: 'Region', url: '/dsoadmin-connect/setup/region-list', icon: Building2 },
+            // { title: 'Setting', url: '/dsoadmin-connect/setup/setting-list', icon: Settings },
         ],
     },
     {
@@ -86,10 +93,10 @@ export const dsoAdminMenuItems: MenuItem[] = [
         children: [
             { title: 'Prescription Product', url: '/dsoadmin-connect/mapping/prescription-product', icon: ClipboardList },
             { title: 'Trios Doctor', url: '/dsoadmin-connect/mapping/trios-doctor', icon: UserCog },
-            { title: 'Trios Product', url: '/dsoadmin-connect/mapping/trios-product', icon: Package },
-            { title: 'Lab – DSO Doctor', url: '/dsoadmin-connect/mapping/lab-dso-doctor', icon: Users },
-            { title: 'Lab – DSO Product', url: '/dsoadmin-connect/mapping/lab-dso-product', icon: Package },
-            { title: 'Doctor – Pickup Service', url: '/dsoadmin-connect/mapping/doctor-pickup', icon: Truck },
+            { title: 'Lab - DSO Doctor', url: '/dsoadmin-connect/mapping/lab-dso-doctor', icon: Users },
+            { title: 'Lab - DSO Product', url: '/dsoadmin-connect/mapping/lab-dso-product', icon: Package },
+            { title: 'Doctor - Pickup Service', url: '/dsoadmin-connect/mapping/doctor-pickup', icon: Truck },
+            //  { title: 'Trios Product', url: '/dsoadmin-connect/mapping/trios-product', icon: Package },
         ],
     },
     {
@@ -98,33 +105,67 @@ export const dsoAdminMenuItems: MenuItem[] = [
         children: [
             { title: 'Case Summary', url: '/dsoadmin-connect/reports/case-summary', icon: FileBarChart },
             { title: 'Revenue Summary', url: '/dsoadmin-connect/reports/revenue-summary', icon: DollarSign },
+            { title: 'Scan QC Summary', url: '/dsoadmin-connect/reports/scanQCSummary', icon: Activity },
             { title: 'Support Tickets', url: '/dsoadmin-connect/reports/support-tickets', icon: HelpCircle },
-            { title: 'Case On Hold – Aging', url: '/dsoadmin-connect/reports/case-aging', icon: Clock },
+            { title: 'Case Products', url: '/dsadmin-connect/reports/caseProducts', icon: Package },
+            { title: 'Case On Hold - Aging', url: '/dsoadmin-connect/reports/case-aging', icon: Clock },
+            { title: 'Login Audit', url: '/dsoadmin-connect/reports/loginAudit', icon: Shield },
+            { title: 'Year Wise - Cases', url: '/dsoadmin-connect/reports/yearWise-cases', icon: Calendar },
+            { title: 'Year Wise - Invoices', url: '/dsoadmin-connect/reports/yearWise-invoive', icon: Receipt },
             { title: 'Usage Adoption Report', url: '/dsoadmin-connect/reports/usage-adoption', icon: TrendingUp },
         ],
     },
     {
         title: 'Invoices',
-        icon: Receipt,
-        children: [
-            { title: 'Proforma Invoice', url: '/dsoadmin-connect/invoices/proforma', icon: Receipt },
-        ],
+       url: '/dsoadmin-connect/invoices-list',
+       icon: Receipt,
     },
     {
-        title: 'Prosthesis',
-        url: '/dsoadmin-connect/prosthesis',
-        icon: Sparkles,
+        title: 'Proforma Invoice',
+       url: '/dsoadmin-connect/proformaInvoice-list',
+       icon: FileSpreadsheet,
     },
-    {
-        title: 'Restoration',
-        url: '/dsoadmin-connect/restoration',
-        icon: RefreshCw,
+     {
+        title: 'Case Flow SLA',
+       url: '/dsoadmin-connect/caseFlowSLA-list',
+       icon: Gauge,
     },
     {
         title: 'Scheme',
         url: '/dsoadmin-connect/schema-list',
         icon: RefreshCw,
     },
+    {
+        title: 'Prosthesis',
+        url: '/dsoadmin-connect/prosthesis-list',
+        icon: Sparkles,
+    },
+    {
+        title: 'Restoration',
+        url: '/dsoadmin-connect/restoration-list',
+        icon: RefreshCw,
+    },
+    {
+        title: 'Indicaion',
+        url: '/dsoadmin-connect/indication-list',
+        icon: Eye,
+    },
+    {
+        title: 'Material Name',
+        url: '/dsoadmin-connect/materialName-list',
+        icon: Layers,
+    },
+    {
+        title: 'Shade Guide',
+        url: '/dsoadmin-connect/shadeGuide-list',
+        icon: Palette,
+    },
+    {
+        title: 'Shade',
+        url: '/dsoadmin-connect/shade-list',
+        icon: Droplet,
+    },
+    
 ];
 
 // ─── Profile Actions ──────────────────────────────────────────────

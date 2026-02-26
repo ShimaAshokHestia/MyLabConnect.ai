@@ -2,19 +2,18 @@
 
 import {
     Home,
-    BarChart3,
-    Settings,
     FileText,
-    Users,
-    UserCog,
-    UserPlus,
     ClipboardList,
-    FileBarChart,
-    DollarSign,
-    Clock,
-    Package,
     User,
     Key,
+    Truck,
+    Headphones,
+    ShoppingCart,
+    Receipt,
+    Star,
+    MessageSquare,
+    Activity,
+    FileSpreadsheet
 } from 'lucide-react';
 import type { MenuItem } from '../../Types/KiduTypes/Sidebar.types';
 import type { UserProfile, NotificationItem, NavbarAction } from '../../Types/KiduTypes/Navbar.types';
@@ -32,46 +31,82 @@ export const practiceMenuItems: MenuItem[] = [
         ],
     },
     {
-        title: 'Analytics',
-        url: '/practice-connect/analytics',
-        icon: BarChart3,
+        title: 'Pickup',
+        url: '/practice-connect/pickup-list',
+        icon: Truck,
     },
     {
-        title: 'Cases',
-        icon: Package,
-        children: [
-            { title: 'Active Cases', url: '/practice-connect/cases/active', icon: ClipboardList, badge: 8 },
-            { title: 'In Progress', url: '/practice-connect/cases/in-progress', icon: Clock, },
-            { title: 'Completed', url: '/practice-connect/cases/completed', icon: FileText, },
-            { title: 'New Case', url: '/practice-connect/cases/create', icon: UserPlus, },
-        ],
+        title: 'Support',
+        url: '/practice-connect/support-list',
+        icon: Headphones,
     },
     {
-        title: 'Patients',
-        url: '/practice-connect/patients',
-        icon: Users,
-    },
-    {
-        title: 'Doctors',
-        icon: UserCog,
-        children: [
-            { title: 'All Doctors', url: '/practice-connect/doctors', icon: UserCog },
-            { title: 'Add Doctor', url: '/practice-connect/doctors/create', icon: UserPlus },
-        ],
-    },
-    {
-        title: 'Reports',
+        title: 'Report',
         icon: FileText,
         children: [
-            { title: 'Case Summary', url: '/practice-connect/reports/case-summary', icon: FileBarChart },
-            { title: 'Financial Report', url: '/practice-connect/reports/financial', icon: DollarSign },
+            { title: 'Case List Report', url: '/practice-connect/report/caseListReport-list', icon: ClipboardList, badge: 8 },
+            { title: 'Ticket List Report', url: '/practice-connect/report/ticketListReport-list', icon: Headphones, },
+            { title: 'Case Rating Report', url: '/practice-connect/report/caseRatingReport-list', icon: Star, },
+            { title: 'Case Remark Report', url: '/practice-connect/report/caseRemarkReport-list', icon: MessageSquare, },
+            { title: 'Daily Scan QC Summary', url: '/practice-connect/report/dailyScanQCSummary-list', icon: Activity, },
         ],
     },
     {
-        title: 'Settings',
-        url: '/practice-connect/settings',
-        icon: Settings,
+        title: 'Marketplace',
+        url: '/practice-connect/marketplace-list',
+        icon: ShoppingCart,
     },
+      {
+        title: 'Invoices',
+        url: '/practice-connect/invoices-list',
+        icon: Receipt,
+    },
+      {
+        title: 'SAR',
+        url: '/practice-connect/SAR-list',
+        icon: FileSpreadsheet,
+    },
+    // {
+    //     title: 'Analytics',
+    //     url: '/practice-connect/analytics',
+    //     icon: BarChart3,
+    // },
+    // {
+    //     title: 'Cases',
+    //     icon: Package,
+    //     children: [
+    //         { title: 'Active Cases', url: '/practice-connect/cases/active', icon: ClipboardList, badge: 8 },
+    //         { title: 'In Progress', url: '/practice-connect/cases/in-progress', icon: Clock, },
+    //         { title: 'Completed', url: '/practice-connect/cases/completed', icon: FileText, },
+    //         { title: 'New Case', url: '/practice-connect/cases/create', icon: UserPlus, },
+    //     ],
+    // },
+    // {
+    //     title: 'Patients',
+    //     url: '/practice-connect/patients',
+    //     icon: Users,
+    // },
+    // {
+    //     title: 'Doctors',
+    //     icon: UserCog,
+    //     children: [
+    //         { title: 'All Doctors', url: '/practice-connect/doctors', icon: UserCog },
+    //         { title: 'Add Doctor', url: '/practice-connect/doctors/create', icon: UserPlus },
+    //     ],
+    // },
+    // {
+    //     title: 'Reports',
+    //     icon: FileText,
+    //     children: [
+    //         { title: 'Case Summary', url: '/practice-connect/reports/case-summary', icon: FileBarChart },
+    //         { title: 'Financial Report', url: '/practice-connect/reports/financial', icon: DollarSign },
+    //     ],
+    // },
+    // {
+    //     title: 'Settings',
+    //     url: '/practice-connect/settings',
+    //     icon: Settings,
+    // },
 ];
 
 // ─── Profile Actions ──────────────────────────────────────────────

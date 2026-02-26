@@ -49,55 +49,20 @@ export interface SelectOption {
   label: string;
 }
 
-/**
- * Popup handler wired into a single field.
- *
- * value   → the display string shown in the pill (e.g. master.name)
- * onOpen  → opens the KiduSelectPopup for that field
- * onClear → clears the selection
- *
- * Example usage in a Create page:
- *
- *   const [selectedMaster, setSelectedMaster] = useState<DSOmaster | null>(null);
- *   const [masterOpen, setMasterOpen] = useState(false);
- *
- *   const popupHandlers: PopupHandlers = {
- *     dsoMasterId: {
- *       value:   selectedMaster?.name ?? "",
- *       onOpen:  () => setMasterOpen(true),
- *       onClear: () => { setSelectedMaster(null); setFormExtra({ dsoMasterId: null }); },
- *     },
- *   };
- *
- *   // Pass selectedMaster.id into the form via the onSelect callback:
- *   onSelect={(master) => {
- *     setSelectedMaster(master);
- *     setFormExtra({ dsoMasterId: master.id });
- *   }}
- */
 export interface PopupFieldHandler {
-  /** Display label shown in the pill input */
   value: string;
-  /** Called when the user clicks the pill to open the picker */
   onOpen: () => void;
-  /** Called when the user clicks ✕ to clear the selection */
   onClear: () => void;
 }
 
 export interface KiduDropdownHandler {
-  /** Static options list (mutually exclusive with paginatedFetch) */
   staticOptions?: KiduDropdownOption[];
-  /** Async paginated fetch function */
   paginatedFetch?: (params: KiduDropdownPaginatedParams) => Promise<KiduDropdownPaginatedResult>;
-  /** Maps a raw API row to { value, label } */
   mapOption?: (row: any) => KiduDropdownOption;
-  /** Items per page for paginated fetch (default: 10) */
   pageSize?: number;
-  /** Custom placeholder override */
   placeholder?: string;
 }
 
-/** Map of field name → PopupFieldHandler */
 export type PopupHandlers = Record<string, PopupFieldHandler>;
 export type DropdownHandlers = Record<string, KiduDropdownHandler>;
 
@@ -111,15 +76,7 @@ export interface KiduCreateModalProps {
   submitButtonText?: string;
   cancelButtonText?: string;
   options?: Record<string, SelectOption[] | string[]>;
-  /**
-   * Handlers for every field whose type === "popup".
-   * Key must match the field name.
-   */
   popupHandlers?: PopupHandlers;
-  /**
-   * Extra values that are controlled outside the modal (e.g. selected popup IDs).
-   * Merged into formData at submit time so onSubmit receives them.
-   */
   dropdownHandlers?: DropdownHandlers;
   extraValues?: Record<string, any>;
   loadingState?: boolean;
@@ -154,6 +111,11 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
   size = "lg",
   centered = true,
 }) => {
+  // ── Detect if there is an "active" toggle field ───────────────────────────
+  const activeField = fields.find(
+    (f) => f.name.toLowerCase() === "active" && f.rules.type === "toggle"
+  );
+
   // ── Initialise form state from field definitions ──────────────────────────
   const buildInitial = () => {
     const values: Record<string, any> = {};
@@ -180,7 +142,6 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
   const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
-  // ── Tracks values for smartdropdown fields ────────────────────────────────
   const [dropdownValues, setDropdownValues] = useState<Record<string, any>>({});
 
   // Reset when modal closes
@@ -220,7 +181,6 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
     const rule = fields.find((f) => f.name === name)?.rules;
     if (!rule) return true;
 
-    // Popup fields: check that the handler value is non-empty
     if (rule.type === "popup") {
       if (rule.required && !popupHandlers[name]?.value?.trim()) {
         setErrors((prev) => ({ ...prev, [name]: `${rule.label} is required` }));
@@ -230,7 +190,6 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
       return true;
     }
 
-    // smartdropdown validation
     if (rule.type === "smartdropdown") {
       if (rule.required && (dropdownValues[name] === null || dropdownValues[name] === undefined || dropdownValues[name] === "")) {
         setErrors((prev) => ({ ...prev, [name]: `${rule.label} is required` }));
@@ -313,8 +272,7 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
 
     setIsSubmitting(true);
     try {
-      // Merge extra values (popup IDs etc.) into form data
-      const submitData = { ...formData, ...extraValues , ...dropdownValues };
+      const submitData = { ...formData, ...extraValues, ...dropdownValues };
       await onSubmit(submitData);
 
       onHide();
@@ -355,7 +313,6 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
     const ph = placeholder || `Enter ${rules.label.toLowerCase()}`;
 
     switch (type) {
-      // ── POPUP ────────────────────────────────────────────────────────────
       case "popup": {
         const handler = popupHandlers[name];
         return (
@@ -372,11 +329,10 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
         );
       }
 
-      // ── SMARTDROPDOWN ────────────────────────────────────────────────────
       case "smartdropdown": {
         const handler = dropdownHandlers[name];
         return (
-          <KiduDropdown          
+          <KiduDropdown
             value={dropdownValues[name] ?? null}
             onChange={(val) => {
               setDropdownValues((prev) => ({ ...prev, [name]: val }));
@@ -395,7 +351,6 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
         );
       }
 
-      // ── PASSWORD ─────────────────────────────────────────────────────────
       case "password":
         return (
           <InputGroup className="kidu-input-group">
@@ -421,7 +376,6 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
           </InputGroup>
         );
 
-      // ── SELECT / DROPDOWN ────────────────────────────────────────────────
       case "select":
       case "dropdown": {
         const opts = options[name] || [];
@@ -445,7 +399,6 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
         );
       }
 
-      // ── TEXTAREA ─────────────────────────────────────────────────────────
       case "textarea":
         return (
           <Form.Control
@@ -462,7 +415,6 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
           />
         );
 
-      // ── RADIO ────────────────────────────────────────────────────────────
       case "radio": {
         const opts = options[name] || [];
         return (
@@ -487,7 +439,6 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
         );
       }
 
-      // ── CHECKBOX ─────────────────────────────────────────────────────────
       case "checkbox":
         return (
           <Form.Check
@@ -500,7 +451,6 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
           />
         );
 
-      // ── TOGGLE ───────────────────────────────────────────────────────────
       case "toggle":
         return (
           <Form.Check
@@ -513,7 +463,6 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
           />
         );
 
-      // ── DATE ─────────────────────────────────────────────────────────────
       case "date":
         return (
           <Form.Control
@@ -527,7 +476,6 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
           />
         );
 
-      // ── FILE ─────────────────────────────────────────────────────────────
       case "file":
         return (
           <Form.Control
@@ -542,7 +490,6 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
           />
         );
 
-      // ── DEFAULT (text / email / url / number) ─────────────────────────
       default:
         return (
           <Form.Control
@@ -571,20 +518,22 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
       return <div key={`rowbreak-${index}`} className="w-100" />;
     }
 
+    // "active" toggle is rendered in the header — skip it in the form body
+    if (name.toLowerCase() === "active" && rules.type === "toggle") {
+      return null;
+    }
+
     const colWidth = rules.colWidth || 6;
 
     return (
       <Col md={colWidth} className="mb-3" key={name}>
-       
-          <Form.Label className="kidu-form-label">
-            {rules.label}
-            {rules.required && <span className="kidu-required-star">*</span>}
-          </Form.Label>
-        
+        <Form.Label className="kidu-form-label">
+          {rules.label}
+          {rules.required && <span className="kidu-required-star">*</span>}
+        </Form.Label>
 
         {renderFormControl(field)}
 
-        {/* Popup errors are rendered inside KiduSelectInputPill; skip duplicate */}
         {rules.type !== "popup" && errors[name] && (
           <div className="kidu-error-message">{errors[name]}</div>
         )}
@@ -606,11 +555,53 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
         contentClassName="kidu-modal-content"
         dialogClassName="kidu-modal-dialog"
       >
-        <Modal.Header closeButton className="kidu-modal-header">
-          <div>
+        {/* ── Floating close button ── */}
+        <button
+          type="button"
+          className="kidu-modal-close-btn"
+          onClick={onHide}
+          aria-label="Close"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="11"
+            height="11"
+            viewBox="0 0 12 12"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+          >
+            <line x1="1" y1="1" x2="11" y2="11" />
+            <line x1="11" y1="1" x2="1" y2="11" />
+          </svg>
+        </button>
+
+        <Modal.Header className="kidu-modal-header">
+          <div className="kidu-modal-header-left">
             <Modal.Title className="kidu-modal-title">{title}</Modal.Title>
             {subtitle && <p className="kidu-modal-subtitle">{subtitle}</p>}
           </div>
+
+          {/* ── Active toggle in header (only when field name === "active") ── */}
+          {activeField && (
+            <div className="kidu-modal-header-active">
+              <span
+                className="kidu-active-label"
+                style={{ color: formData["active"] ? "#22c55e" : "#6b7280" }}
+              >
+                {activeField.rules.label}
+              </span>
+              <Form.Check
+                type="switch"
+                id="header-active-toggle"
+                name="active"
+                checked={!!formData["active"]}
+                onChange={handleChange}
+                className="kidu-header-toggle"
+              />
+            </div>
+          )}
         </Modal.Header>
 
         <Modal.Body className="kidu-modal-body">

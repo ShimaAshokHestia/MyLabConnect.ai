@@ -1,0 +1,497 @@
+/* ============================================================
+   CaseCard.css
+   MyLab Connect — Reusable Case Card Component
+   Supports: lab | doctor | submitted | dso (view-only) modes
+   All colours via CSS custom properties from _theme.scss
+   ============================================================ */
+
+/* ── Card Shell ── */
+.case-card {
+  position: relative;
+  border-radius: 16px;
+  background: var(--theme-bg-paper, #ffffff);
+  border: 1.5px solid var(--theme-border, rgba(180, 210, 225, 0.4));
+  box-shadow:
+    0 2px 10px rgba(15, 20, 40, 0.06),
+    0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    transform 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.24s ease,
+    border-color 0.24s ease;
+  animation: cardIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  font-family: 'Outfit', sans-serif;
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+[data-theme='dark'] .case-card {
+  background: var(--theme-bg-paper, #1a1f26);
+  border-color: var(--theme-border, rgba(255, 255, 255, 0.09));
+  box-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.35),
+    0 1px 0 rgba(255, 255, 255, 0.04) inset;
+}
+
+.case-card:hover {
+  transform: translateY(-4px) scale(1.012);
+}
+
+/* ── Accent top bar ── */
+.case-card__accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 16px 16px 0 0;
+  transition: height 0.22s ease;
+}
+
+.case-card:hover .case-card__accent {
+  height: 4px;
+}
+
+/* Status colour variants */
+.case-card--hold .case-card__accent     { background: linear-gradient(90deg, #ef4444, #f97316); }
+.case-card--submitted .case-card__accent { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.case-card--production .case-card__accent{ background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+.case-card--transit .case-card__accent  { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.case-card--recent .case-card__accent   { background: linear-gradient(90deg, #10b981, #34d399); }
+.case-card--rejected .case-card__accent { background: linear-gradient(90deg, #f97316, #fb923c); }
+
+/* Status border-glow on hover */
+.case-card--hold:hover {
+  border-color: #ef4444;
+  box-shadow: 0 8px 28px rgba(239, 68, 68, 0.18), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+}
+.case-card--submitted:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 8px 28px rgba(59, 130, 246, 0.18), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+}
+.case-card--production:hover {
+  border-color: #8b5cf6;
+  box-shadow: 0 8px 28px rgba(139, 92, 246, 0.18), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+}
+.case-card--transit:hover {
+  border-color: #f59e0b;
+  box-shadow: 0 8px 28px rgba(245, 158, 11, 0.18), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+}
+.case-card--recent:hover {
+  border-color: #10b981;
+  box-shadow: 0 8px 28px rgba(16, 185, 129, 0.18), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+}
+
+[data-theme='dark'] .case-card--hold:hover     { box-shadow: 0 8px 28px rgba(239, 68, 68, 0.28); }
+[data-theme='dark'] .case-card--submitted:hover { box-shadow: 0 8px 28px rgba(59, 130, 246, 0.28); }
+[data-theme='dark'] .case-card--production:hover{ box-shadow: 0 8px 28px rgba(139, 92, 246, 0.28); }
+[data-theme='dark'] .case-card--transit:hover  { box-shadow: 0 8px 28px rgba(245, 158, 11, 0.28); }
+[data-theme='dark'] .case-card--recent:hover   { box-shadow: 0 8px 28px rgba(16, 185, 129, 0.28); }
+
+/* ── RUSH card — pulsing animated border ── */
+.case-card--rush {
+  border-color: #f97316 !important;
+  box-shadow:
+    0 0 0 0 rgba(249, 115, 22, 0),
+    0 2px 10px rgba(249, 115, 22, 0.2);
+  animation: cardIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both,
+             rushPulse 2.2s ease-in-out infinite;
+}
+
+@keyframes rushPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.0), 0 2px 10px rgba(249, 115, 22, 0.2); }
+  50%       { box-shadow: 0 0 0 5px rgba(249, 115, 22, 0.12), 0 4px 18px rgba(249, 115, 22, 0.3); }
+}
+
+[data-theme='dark'] .case-card--rush {
+  border-color: #f97316 !important;
+}
+
+/* ── Inner padding ── */
+.case-card__inner {
+  padding: 16px 15px 13px;
+  padding-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── Top row: name + badge ── */
+.case-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 7px;
+  margin-bottom: 9px;
+}
+
+.case-card__name-block {
+  flex: 1;
+  min-width: 0;
+}
+
+.case-card__name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--theme-text-primary, #0f172a);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+[data-theme='dark'] .case-card__name {
+  color: var(--theme-text-primary, #f1f5f9);
+}
+
+.case-card__pid {
+  font-size: 0.63rem;
+  font-weight: 400;
+  color: var(--theme-text-disabled, #94a3b8);
+  font-family: 'DM Mono', monospace;
+  display: block;
+  margin-top: 1px;
+}
+
+.case-card__type-badge {
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 0.56rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  flex-shrink: 0;
+  border: 1px solid;
+}
+
+.case-card__type-badge--analog {
+  background: rgba(100, 116, 139, 0.1);
+  color: #64748b;
+  border-color: rgba(100, 116, 139, 0.2);
+}
+.case-card__type-badge--ios {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  border-color: rgba(59, 130, 246, 0.2);
+}
+.case-card__type-badge--qc {
+  background: rgba(249, 115, 22, 0.1);
+  color: #f97316;
+  border-color: rgba(249, 115, 22, 0.2);
+}
+
+[data-theme='dark'] .case-card__type-badge--analog {
+  background: rgba(100, 116, 139, 0.15);
+  color: #94a3b8;
+  border-color: rgba(100, 116, 139, 0.3);
+}
+[data-theme='dark'] .case-card__type-badge--ios {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border-color: rgba(59, 130, 246, 0.3);
+}
+[data-theme='dark'] .case-card__type-badge--qc {
+  background: rgba(249, 115, 22, 0.15);
+  color: #fb923c;
+  border-color: rgba(249, 115, 22, 0.3);
+}
+
+/* ── Divider ── */
+.case-card__divider {
+  height: 1px;
+  margin: 0 0 9px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--theme-border, rgba(180, 210, 225, 0.4)) 30%,
+    var(--theme-border, rgba(180, 210, 225, 0.4)) 70%,
+    transparent
+  );
+}
+
+/* ── Meta rows ── */
+.case-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 11px;
+}
+
+.case-card__meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.case-card__meta-icon {
+  color: var(--theme-text-disabled, #94a3b8);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.case-card__meta-text {
+  font-size: 0.7rem;
+  color: var(--theme-text-secondary, #475569);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.case-card__meta-text--mono {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--theme-text-disabled, #94a3b8);
+}
+
+.case-card__meta-text--bold {
+  font-weight: 600;
+  color: var(--theme-text-primary, #0f172a);
+}
+
+[data-theme='dark'] .case-card__meta-text--bold {
+  color: var(--theme-text-primary, #f1f5f9);
+}
+
+[data-theme='dark'] .case-card__meta-text {
+  color: var(--theme-text-secondary, #94a3b8);
+}
+
+/* ── Footer ── */
+.case-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding-top: 9px;
+  border-top: 1px solid var(--theme-border, rgba(180, 210, 225, 0.4));
+}
+
+[data-theme='dark'] .case-card__footer {
+  border-top-color: var(--theme-border, rgba(255, 255, 255, 0.09));
+}
+
+.case-card__date {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.6rem;
+  color: var(--theme-text-disabled, #94a3b8);
+  font-family: 'DM Mono', monospace;
+}
+
+.case-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* ── Action Buttons ── */
+.case-card__action-btn {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  padding: 0;
+  background: transparent;
+}
+
+/* Chat button */
+.case-card__action-btn--chat {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  border-color: rgba(59, 130, 246, 0.2);
+}
+.case-card__action-btn--chat:hover {
+  background: #3b82f6;
+  color: #fff;
+  border-color: #3b82f6;
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+/* Status button */
+.case-card__action-btn--status {
+  background: rgba(139, 92, 246, 0.1);
+  color: #8b5cf6;
+  border-color: rgba(139, 92, 246, 0.2);
+}
+.case-card__action-btn--status:hover {
+  background: #8b5cf6;
+  color: #fff;
+  border-color: #8b5cf6;
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+/* Support / headset button */
+.case-card__action-btn--support {
+  background: rgba(249, 115, 22, 0.1);
+  color: #f97316;
+  border-color: rgba(249, 115, 22, 0.2);
+}
+.case-card__action-btn--support:hover {
+  background: #f97316;
+  color: #fff;
+  border-color: #f97316;
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
+}
+
+/* Help button */
+.case-card__action-btn--help {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.2);
+}
+.case-card__action-btn--help:hover {
+  background: #ef4444;
+  color: #fff;
+  border-color: #ef4444;
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+/* Rush indicator button */
+.case-card__action-btn--rush {
+  background: rgba(249, 115, 22, 0.12);
+  color: #f97316;
+  border-color: rgba(249, 115, 22, 0.25);
+  font-size: 0.65rem;
+  font-weight: 800;
+  font-family: 'Outfit', sans-serif;
+}
+.case-card__action-btn--rush:hover {
+  background: #f97316;
+  color: #fff;
+  border-color: #f97316;
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
+}
+
+/* ── Tooltip ── */
+.case-card__tooltip-wrap {
+  position: relative;
+}
+
+.case-card__tooltip-wrap:hover .case-card__tooltip {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.case-card__tooltip {
+  position: absolute;
+  bottom: calc(100% + 7px);
+  left: 50%;
+  transform: translate(-50%, 6px);
+  background: var(--theme-text-primary, #0f172a);
+  color: var(--theme-bg-paper, #ffffff);
+  font-size: 0.55rem;
+  font-weight: 700;
+  white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: 6px;
+  pointer-events: none;
+  opacity: 0;
+  transition: all 0.15s;
+  z-index: 30;
+  font-family: 'Outfit', sans-serif;
+}
+
+.case-card__tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: var(--theme-text-primary, #0f172a);
+}
+
+[data-theme='dark'] .case-card__tooltip {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+[data-theme='dark'] .case-card__tooltip::after {
+  border-top-color: #f1f5f9;
+}
+
+/* ── RUSH Tag (top-right corner badge) ── */
+.case-card__rush-tag {
+  position: absolute;
+  top: 10px;
+  right: 11px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: #fff;
+  font-size: 0.53rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.45);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  z-index: 2;
+}
+
+/* ── DSO view — no buttons, view-only ── */
+.case-card--dso .case-card__footer {
+  justify-content: flex-start;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .case-card {
+    border-radius: 12px;
+  }
+
+  .case-card__name {
+    font-size: 0.79rem;
+  }
+
+  .case-card__meta-text {
+    font-size: 0.67rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .case-card__inner {
+    padding: 14px 13px 12px;
+    padding-top: 16px;
+  }
+
+  .case-card__name {
+    font-size: 0.77rem;
+    white-space: normal;
+  }
+
+  .case-card__type-badge {
+    font-size: 0.52rem;
+    padding: 2px 7px;
+  }
+
+  .case-card__action-btn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .case-card__rush-tag {
+    font-size: 0.5rem;
+    padding: 2px 6px;
+  }
+}

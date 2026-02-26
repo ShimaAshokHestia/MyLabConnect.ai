@@ -1,0 +1,162 @@
+/* ============================================================
+   CaseDashboard.css — MyLab Connect Dashboard layout
+   Colors via CSS custom properties from theme.css / _theme.scss
+   ============================================================ */
+
+/* ── Page body ── */
+.dash-page-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  min-height: 100%;
+  background: var(--theme-bg);
+  font-family: 'Outfit', sans-serif;
+}
+
+/* ── Label bar (view title + action buttons) ── */
+.dash-label-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.dash-view-label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--theme-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.dash-label-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dash-case-count {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--theme-text-secondary);
+  background: var(--theme-bg-paper);
+  border: 1px solid var(--theme-border);
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.dash-action-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: none;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: 'Outfit', sans-serif;
+  cursor: pointer;
+  transition: all 0.18s;
+  display: inline-flex;
+  align-items: center;
+}
+
+.dash-action-btn--primary {
+  background: linear-gradient(135deg, var(--theme-primary), #eb3a70);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(239, 13, 80, 0.28);
+}
+
+.dash-action-btn--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 16px rgba(239, 13, 80, 0.4);
+}
+
+.dash-action-btn--info {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.dash-action-btn--info:hover {
+  background: #3b82f6;
+  color: #fff;
+}
+
+/* ── Cards scroll area ── */
+.dash-cards-area {
+  flex: 1;
+}
+
+/* ── Cards grid — responsive columns ── */
+.dash-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  transition: opacity 0.15s ease;
+}
+
+.dash-cards-grid.transitioning {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+/* ── Empty state ── */
+.dash-empty {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: var(--theme-text-secondary);
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+/* ── Responsive breakpoints ── */
+
+/* Large desktop: 4 columns (1280px+) — default above */
+
+/* Standard desktop / large tablet: 3 columns */
+@media (max-width: 1280px) {
+  .dash-cards-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+}
+
+/* Tablet landscape: 2 columns */
+@media (max-width: 1024px) {
+  .dash-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 13px;
+  }
+  .dash-page-body {
+    padding: 16px;
+  }
+}
+
+/* Tablet portrait: 2 columns (tighter) */
+@media (max-width: 768px) {
+  .dash-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .dash-page-body {
+    padding: 14px;
+    gap: 12px;
+  }
+}
+
+/* Mobile: 1 column */
+@media (max-width: 540px) {
+  .dash-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .dash-page-body {
+    padding: 12px;
+    gap: 10px;
+  }
+  .dash-view-label {
+    font-size: 0.8rem;
+  }
+}

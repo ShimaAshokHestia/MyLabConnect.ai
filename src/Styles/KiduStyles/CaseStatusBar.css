@@ -1,43 +1,42 @@
-/* ============================================
-   StatusBar Component Styles
-   Supports light/dark themes via data-theme
-   ============================================ */
+/* ============================================================
+   StatusBar.css — MyLab Connect Status Filter Bar
+   Matches the exact HTML .sbar / .spill / .sbadge pattern
+   Pills float directly on the background — no container box
+   ============================================================ */
 
 .status-bar-wrapper {
   display: flex;
   align-items: center;
   gap: 5px;
-  background: var(--theme-bg-glass-strong);
+  background: var(--theme-bg-paper, rgba(255,255,255,0.88));
   backdrop-filter: blur(20px) saturate(150%);
   -webkit-backdrop-filter: blur(20px) saturate(150%);
-  border: 1px solid var(--theme-border-soft);
+  border: 1px solid var(--theme-border, rgba(180,210,225,0.4));
   border-radius: 13px;
   padding: 7px 12px;
   overflow-x: auto;
-  animation: sbarIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
-  width: 100%;
+  flex-shrink: 0;
+  scrollbar-width: none;
+  animation: sbarIn 0.45s cubic-bezier(0.22,1,0.36,1) 0.1s both;
 }
 
-.status-bar-wrapper::-webkit-scrollbar {
-  height: 0;
-}
+.status-bar-wrapper::-webkit-scrollbar { display: none; }
 
 @keyframes sbarIn {
-  from {
-    opacity: 0;
-    transform: translateX(-18px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  from { opacity: 0; transform: translateX(-18px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
-/* ── Pill ── */
+[data-theme='dark'] .status-bar-wrapper {
+  background: var(--theme-bg-paper, rgba(22,28,36,0.96));
+  border-color: var(--theme-border, rgba(255,255,255,0.09));
+}
+
+/* ── Pill — inactive: icon + label + number, no background ── */
 .status-pill {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   padding: 5px 11px;
   border-radius: 20px;
   font-size: 0.69rem;
@@ -45,155 +44,123 @@
   cursor: pointer;
   white-space: nowrap;
   border: 1px solid transparent;
-  background: var(--theme-bg-glass);
-  color: var(--theme-text-secondary);
-  backdrop-filter: blur(8px);
-  transition: all 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  background: transparent;
+  color: var(--theme-text-secondary, #475569);
   font-family: 'Outfit', sans-serif;
-  line-height: 1;
-  user-select: none;
+  transition: all 0.22s cubic-bezier(0.22,1,0.36,1);
 }
 
 .status-pill:hover {
-  background: var(--theme-bg-hover);
+  background: rgba(239,13,80,0.06);
+  color: var(--theme-text-primary, #0f172a);
   transform: translateY(-1px);
 }
 
-.status-pill.active {
-  color: #fff;
+[data-theme='dark'] .status-pill {
+  color: var(--theme-text-secondary, #94a3b8);
 }
 
-.status-pill.hold.active {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  box-shadow: 0 3px 10px rgba(239, 68, 68, 0.35);
+[data-theme='dark'] .status-pill:hover {
+  background: rgba(255,255,255,0.07);
+  color: var(--theme-text-primary, #f1f5f9);
 }
 
-.status-pill.transit.active {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  box-shadow: 0 3px 10px rgba(245, 158, 11, 0.35);
+/* ── Pill icon / emoji ── */
+.status-pill > span:first-child {
+  font-size: 0.75rem;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
-.status-pill.production.active {
-  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-  box-shadow: 0 3px 10px rgba(139, 92, 246, 0.35);
-}
-
-.status-pill.submitted.active {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  box-shadow: 0 3px 10px rgba(59, 130, 246, 0.35);
-}
-
-.status-pill.recent.active {
-  background: linear-gradient(135deg, #10b981, #059669);
-  box-shadow: 0 3px 10px rgba(16, 185, 129, 0.35);
-}
-
-.status-pill.rejected.active {
-  background: linear-gradient(135deg, #f97316, #ea580c);
-  box-shadow: 0 3px 10px rgba(249, 115, 22, 0.35);
-}
-
-/* Badge */
+/* ── Count badge — plain number, no pill background by default ── */
 .status-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  border-radius: 9px;
-  font-size: 0.6rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--theme-text-secondary, #475569);
+  min-width: 16px;
+  text-align: center;
+  transition: all 0.22s;
+}
+
+[data-theme='dark'] .status-badge {
+  color: var(--theme-text-secondary, #94a3b8);
+}
+
+/* ── ACTIVE: pill becomes filled gradient capsule ── */
+.status-pill.active {
+  color: #fff !important;
   font-weight: 700;
-  padding: 0 4px;
-  background: var(--theme-border-soft);
-  color: var(--theme-text-secondary);
-  transition: background 0.22s, color 0.22s;
 }
 
 .status-pill.active .status-badge {
-  background: rgba(255, 255, 255, 0.25);
+  /* badge becomes a small white rounded number inside the pill */
+  background: rgba(255,255,255,0.25);
   color: #fff;
+  border-radius: 10px;
+  padding: 1px 6px;
+  font-size: 0.63rem;
 }
 
-/* Divider */
+/* Per-status active gradients — exact match to HTML */
+.status-pill.hold.active {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow: 0 3px 10px rgba(239,68,68,0.35);
+  border-color: transparent;
+}
+.status-pill.transit.active {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  box-shadow: 0 3px 10px rgba(245,158,11,0.35);
+  border-color: transparent;
+}
+.status-pill.production.active {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  box-shadow: 0 3px 10px rgba(139,92,246,0.35);
+  border-color: transparent;
+}
+.status-pill.submitted.active {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  box-shadow: 0 3px 10px rgba(59,130,246,0.35);
+  border-color: transparent;
+}
+.status-pill.recent.active {
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 3px 10px rgba(16,185,129,0.35);
+  border-color: transparent;
+}
+.status-pill.rejected.active {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  box-shadow: 0 3px 10px rgba(249,115,22,0.35);
+  border-color: transparent;
+}
+
+/* ── Divider between pills ── */
 .status-divider {
   width: 1px;
   height: 18px;
-  background: var(--theme-border-soft);
+  background: var(--theme-border, rgba(180,210,225,0.4));
   flex-shrink: 0;
-  margin: 0 2px;
+  margin: 0 3px;
+}
+
+[data-theme='dark'] .status-divider {
+  background: var(--theme-border, rgba(255,255,255,0.09));
 }
 
 /* ── Responsive ── */
+@media (max-width: 1024px) {
+  .status-bar-wrapper { padding: 6px 10px; gap: 3px; }
+  .status-pill { font-size: 0.65rem; padding: 4px 9px; }
+}
+
 @media (max-width: 768px) {
-  .status-bar-wrapper {
-    border-radius: 10px;
-    padding: 6px 10px;
-    gap: 4px;
-  }
-
-  .status-pill {
-    font-size: 0.62rem;
-    padding: 4px 9px;
-  }
-
-  .status-badge {
-    min-width: 16px;
-    height: 16px;
-    font-size: 0.55rem;
-  }
+  .status-bar-wrapper { border-radius: 10px; }
+  /* On mobile, hide label — show only icon + count */
+  .pill-label { display: none; }
+  .status-pill { padding: 5px 8px; gap: 4px; }
+  .status-badge { min-width: 14px; font-size: 0.62rem; }
 }
 
 @media (max-width: 480px) {
-  .status-bar-wrapper {
-    padding: 5px 8px;
-    gap: 3px;
-  }
-
-  .status-pill {
-    font-size: 0.6rem;
-    padding: 4px 8px;
-  }
-
-  .status-pill .pill-label {
-    display: none;
-  }
-
-  .status-divider {
-    margin: 0 1px;
-  }
-}
-
-/* ============================================
-   CSS Custom Properties (Theme Variables)
-   Applied via ThemeProvider on :root / [data-theme]
-   ============================================ */
-
-:root {
-  --theme-primary: #ef0d50;
-  --theme-secondary: #eb3a70;
-  --theme-bg: #e8f4f8;
-  --theme-bg-glass: rgba(255, 255, 255, 0.5);
-  --theme-bg-glass-strong: rgba(255, 255, 255, 0.88);
-  --theme-bg-hover: rgba(255, 255, 255, 0.97);
-  --theme-border: rgba(255, 255, 255, 0.7);
-  --theme-border-soft: rgba(180, 210, 225, 0.4);
-  --theme-text-primary: #0f172a;
-  --theme-text-secondary: #475569;
-  --theme-text-muted: #94a3b8;
-  --theme-shadow: 0 8px 32px rgba(15, 20, 40, 0.1);
-  --theme-shadow-sm: 0 2px 12px rgba(15, 20, 40, 0.07);
-}
-
-[data-theme='dark'] {
-  --theme-bg: #0d1117;
-  --theme-bg-glass: rgba(22, 28, 36, 0.62);
-  --theme-bg-glass-strong: rgba(22, 28, 36, 0.96);
-  --theme-bg-hover: rgba(30, 38, 50, 0.99);
-  --theme-border: rgba(255, 255, 255, 0.09);
-  --theme-border-soft: rgba(255, 255, 255, 0.07);
-  --theme-text-primary: #f1f5f9;
-  --theme-text-secondary: #94a3b8;
-  --theme-text-muted: #4b5a6e;
-  --theme-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  --theme-shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.3);
+  .status-divider { display: none; }
+  .status-pill { padding: 4px 7px; }
 }

@@ -2,16 +2,7 @@
 
 import React, { useState } from 'react';
 import { Container } from 'react-bootstrap';
-import {
-  Clock,
-  Truck,
-  Package,
-  ClipboardList,
-  FileText,
-  TrendingUp,
-  Users,
-  Building2,
-} from 'lucide-react';
+import { Clock, Truck, Package, ClipboardList, FileText, TrendingUp, Users, Building2, } from 'lucide-react';
 import type { TabItem } from '../../../Types/Dashboards.types';
 import type { StatCardProps } from '../../../Types/KiduTypes/StatCard.types';
 import KiduStatsCardsGrid from '../../../KIDU_COMPONENTS/KiduStatsCardsGrid';
@@ -20,11 +11,11 @@ import AuthService from '../../../Services/AuthServices/Auth.services';
 
 // ─── Tabs — matches DSO Admin menu Home children exactly ──────────
 const tabs: TabItem[] = [
-  { id: 'on-hold',       label: 'Case on Hold',  icon: Clock,        count: 12   },
-  { id: 'in-transit',    label: 'In Transit',    icon: Truck,        count: 8    },
-  { id: 'in-production', label: 'In Production', icon: Package,      count: 24   },
-  { id: 'submitted',     label: 'Submitted',     icon: ClipboardList,count: 5    },
-  { id: 'recent',        label: 'Recent',        icon: FileText,     count: null },
+  { id: 'on-hold', label: 'Case on Hold', icon: Clock, count: 12 },
+  { id: 'in-transit', label: 'In Transit', icon: Truck, count: 8 },
+  { id: 'in-production', label: 'In Production', icon: Package, count: 24 },
+  { id: 'submitted', label: 'Submitted', icon: ClipboardList, count: 5 },
+  { id: 'recent', label: 'Recent', icon: FileText, count: null },
 ];
 
 // ─── HomePage ─────────────────────────────────────────────────────
@@ -38,37 +29,10 @@ const HomePage: React.FC = () => {
   };
 
   const statsCards: StatCardProps[] = [
-    {
-      title: 'Total Cases',
-      value: '156',
-      change: '+12% from last month',
-      changeType: 'positive',
-      icon: FileText,
-    },
-    {
-      title: 'Active Doctors',
-      value: '24',
-      change: '+2 new this week',
-      changeType: 'positive',
-      icon: Users,
-      variant: 'info',
-    },
-    {
-      title: 'Partner Labs',
-      value: '8',
-      change: 'Same as last month',
-      changeType: 'neutral',
-      icon: Building2,
-      variant: 'primary',
-    },
-    {
-      title: 'Revenue',
-      value: '$45.2K',
-      change: '+8.5% from last month',
-      changeType: 'positive',
-      icon: TrendingUp,
-      variant: 'success',
-    },
+    { title: 'Total Cases', value: '156', change: '+12% from last month', changeType: 'positive', icon: FileText, },
+    { title: 'Active Doctors', value: '24', change: '+2 new this week', changeType: 'positive', icon: Users, variant: 'info', },
+    { title: 'Partner Labs', value: '8', change: 'Same as last month', changeType: 'neutral', icon: Building2, variant: 'primary', },
+    { title: 'Revenue', value: '$45.2K', change: '+8.5% from last month', changeType: 'positive', icon: TrendingUp, variant: 'success', },
   ];
 
   return (

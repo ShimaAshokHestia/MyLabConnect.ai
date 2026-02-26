@@ -6,6 +6,7 @@ import { Navigate, Route } from 'react-router-dom';
 import LabLayout from '../Layout/LabLayout';
 import HomePage from '../Layout/HomePage';
 import LabSupportTypeList from '../Pages/Masters/Support Types/List';
+import CaseDashboard from '../../KIDU_COMPONENTS/KiduCaseDashboard';
 
 // ── Add page imports here as you build them ───────────────────────
 // import ActiveOrdersList    from '../Pages/Orders/Active/List';
@@ -15,7 +16,9 @@ export const labConnectRoutes = (
   <Route path="/" element={<LabLayout />}>
 
     {/* Home / Dashboard */}
-    <Route index element={<HomePage />} />
+    {/* <Route index element={<HomePage />} /> */}
+     <Route index element={    <CaseDashboard loginMode="lab" user={{ initials:'ML', name:'My Lab', email:'lab@example.com' }} />
+} />
 
     {/* Case Communication */}
     <Route path="caseCommunication/internal-list" element={<div><h5>All Orders</h5></div>} />

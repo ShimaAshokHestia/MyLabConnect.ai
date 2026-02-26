@@ -1,5 +1,5 @@
 import React from 'react';
-import './StatusBar.css';
+import '../Styles/KiduStyles/CaseStatusBar.css';
 
 // ─────────────────────────────────────────────
 // Types
@@ -28,7 +28,7 @@ export interface StatusBarProps {
 }
 
 // ─────────────────────────────────────────────
-// Icon map (emoji/unicode for exact HTML match)
+// Icon map
 // ─────────────────────────────────────────────
 
 const PILL_ICONS: Record<StatusKey, string> = {
@@ -44,11 +44,7 @@ const PILL_ICONS: Record<StatusKey, string> = {
 // Component
 // ─────────────────────────────────────────────
 
-const StatusBar: React.FC<StatusBarProps> = ({
-  items,
-  onSelect,
-  className = '',
-}) => {
+const StatusBar: React.FC<StatusBarProps> = ({ items, onSelect, className = '' }) => {
   const [activeKey, setActiveKey] = React.useState<StatusKey | null>(
     () => items.find((i) => i.active)?.key ?? null
   );
@@ -59,7 +55,11 @@ const StatusBar: React.FC<StatusBarProps> = ({
   };
 
   return (
-    <div className={`status-bar-wrapper ${className}`} role="tablist" aria-label="Case status filters">
+    <div
+      className={`status-bar-wrapper ${className}`}
+      role="tablist"
+      aria-label="Case status filters"
+    >
       {items.map((item, idx) => (
         <React.Fragment key={item.key}>
           <button
@@ -84,19 +84,3 @@ const StatusBar: React.FC<StatusBarProps> = ({
 };
 
 export default StatusBar;
-
-// ─────────────────────────────────────────────
-// Usage Example (for docs / Storybook)
-// ─────────────────────────────────────────────
-//
-// import StatusBar, { StatusItem } from './StatusBar';
-//
-// const items: StatusItem[] = [
-//   { key: 'hold',       label: 'Case on Hold',  count: 10, active: true },
-//   { key: 'transit',    label: 'In Transit',     count: 0  },
-//   { key: 'production', label: 'In Production',  count: 48 },
-//   { key: 'submitted',  label: 'Submitted',      count: 77 },
-//   { key: 'recent',     label: 'Recent',         count: 2  },
-// ];
-//
-// <StatusBar items={items} onSelect={(key) => console.log(key)} />

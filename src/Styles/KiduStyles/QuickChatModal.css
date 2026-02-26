@@ -1,0 +1,372 @@
+/* ============================================================
+   QuickChatModal.css
+   MyLab Connect — Quick Chat Modal
+   Pixel-perfect port of the HTML .qcmodal / .qcoverlay styles.
+   ============================================================ */
+
+/* ── Overlay ── */
+.qc-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0);
+  transition: background 0.28s;
+  font-family: 'Outfit', sans-serif;
+}
+
+.qc-overlay.active {
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  pointer-events: all;
+}
+
+/* ── Modal Shell ── */
+.qc-modal {
+  width: min(400px, 96vw);
+  height: 540px;
+  background: var(--theme-bg-paper, rgba(255, 255, 255, 0.88));
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  border: 1px solid var(--theme-border, rgba(180, 210, 225, 0.4));
+  border-radius: 22px;
+  box-shadow: 0 28px 70px rgba(15, 20, 40, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  pointer-events: all;
+  transform: translateY(24px) scale(0.95);
+  opacity: 0;
+  transition: all 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.qc-modal.open {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+[data-theme='dark'] .qc-modal {
+  background: var(--theme-bg-paper, rgba(26, 31, 38, 0.96));
+  border-color: var(--theme-border, rgba(255, 255, 255, 0.09));
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.55);
+}
+
+/* ── Header ── */
+.qc-header {
+  background: linear-gradient(135deg, #0e5f8a, #0a4f76);
+  padding: 14px 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.qc-back-btn,
+.qc-close-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.qc-back-btn:hover,
+.qc-close-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.qc-close-btn:hover {
+  transform: rotate(90deg);
+}
+
+.qc-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.qc-name {
+  font-size: 0.81rem;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.qc-case-id {
+  font-size: 0.61rem;
+  color: rgba(255, 255, 255, 0.62);
+  font-family: 'DM Mono', monospace;
+}
+
+.qc-online-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+.qc-online-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  flex-shrink: 0;
+  animation: qcBlink 2s infinite;
+}
+
+@keyframes qcBlink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.qc-online-text {
+  font-size: 0.59rem;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* ── Messages Area ── */
+.qc-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--theme-bg, #e8f4f8);
+}
+
+[data-theme='dark'] .qc-messages {
+  background: var(--theme-bg, #0d1117);
+}
+
+.qc-messages::-webkit-scrollbar { width: 3px; }
+.qc-messages::-webkit-scrollbar-thumb {
+  background: var(--theme-border, rgba(180, 210, 225, 0.4));
+  border-radius: 2px;
+}
+
+/* ── Date Divider ── */
+.qc-date-divider {
+  text-align: center;
+  margin: 4px 0;
+}
+
+.qc-date-divider span {
+  font-size: 0.57rem;
+  color: var(--theme-text-secondary, #475569);
+  background: var(--theme-bg-paper, rgba(255, 255, 255, 0.88));
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--theme-border, rgba(180, 210, 225, 0.4));
+}
+
+[data-theme='dark'] .qc-date-divider span {
+  background: var(--theme-bg-paper, rgba(26, 31, 38, 0.96));
+  color: var(--theme-text-secondary, #94a3b8);
+}
+
+/* ── Bubbles ── */
+.qc-msg {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: qcMsgIn 0.28s ease-out both;
+}
+
+@keyframes qcMsgIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.qc-msg.lab { align-items: flex-start; }
+.qc-msg.doc { align-items: flex-end; }
+
+.qc-sender {
+  font-size: 0.54rem;
+  color: var(--theme-text-secondary, #475569);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0 2px;
+}
+
+[data-theme='dark'] .qc-sender {
+  color: var(--theme-text-secondary, #94a3b8);
+}
+
+.qc-bubble {
+  padding: 8px 11px;
+  border-radius: 11px;
+  font-size: 0.71rem;
+  line-height: 1.5;
+  max-width: 92%;
+  font-family: 'Outfit', sans-serif;
+}
+
+.qc-msg.lab .qc-bubble {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.14);
+  color: var(--theme-text-primary, #0f172a);
+  border-bottom-left-radius: 2px;
+}
+
+[data-theme='dark'] .qc-msg.lab .qc-bubble {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--theme-text-primary, #f1f5f9);
+}
+
+.qc-msg.doc .qc-bubble {
+  background: linear-gradient(135deg, #ef0d50, #eb3a70);
+  color: #fff;
+  border-bottom-right-radius: 2px;
+}
+
+.qc-time {
+  font-size: 0.53rem;
+  color: var(--theme-text-secondary, #475569);
+  padding: 0 2px;
+  font-family: 'DM Mono', monospace;
+}
+
+[data-theme='dark'] .qc-time {
+  color: var(--theme-text-secondary, #94a3b8);
+}
+
+/* ── Input Area ── */
+.qc-input-wrap {
+  padding: 10px;
+  border-top: 1px solid var(--theme-border, rgba(180, 210, 225, 0.4));
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  background: var(--theme-bg-paper, rgba(255, 255, 255, 0.88));
+  flex-shrink: 0;
+}
+
+[data-theme='dark'] .qc-input-wrap {
+  background: var(--theme-bg-paper, rgba(26, 31, 38, 0.96));
+  border-top-color: var(--theme-border, rgba(255, 255, 255, 0.09));
+}
+
+.qc-input {
+  flex: 1;
+  background: var(--theme-bg, #e8f4f8);
+  border: 1px solid var(--theme-border, rgba(180, 210, 225, 0.4));
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 0.73rem;
+  color: var(--theme-text-primary, #0f172a);
+  font-family: 'Outfit', sans-serif;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  resize: none;
+  line-height: 1.4;
+}
+
+.qc-input::placeholder {
+  color: var(--theme-text-disabled, #94a3b8);
+}
+
+.qc-input:focus {
+  border-color: var(--theme-primary, #ef0d50);
+  box-shadow: 0 0 0 2px rgba(239, 13, 80, 0.1);
+}
+
+[data-theme='dark'] .qc-input {
+  background: var(--theme-bg-hover, rgba(30, 38, 50, 0.99));
+  border-color: var(--theme-border, rgba(255, 255, 255, 0.09));
+  color: var(--theme-text-primary, #f1f5f9);
+}
+
+.qc-send-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #ef0d50, #eb3a70);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.qc-send-btn:hover:not(:disabled) {
+  transform: scale(1.08);
+  box-shadow: 0 3px 12px rgba(239, 13, 80, 0.4);
+}
+
+.qc-send-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.qc-send-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ── Read-only notice ── */
+.qc-readonly-notice {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--theme-border, rgba(180, 210, 225, 0.4));
+  background: var(--theme-bg-paper, rgba(255, 255, 255, 0.88));
+  font-size: 0.65rem;
+  color: var(--theme-text-disabled, #94a3b8);
+  flex-shrink: 0;
+  font-family: 'Outfit', sans-serif;
+}
+
+[data-theme='dark'] .qc-readonly-notice {
+  background: var(--theme-bg-paper, rgba(26, 31, 38, 0.96));
+  border-top-color: var(--theme-border, rgba(255, 255, 255, 0.09));
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .qc-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .qc-modal {
+    width: 100vw;
+    height: 92dvh;
+    border-radius: 22px 22px 0 0;
+    transform: translateY(40px) scale(1);
+  }
+
+  .qc-modal.open {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 360px) {
+  .qc-bubble {
+    font-size: 0.67rem;
+    max-width: 96%;
+  }
+
+  .qc-input {
+    font-size: 0.68rem;
+  }
+}

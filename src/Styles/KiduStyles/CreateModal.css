@@ -35,15 +35,22 @@
    MODAL SHELL
 ══════════════════════════════════════════════════════════════════════════ */
 
+/* The dialog wrapper — needs position:relative for the floating close btn */
 .kidu-modal-dialog {
   max-width: var(--kidu-modal-max-width);
   margin: 1.5rem auto;
+  position: relative;
 }
 
+/* 
+  CRITICAL FIX: Remove overflow:hidden so the floating close button
+  can visually escape the modal boundary. The top-left radius is preserved
+  via the header's ::before gradient bar instead.
+*/
 .kidu-modal-content {
   border: none !important;
   border-radius: var(--kidu-modal-radius) !important;
-  overflow: hidden;
+  overflow: visible !important;          /* ← was hidden, clipped the close btn */
   background: var(--kidu-bg-paper) !important;
   box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.07),
@@ -52,19 +59,78 @@
   animation: kiduFadeIn 0.18s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Since overflow is now visible we clip the inner sections individually */
+.kidu-modal-header {
+  border-radius: var(--kidu-modal-radius) var(--kidu-modal-radius) 0 0;
+  overflow: hidden;
+}
+.kidu-modal-footer {
+  border-radius: 0 0 var(--kidu-modal-radius) var(--kidu-modal-radius);
+  overflow: hidden;
+}
+
 @keyframes kiduFadeIn {
   from { opacity: 0; transform: scale(0.96) translateY(6px); }
   to   { opacity: 1; transform: scale(1)    translateY(0);   }
 }
 
-/* ── Header ── */
+
+/* ══════════════════════════════════════════════════════════════════════════
+   FLOATING CLOSE BUTTON
+   Sits outside the modal content, anchored to .kidu-modal-dialog
+══════════════════════════════════════════════════════════════════════════ */
+
+.kidu-modal-close-btn {
+  position: absolute;
+  top: -13px;
+  right: -13px;
+  z-index: 1070;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--kidu-accent);
+  border: 2px solid #fff;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 0;             /* ← kill line-height contribution */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  padding: 0;
+  /* Nudge the × glyph into true optical centre */
+  padding-top: 1px;
+}
+
+.kidu-modal-close-btn:hover {
+  transform: scale(1.12);
+  box-shadow: 0 4px 14px rgba(var(--kidu-accent-rgb), 0.45);
+}
+
+.kidu-modal-close-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(var(--kidu-accent-rgb), 0.35);
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   HEADER — layout + accent bar
+══════════════════════════════════════════════════════════════════════════ */
+
 .kidu-modal-header {
   padding: 18px 22px 14px !important;
   border-bottom: 1px solid var(--kidu-divider) !important;
   background: var(--kidu-bg-paper) !important;
   position: relative;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
 }
 
+/* Accent gradient top bar */
 .kidu-modal-header::before {
   content: "";
   position: absolute;
@@ -72,6 +138,17 @@
   height: 3px;
   background: linear-gradient(90deg, var(--kidu-accent), rgba(var(--kidu-accent-rgb), 0.35));
   border-radius: var(--kidu-modal-radius) var(--kidu-modal-radius) 0 0;
+}
+
+/* Hide Bootstrap's built-in ✕ — we use our own floating button */
+.kidu-modal-header .btn-close {
+  display: none !important;
+}
+
+/* Left side: title + subtitle */
+.kidu-modal-header-left {
+  display: flex;
+  flex-direction: column;
 }
 
 .kidu-modal-title {
@@ -89,18 +166,105 @@
   line-height: 1.45;
 }
 
-.kidu-modal-header .btn-close {
-  padding: 0.4rem !important;
-  opacity: 0.45;
-  transition: opacity 0.15s, background 0.15s;
-  border-radius: 6px !important;
-}
-.kidu-modal-header .btn-close:hover { opacity: 1; background: var(--kidu-bg); }
-[data-theme="dark"] .kidu-modal-header .btn-close {
-  filter: invert(1) grayscale(100%) brightness(200%);
+
+/* ══════════════════════════════════════════════════════════════════════════
+   HEADER ACTIVE TOGGLE
+   Shown on the right side of the header when field name === "active"
+══════════════════════════════════════════════════════════════════════════ */
+
+.kidu-modal-header-active {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: 4px;   /* breathing room from the edge */
+  flex-shrink: 0;
 }
 
-/* ── Body — SCROLLABLE ── */
+.kidu-active-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  transition: color 0.2s ease;
+  white-space: nowrap;
+  color: var(--kidu-text-secondary);
+}
+
+/* The header toggle re-uses the global form-switch styles but we
+   override the accent colour to green to match the design spec */
+.kidu-header-toggle {
+  display: flex !important;
+  align-items: center !important;
+  padding-left: 0 !important;
+  margin: 0 !important;
+  min-height: unset !important;
+}
+
+.kidu-header-toggle .form-check-input {
+  /* Dimensions */
+  width: var(--kidu-toggle-width) !important;
+  height: var(--kidu-toggle-height) !important;
+  flex-shrink: 0 !important;
+  border-radius: 999px !important;
+
+  /* Thumb */
+  background-image: radial-gradient(
+    circle at center,
+    #ffffff 0%,
+    #ffffff 45%,
+    transparent 46%,
+    transparent 100%
+  ) !important;
+  background-size: var(--kidu-toggle-thumb-size) var(--kidu-toggle-thumb-size) !important;
+  background-repeat: no-repeat !important;
+  background-position: 3px center !important;
+
+  /* OFF state */
+  background-color: #cbd5e1 !important;
+  border: 2px solid #cbd5e1 !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+  cursor: pointer;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  box-shadow: none !important;
+
+  transition:
+    background-color 0.22s ease,
+    border-color 0.22s ease,
+    background-position 0.22s ease,
+    box-shadow 0.22s ease !important;
+}
+
+/* ON — green, thumb moves right */
+.kidu-header-toggle .form-check-input:checked {
+  background-color: #22c55e !important;
+  border: 2px solid rgba(34, 197, 94, 0.55) !important;
+  background-position: calc(var(--kidu-toggle-width) - var(--kidu-toggle-thumb-size) - 3px) center !important;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2) !important;
+}
+
+.kidu-header-toggle .form-check-input:hover:not(:disabled):not(:checked) {
+  background-color: #94a3b8 !important;
+  border-color: #94a3b8 !important;
+}
+
+.kidu-header-toggle .form-check-input:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25) !important;
+}
+
+/* Hide the duplicate label — we show .kidu-active-label instead */
+.kidu-header-toggle .form-check-label {
+  display: none !important;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   BODY — SCROLLABLE
+══════════════════════════════════════════════════════════════════════════ */
+
 .kidu-modal-body {
   padding: 16px 20px 10px !important;
   background: var(--kidu-bg-paper) !important;
@@ -115,7 +279,11 @@
 .kidu-modal-body::-webkit-scrollbar-thumb { background: var(--kidu-border); border-radius: 99px; }
 .kidu-modal-body::-webkit-scrollbar-thumb:hover { background: var(--kidu-text-disabled); }
 
-/* ── Footer ── */
+
+/* ══════════════════════════════════════════════════════════════════════════
+   FOOTER
+══════════════════════════════════════════════════════════════════════════ */
+
 .kidu-modal-footer {
   padding: 12px 20px 16px !important;
   border-top: 1px solid var(--kidu-divider) !important;
@@ -344,23 +512,9 @@
 
 
 /* ══════════════════════════════════════════════════════════════════════════
-   TOGGLE SWITCH — FULLY FIXED
-   
-   Problem: Bootstrap's .form-switch applies its own background-image SVG
-   (a white circle) AND our overrides were stacking, creating a "double
-   pill / double circle" rendering. 
-   
-   Solution:
-   1. Strip ALL Bootstrap background-image with `background-image: none`
-   2. Build the thumb purely with box-shadow on a ::before pseudo approach
-      — but since <input> can't have pseudo elements, we use a carefully
-      crafted radial-gradient as the single background-image so only ONE
-      white circle appears.
-   3. Animate position via background-position (left→right on :checked).
-   4. The border + glow on :checked state fulfils the "ON border" request.
+   TOGGLE SWITCH (form body) — accent-coloured
 ══════════════════════════════════════════════════════════════════════════ */
 
-/* Wrapper */
 .form-switch {
   display: flex !important;
   align-items: center !important;
@@ -369,24 +523,14 @@
   min-height: unset !important;
 }
 
-/* Input element */
 .form-switch .form-check-input {
-  /* Dimensions */
   width: var(--kidu-toggle-width) !important;
   height: var(--kidu-toggle-height) !important;
   flex-shrink: 0 !important;
-
-  /* Shape */
   border-radius: 999px !important;
-
-  /* --- CRITICAL: nuke ALL default Bootstrap background-image first --- */
   background-image: none !important;
-
-  /* OFF track colour */
   background-color: #cbd5e1 !important;
   border: 2px solid #cbd5e1 !important;
-
-  /* Single white circle thumb via radial-gradient */
   background-image: radial-gradient(
     circle at center,
     #ffffff 0%,
@@ -394,20 +538,15 @@
     transparent 46%,
     transparent 100%
   ) !important;
-
-  /* Thumb size and starting position (left = OFF) */
   background-size: var(--kidu-toggle-thumb-size) var(--kidu-toggle-thumb-size) !important;
   background-repeat: no-repeat !important;
   background-position: 3px center !important;
-
-  /* Reset */
   margin: 0 !important;
   padding: 0 !important;
   cursor: pointer;
   appearance: none !important;
   -webkit-appearance: none !important;
   box-shadow: none !important;
-
   transition:
     background-color 0.22s ease,
     border-color 0.22s ease,
@@ -415,41 +554,34 @@
     box-shadow 0.22s ease !important;
 }
 
-/* OFF hover */
 .form-switch .form-check-input:hover:not(:disabled):not(:checked) {
   background-color: #94a3b8 !important;
   border-color: #94a3b8 !important;
 }
 
-/* ON state — thumb moves right, accent colour, border, glow */
 .form-switch .form-check-input:checked {
   background-color: var(--kidu-accent) !important;
   border: 2px solid rgba(var(--kidu-accent-rgb), 0.55) !important;
-  /* Move thumb to the right: total_width - thumb_size - 3px gap */
   background-position: calc(var(--kidu-toggle-width) - var(--kidu-toggle-thumb-size) - 3px) center !important;
   box-shadow: 0 0 0 3px rgba(var(--kidu-accent-rgb), 0.18) !important;
 }
 
-/* ON hover */
 .form-switch .form-check-input:checked:hover:not(:disabled) {
   box-shadow: 0 0 0 4px rgba(var(--kidu-accent-rgb), 0.26) !important;
 }
 
-/* Focus ring */
 .form-switch .form-check-input:focus {
   outline: none !important;
   box-shadow: 0 0 0 3px rgba(var(--kidu-accent-rgb), 0.2) !important;
 }
 
-/* Disabled */
 .form-switch .form-check-input:disabled {
   opacity: 0.45;
   cursor: not-allowed;
   pointer-events: none;
 }
 
-/* Label — hidden because kidu-form-label above the toggle already shows it.
-   The <Form.Check label={rules.label}> would duplicate the text. */
+/* Hide the Bootstrap-generated label — kidu-form-label above shows it */
 .form-switch .form-check-label {
   display: none !important;
 }
@@ -587,10 +719,24 @@
   box-shadow: 0 0 0 3px rgba(var(--kidu-accent-rgb), 0.25) !important;
 }
 
+[data-theme="dark"] .kidu-header-toggle .form-check-input {
+  background-color: #334155 !important;
+  border-color: #334155 !important;
+}
+[data-theme="dark"] .kidu-header-toggle .form-check-input:checked {
+  background-color: #22c55e !important;
+  border-color: rgba(34, 197, 94, 0.6) !important;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25) !important;
+}
+
 [data-theme="dark"] .kidu-input:focus,
 [data-theme="dark"] .kidu-textarea:focus,
 [data-theme="dark"] .kidu-select:focus {
   box-shadow: 0 0 0 3px rgba(var(--kidu-accent-rgb), 0.18) !important;
+}
+
+[data-theme="dark"] .kidu-modal-header .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
 }
 
 
@@ -653,5 +799,5 @@
 
 @media print {
   .kidu-modal-footer,
-  .kidu-modal-header .btn-close { display: none; }
+  .kidu-modal-close-btn { display: none; }
 }

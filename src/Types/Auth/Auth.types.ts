@@ -29,6 +29,14 @@ export interface ChangePasswordRequest {
   newPassword: string;
 }
 
+export interface VerifyOtpRequest {
+  otpCode: string;
+}
+
+export interface ChangeDefaultPasswordRequest {
+  newPassword: string;
+}
+
 // ─── UserTypeName — must match DB UserTypes exactly ───────────────
 export type UserTypeName =
   | 'DSO'
@@ -67,13 +75,22 @@ export interface AuthUser {
   updatedAt: string;
   isDeleted: boolean;
   isActive: boolean;
+  isDefaultPassword: boolean;
+  dsoMasterId?: number | null;
+  dsoName?: string;
+  labMasterId?: number | null;
+  labName?: string;
 }
 
-// ─── Login response (value field from backend) ────────────────────
-export interface LoginResponseValue {
-  token: string;
-  expiresAt: string;
-  user: AuthUser;
+// ─── Auth states returned by backend ─────────────────────────────
+export type AuthState = 'SUCCESS' | 'REQUIRES_2FA' | 'REQUIRES_PWD_CHANGE';
+
+// ─── Backend AuthResponseDTO shape ───────────────────────────────
+export interface AuthResponseDTO {
+  authState: AuthState;
+  token: string | null;
+  resendAvailableInSeconds?: number | null;
+  redirectPortal?: string | null;
 }
 
 // ─── Generic backend wrapper — preserves backend typo "isSucess" ──
@@ -85,7 +102,17 @@ export interface CustomApiResponse<T = any> {
   value: T | null;
 }
 
-export type LoginApiResponse = CustomApiResponse<LoginResponseValue>;
+// ─── Specific response types ─────────────────────────────────────
+export type LoginApiResponse = CustomApiResponse<AuthResponseDTO>;
+export type MeApiResponse = CustomApiResponse<AuthUser>;
+
+// ─── Legacy shape kept for register (still returns token+user) ────
+export interface RegisterResponseValue {
+  token: string;
+  expiresAt: string;
+  user: AuthUser;
+}
+export type RegisterApiResponse = CustomApiResponse<RegisterResponseValue>;
 
 // ─── Helpers ──────────────────────────────────────────────────────
 export function isValidUserTypeName(name: string | null | undefined): name is UserTypeName {
@@ -96,4 +123,19 @@ export function isValidUserTypeName(name: string | null | undefined): name is Us
 export function getDashboardRouteByType(userTypeName: string): string {
   if (!isValidUserTypeName(userTypeName)) return '/';
   return PORTAL_ROUTES[userTypeName];
+}
+
+// ─── Portal name → route (matches backend DeterminePortal) ───────
+const PORTAL_NAME_MAP: Record<string, string> = {
+  AdminConnect:     '/appadmin-connect',
+  DSOConnect:       '/dsoadmin-connect',
+  LabConnect:       '/lab-connect',
+  PracticePortal:   '/practice-connect',
+  DrConnect:        '/doctor-connect',
+  DefaultDashboard: '/',
+};
+
+export function getRouteFromPortalName(portalName: string | null | undefined): string {
+  if (!portalName) return '/';
+  return PORTAL_NAME_MAP[portalName] ?? '/';
 }

@@ -6,9 +6,14 @@ export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: `${API_BASE_URL}/Auth/login`,
     LOGOUT: `${API_BASE_URL}/Auth/logout`,
+    REGISTER: `${API_BASE_URL}/Auth/register`,
     CHANGE_PASSWORD: `${API_BASE_URL}/Auth/change-password`,
     FORGOT_PASSWORD: `${API_BASE_URL}/Auth/forgot-password`,
-    REGISTER: `${API_BASE_URL}/Auth/register`
+    RESET_PASSWORD: `${API_BASE_URL}/Auth/reset-password`,
+    ME: `${API_BASE_URL}/Auth/me`,
+    VERIFY_OTP: `${API_BASE_URL}/Auth/verify-otp`,
+    RESEND_OTP: `${API_BASE_URL}/Auth/resend-otp`,
+    CHANGE_DEFAULT_PASSWORD: `${API_BASE_URL}/Auth/change-default-password`,
   },
   AUDIT_LOG: {
     GET_BY_TABLE_AND_ID: (tableName: string, recordId: number) =>

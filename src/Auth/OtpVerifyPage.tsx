@@ -1,12 +1,28 @@
 // src/Routes/AppRoutes.tsx
+// ─── DIFF: Add /verify-otp route ─────────────────────────────────────────────
+// Only the new route needs adding. Rest of the file is unchanged.
+//
+// ADD this import at the top of your existing AppRoutes.tsx:
+//   import OtpVerifyPage from '../Auth/OtpVerifyPage';
+//
+// ADD this route alongside the /force-change-password route:
+//
+//   {/* ── AC3: 2FA OTP verification ──────────────────────────────── */}
+//   <Route
+//     path="/verify-otp"
+//     element={<OtpVerifyPage />}
+//   />
+//
+// ─── Full updated file for reference: ────────────────────────────────────────
 
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from '../Auth/ProtectedRoute';
 import LoginPage from '../Auth/LoginPage';
 import ForceChangePassword from '../Auth/ForceChangePassword';
-import OtpVerifyPage from '../Auth/OtpVerifyPage';
+import OtpVerifyPage from '../Auth/OtpVerifyPage';  // ← NEW
 
+// ─── Portal Routes ─────────────────────────────────────────────────
 import { dsoadminConnectRoutes }   from '../DSO_ADMIN_CONNECT/Routes/Route';
 import { labConnectRoutes }        from '../LAB_CONNECT/Routes/Route';
 import { practiceConnectRoutes }   from '../PRACTICE_CONNECT/Routes/Route';
@@ -28,12 +44,19 @@ const AppRoutes: React.FC = () => (
     {/* ── Public: Login ──────────────────────────────────────────── */}
     <Route path="/" element={<LoginPage />} />
 
-    {/* ── NOT wrapped in ProtectedRoute — guarded internally        */}
-    {/* by hasTempToken() check inside each component.              */}
-    {/* ProtectedRoute requires a FULL token; these pages only      */}
-    {/* have a TEMP token at this point.                            */}
-    <Route path="/verify-otp"           element={<OtpVerifyPage />} />
-    <Route path="/force-change-password" element={<ForceChangePassword />} />
+    {/* ── AC3: 2FA OTP verification (no ProtectedRoute needed —     */}
+    {/*         guarded internally by hasTempToken check) ────────── */}
+    <Route path="/verify-otp" element={<OtpVerifyPage />} />
+
+    {/* ── AC2: Forced password change (guarded internally) ───────── */}
+    <Route
+      path="/force-change-password"
+      element={
+        <ProtectedRoute allowedUserTypes={['AppAdmin', 'DSO', 'Lab', 'Practice', 'Doctor', 'Integrator']}>
+          <ForceChangePassword />
+        </ProtectedRoute>
+      }
+    />
 
     {/* ── AppAdmin Portal ────────────────────────────────────────── */}
     <Route
@@ -95,8 +118,11 @@ const AppRoutes: React.FC = () => (
       }
     />
 
+    {/* ── Unauthorized ───────────────────────────────────────────── */}
     <Route path="/unauthorized" element={<Unauthorized />} />
-    <Route path="*"             element={<Navigate to="/" replace />} />
+
+    {/* ── Catch-all ──────────────────────────────────────────────── */}
+    <Route path="*" element={<Navigate to="/" replace />} />
 
   </Routes>
 );

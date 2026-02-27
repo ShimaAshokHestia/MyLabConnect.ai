@@ -13,7 +13,6 @@ import DsoDoctorList from '../Pages/Masters/Doctors/List';
 import DSOZoneList from '../Pages/Setup/Zone/List';
 import { DsoUserLayout } from '../Layout/DsoUserLayout';
 import DsoProductGroupList from '../Pages/Masters/Product Group/List';
-
 import DSOProsthesisTypeList from '../Pages/Prosthesis/List';
 import DSOSchemaList from '../Pages/Schema/List';
 import DSORestorationTypeList from '../Pages/Restoration/List';
@@ -40,23 +39,28 @@ export const dsoadminConnectRoutes = (
     <Route path="analytics" element={<div><h5>Analytics</h5></div>} />
 
     {/* Masters */}
-    <Route path="masters/lab-list" element={<LabMasterList />} />
     <Route path="masters/labgroup-list" element={<LabGroupList />} />
+    <Route path="masters/lab-list" element={<LabMasterList />} />
+    <Route path="masters/practice-list" element={<div><h5>Practice</h5></div>}/>
     <Route path="masters/doctor-list" element={<DsoDoctorList />} />
     <Route path="masters/productGroup-list" element={<DsoProductGroupList />} />
+    <Route path="masters/user-role-creation-list" element={<div><h5>User Role Creation</h5></div>} />
+
+
+
     <Route path="masters/lab" element={<div><h5>Lab</h5></div>} />
     <Route path="masters/practice" element={<div><h5>Practice</h5></div>} />
-    <Route path="masters/user-roles" element={<div><h5>User Role Creation</h5></div>} />
     <Route path="masters/dentalOffice-list" element={<DSODentalOfficeList />} />
     <Route path="masters/material-list" element={<DSOMaterialList />} />
     <Route path="masters/territory-list" element={<DSOTerritoryList />} />
 
 
     {/* Setup */}
-    <Route path="setup/zone-list" element={<DSOZoneList />} />
+     <Route path="setup/practice-managerLogin-list" element={<div><h5>Practice Manager Login</h5></div>} />
+     <Route path="setup/Dso-userLogin-list" element={<div><h5>User Login</h5></div>}/>
+    <Route path="setup/zone-list" element={<DSOZoneList />}/>
     <Route path="setup/region-list" element={<DSORegionList />} />
     <Route path="setup/setting-list" element={<DSOSettingList />} />
-    <Route path="setup/practice-manager" element={<div><h5>Practice Manager Login</h5></div>} />
     <Route path="setup/dso-user" element={<DSOUserList />} />
     <Route path="setup/lab-products-rate" element={<div><h5>Lab Products Rate</h5></div>} />
     <Route path="setup" element={<div><h5>Setup</h5></div>} />

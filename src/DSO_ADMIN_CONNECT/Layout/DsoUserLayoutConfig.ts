@@ -65,10 +65,10 @@ export const dsoAdminMenuItems: MenuItem[] = [
         children: [
             { title: 'Lab Group', url: '/dsoadmin-connect/masters/labgroup-list', icon: LucideMicroscope },
             { title: 'Lab', url: '/dsoadmin-connect/masters/lab-list', icon: Microscope },
-            { title: 'Practice', url: '/dsoadmin-connect/masters/practice', icon: Building2 },
+            { title: 'Practice', url: '/dsoadmin-connect/masters/practice-list', icon: Building2 },
             { title: 'Doctor', url: '/dsoadmin-connect/masters/doctor-list', icon: UserCog },
             { title: 'Product Group', url: '/dsoadmin-connect/masters/productGroup-list', icon: Package },
-            { title: 'User Role Creation', url: '/dsoadmin-connect/masters/user-roles', icon: UserPlus },
+            { title: 'User Role Creation', url: '/dsoadmin-connect/masters/user-role-creation-list', icon: UserPlus },
             // { title: 'Dental Office', url: '/dsoadmin-connect/masters/dentalOffice-list', icon: Syringe },
             // { title: 'Material', url: '/dsoadmin-connect/masters/material-list', icon: Box },
             // { title: 'Territory', url: '/dsoadmin-connect/masters/territory-list', icon: Box }

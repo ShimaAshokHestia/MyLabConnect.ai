@@ -15,9 +15,9 @@ import CaseDashboard from '../../KIDU_COMPONENTS/KiduCaseDashboard';
 
 
 const DoctorIndexPage: React.FC = () => {
-  const [data, setData]       = useState<DashboardPageData | null>(null);
+  const [data, setData] = useState<DashboardPageData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -48,7 +48,7 @@ const DoctorIndexPage: React.FC = () => {
       data={data ?? {
         role: 'doctor',
         tabCounts: { rejected: 0, hold: 0, transit: 0, production: 0, submitted: 0, recent: 0 },
-        cases:     { rejected: [], hold: [], transit: [], production: [], submitted: [], recent: [] },
+        cases: { rejected: [], hold: [], transit: [], production: [], submitted: [], recent: [] },
       }}
       loading={loading}
     />

@@ -6,6 +6,7 @@
    ============================================================ */
 
 import React, { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../Styles/KiduStyles/CaseDashboard.css';
 import StatusBar from './KiduCaseStatusbar';
 import CaseCard from './KiduCaseCards';
@@ -32,12 +33,13 @@ export interface CaseDashboardProps {
 // ─────────────────────────────────────────────────────────────
 
 const ROLE_STATUSBAR: Record<LoginRole, { prescription: boolean; pickup: boolean }> = {
-  admin:       { prescription: false, pickup: false },
-  dso:         { prescription: false, pickup: false },
-  lab:         { prescription: false, pickup: false },
-  doctor:      { prescription: true,  pickup: true  },
-  practice:    { prescription: false, pickup: true  },
-  integrator:  { prescription: false, pickup: false },
+  admin:      { prescription: false, pickup: false },
+  dso:        { prescription: false, pickup: false },
+  lab:        { prescription: false, pickup: false },
+  doctor:     { prescription: true,  pickup: true  },
+  practice:   { prescription: false, pickup: true  },
+  // include integrator to satisfy the LoginRole union
+  integrator: { prescription: false, pickup: false },
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -67,8 +69,9 @@ const SkeletonCard = () => (
 // ─────────────────────────────────────────────────────────────
 
 const CaseDashboard: React.FC<CaseDashboardProps> = ({ role, data, loading = false }) => {
-  const config = ROLE_CONFIG[role];
+  const config     = ROLE_CONFIG[role];
   const barButtons = ROLE_STATUSBAR[role];
+  const navigate   = useNavigate();
 
   // Initialise with role's default tab
   const [activeTab, setActiveTab] = useState<StatusKey>(config.defaultTab);
@@ -125,8 +128,8 @@ const CaseDashboard: React.FC<CaseDashboardProps> = ({ role, data, loading = fal
         onSelect={(key) => switchTab(key)}
         showPrescription={barButtons.prescription}
         showPickup={barButtons.pickup}
-        onPrescriptionClick={() => console.log('Prescription clicked')}
-        onPickupClick={() => console.log('Pickup clicked')}
+        onPrescriptionClick={() => navigate('add-new-case')}
+        onPickupClick={() => navigate('add-pickup')}
         searchValue={searchValue}
         onSearchChange={handleSearchChange}
       />

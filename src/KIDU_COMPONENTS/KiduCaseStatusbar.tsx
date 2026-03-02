@@ -145,14 +145,9 @@ const StatusBar: React.FC<StatusBarProps> = ({
   searchValue = '',
   onSearchChange,
 }) => {
-  const [activeKey, setActiveKey] = React.useState<StatusKey | null>(
-    () => items.find((i) => i.active)?.key ?? null
-  );
-
   const [internalSearch, setInternalSearch] = React.useState('');
 
   const handleClick = (key: StatusKey) => {
-    setActiveKey(key);
     onSelect?.(key);
   };
 
@@ -175,10 +170,10 @@ const StatusBar: React.FC<StatusBarProps> = ({
       {items.map((item, idx) => (
         <React.Fragment key={item.key}>
           <button
-            className={`status-pill ${item.key}${activeKey === item.key ? ' active' : ''}`}
+            className={`status-pill ${item.key}${item.active ? ' active' : ''}`}
             onClick={() => handleClick(item.key)}
             role="tab"
-            aria-selected={activeKey === item.key}
+            aria-selected={item.active || false}
             aria-label={`${item.label}: ${item.count}`}
           >
             <span className="pill-icon" aria-hidden="true">{PILL_ICONS[item.key]}</span>

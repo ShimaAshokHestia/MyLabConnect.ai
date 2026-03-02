@@ -15,7 +15,6 @@ const AUTHENTICATION_TYPE_OPTIONS = [
 ];
 
 // ── Field definitions ─────────────────────────────────────────────────────────
-
 const fields: Field[] = [
   { name: "labCode", rules: { type: "text", label: "Lab Code", required: true, minLength: 3, maxLength: 20, colWidth: 6 } },
   { name: "labName", rules: { type: "text", label: "Lab Name", required: true, minLength: 3, maxLength: 100, colWidth: 6 } },
@@ -67,21 +66,28 @@ const LabMasterCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }) => {
   };
 
   // ── Submit handler ────────────────────────────────────────────────────────
-  const handleSubmit = async (formData: Record<string, any>) => {
-    const payload: Partial<LabMaster> = {
-      labCode: formData.labCode,
-      labName: formData.labName,
-      displayName: formData.displayName,
-      email: formData.email,
-      labGroupId: formData.labGroupId ? Number(formData.labGroupId) : undefined,
-      authenticationType: formData.authenticationType ? Number(formData.authenticationType) : undefined,
-      logoforRX: formData.logoforRX,
-      lmsSystem: formData.lmsSystem,
-      isActive: formData.isActive ?? true,
-    };
-
-    await LabMasterService.create(payload);
+const handleSubmit = async (formData: Record<string, any>) => {
+  const payload: Partial<LabMaster> = {
+    labCode: formData.labCode,
+    labName: formData.labName,
+    displayName: formData.displayName,
+    email: formData.email,
+    labGroupId: formData.labGroupId ? Number(formData.labGroupId) : undefined,
+    authenticationType: formData.authenticationType
+      ? Number(formData.authenticationType)
+      : undefined,
+    logoforRX: formData.logoforRX,
+    lmsSystem: formData.lmsSystem,
+    isActive: formData.isActive ?? true,
   };
+
+  const result = await LabMasterService.create(payload);
+
+  // If your service returns a response object instead of throwing:
+  if (!result || !result.isSucess) {
+    throw new Error(result?.customMessage || result?.error || "Failed to create Lab");
+  }
+};
 
   return (
     <KiduCreateModal

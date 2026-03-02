@@ -3,15 +3,15 @@ import KiduViewModal, { type ViewField } from "../../../../KIDU_COMPONENTS/KiduV
 import LabGroupService from "../../../Services/Masters/Labgroup.services";
 
 interface Props {
-  show:     boolean;
-  onHide:   () => void;
+  show: boolean;
+  onHide: () => void;
   recordId: string | number;
 }
 
 const fields: ViewField[] = [
-  { name: "code",      label: "Code",            colWidth: 6 },
-  { name: "name",      label: "Lab Group Name",   colWidth: 6 },
-  { name: "isActive",  label: "Status",           colWidth: 6, isToggle: true },
+  { name: "code", label: "Code", colWidth: 6 },
+  { name: "name", label: "Lab Group Name", colWidth: 6 },
+  { name: "isActive", label: "Status", colWidth: 6, isToggle: true },
 ];
 
 const LabGroupViewModal: React.FC<Props> = ({ show, onHide, recordId }) => {

@@ -1,6 +1,94 @@
 import React from "react";
-import KiduDsoDoctorCreateModal from "../../../../KIDU_COMPONENTS/KiduDsoDoctorCreateModal";
+import KiduTabbedFormCreateModal, {
+  type TabConfig,
+  type TabbedFormField,
+} from "../../../../KIDU_COMPONENTS/KiduTabbedFormCreateModal";
 import DSODoctorService from "../../../Services/Masters/DsoDoctor.services";
+
+// ── Header fields (top section of the modal) ──────────────────────────────────
+const headerFields: TabbedFormField[] = [
+  {
+    name: "doctorCode",
+    label: "Doctor Code",
+    type: "text",
+    required: true,
+    placeholder: "Enter doctor code",
+    colWidth: 3,
+  },
+  {
+    name: "firstName",
+    label: "First Name",
+    type: "text",
+    required: true,
+    placeholder: "Enter first name",
+    colWidth: 3,
+  },
+  {
+    name: "lastName",
+    label: "Last Name",
+    type: "text",
+    required: true,
+    placeholder: "Enter last name",
+    colWidth: 3,
+  },
+  {
+    name: "email",
+    label: "Email",
+    type: "email",
+    required: false,
+    placeholder: "Enter email address",
+    colWidth: 4,
+  },
+  {
+    name: "phoneNumber",
+    label: "Phone Number",
+    type: "text",
+    required: false,
+    placeholder: "Enter phone number",
+    colWidth: 4,
+  },
+  {
+    name: "licenseNo",
+    label: "License No",
+    type: "text",
+    required: false,
+    placeholder: "Enter license number",
+    colWidth: 4,
+  },
+  {
+    name: "info",
+    label: "Specialty / Info",
+    type: "text",
+    required: false,
+    placeholder: "Enter specialty or additional info",
+    colWidth: 8,
+  },
+  {
+    name: "address",
+    label: "Address",
+    type: "text",
+    required: false,
+    placeholder: "Enter address",
+    colWidth: 10,
+  },
+];
+
+// ── Tab definitions (row-based section) ───────────────────────────────────────
+const tabs: TabConfig[] = [
+  {
+    key: "practices",
+    label: "Practices",
+    columns: [
+      {
+        key: "practiceId",
+        label: "Practice",
+        type: "text",
+        required: true,
+        placeholder: "Enter practice ID or name",
+      },
+    ],
+  },
+];
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 interface Props {
@@ -18,38 +106,62 @@ const DSODoctorCreateModal: React.FC<Props> = ({
   practiceOptions = [],
 }) => {
 
+  // Inject practiceOptions into the practices tab dynamically
+  const resolvedTabs: TabConfig[] = tabs.map((tab) => {
+    if (tab.key !== "practices") return tab;
+    return {
+      ...tab,
+      columns: tab.columns.map((col) => {
+        if (col.key !== "practiceId") return col;
+        return practiceOptions.length > 0
+          ? { ...col, type: "select" as const, options: practiceOptions }
+          : col;
+      }),
+    };
+  });
+
   // ── Submit handler ────────────────────────────────────────────────────────
-  const handleSubmit = async (formData: {
-    doctorCode: string;
-    userId: string;
-    firstName: string;
-    lastName: string;
-    gdcNo: string;
-    email: string;
-    isActive: boolean;
-    practices: { practiceId: string }[];
+  const handleSubmit = async (data: {
+    headerData: Record<string, any>;
+    tabData: Record<string, Record<string, any>[]>;
   }) => {
-    await DSODoctorService.create({
-      doctorCode: formData.doctorCode,
-      userId:     formData.userId,
-      firstName:  formData.firstName,
-      lastName:   formData.lastName,
-      fullName:   `${formData.firstName} ${formData.lastName}`,
-      gdcNo:      formData.gdcNo,
-      email:      formData.email,
-      isActive:   formData.isActive ?? true,
-      isDeleted:  false,
-      practices:  formData.practices,
+    const { headerData, tabData } = data;
+
+    // Filter out empty practice rows
+    const practices = (tabData.practices ?? []).filter(
+      (row) => row.practiceId && String(row.practiceId).trim() !== ""
+    );
+
+    const result = await DSODoctorService.create({
+      doctorCode: headerData.doctorCode,
+      firstName: headerData.firstName,
+      lastName: headerData.lastName,
+      fullName: `${headerData.firstName} ${headerData.lastName}`,
+      email: headerData.email || undefined,
+      phoneNumber: headerData.phoneNumber || undefined,
+      licenseNo: headerData.licenseNo || undefined,
+      info: headerData.info || undefined,
+      address: headerData.address || undefined,
+      isActive: headerData.isActive ?? true,
+      isDeleted: false,
     });
+
+    if (!result || !result.isSucess) {
+      throw new Error(result?.customMessage || result?.error || "Failed to create DSO Doctor");
+    }
+
+    onSuccess();
   };
 
   return (
-    <KiduDsoDoctorCreateModal
+    <KiduTabbedFormCreateModal
       show={show}
       onHide={onHide}
-      onSuccess={onSuccess}
-      practiceOptions={practiceOptions}
+      title="Create DSO Doctor"
+      headerFields={headerFields}
+      tabs={resolvedTabs}
       onSubmit={handleSubmit}
+      submitButtonText="Create Doctor"
     />
   );
 };

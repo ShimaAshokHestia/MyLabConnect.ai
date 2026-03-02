@@ -1,127 +1,267 @@
 import React, { useState, useEffect } from "react";
-import KiduEditModal, { type Field } from "../../../../KIDU_COMPONENTS/KiduEditModal";
+import KiduTabbedFormEditModal, {
+  type TabConfig,
+  type TabbedFormField,
+} from "../../../../KIDU_COMPONENTS/KiduTabbedFormEditModal";
 import DSODoctorService from "../../../Services/Masters/DsoDoctor.services";
-import type { DSODoctor } from "../../../Types/Masters/DsoDoctor.types";
-import type { DSOmaster } from "../../../../ADMIN/Types/Master/Master.types";
-import DSOmasterSelectPopup from "../../../../ADMIN/Pages/Master/PopUp";
 
-// ── Field definitions ─────────────────────────────────────────────────────────
+// ── Header fields ─────────────────────────────────────────────────────────────
+const headerFields: TabbedFormField[] = [
+  {
+    name: "doctorCode",
+    label: "Doctor Code",
+    type: "text",
+    required: true,
+    placeholder: "Enter doctor code",
+    colWidth: 4,
+  },
+  {
+    name: "firstName",
+    label: "First Name",
+    type: "text",
+    required: true,
+    placeholder: "Enter first name",
+    colWidth: 4,
+  },
+  {
+    name: "lastName",
+    label: "Last Name",
+    type: "text",
+    required: true,
+    placeholder: "Enter last name",
+    colWidth: 4,
+  },
+  {
+    name: "email",
+    label: "Email",
+    type: "email",
+    required: false,
+    placeholder: "Enter email address",
+    colWidth: 4,
+  },
+  {
+    name: "phoneNumber",
+    label: "Phone Number",
+    type: "text",
+    required: false,
+    placeholder: "Enter phone number",
+    colWidth: 4,
+  },
+  {
+    name: "licenseNo",
+    label: "License No",
+    type: "text",
+    required: false,
+    placeholder: "Enter license number",
+    colWidth: 4,
+  },
+  {
+    name: "info",
+    label: "Specialty / Info",
+    type: "text",
+    required: false,
+    placeholder: "Enter specialty or additional info",
+    colWidth: 6,
+  },
+  {
+    name: "address",
+    label: "Address",
+    type: "text",
+    required: false,
+    placeholder: "Enter address",
+    colWidth: 6,
+  },
+];
 
-const fields: Field[] = [
-  { name: "firstName", rules: { type: "text", label: "First Name", required: true, minLength: 3, maxLength: 50, colWidth: 6 } },
-  { name: "lastName", rules: { type: "text", label: "Last Name", required: true, minLength: 3, maxLength: 50, colWidth: 6 } },
-  { name: "doctorCode", rules: { type: "text", label: "Doctor Code", required: true, minLength: 3, maxLength: 20, colWidth: 6 } },
-  { name: "licenseNo", rules: { type: "text", label: "License No", required: true, minLength: 3, maxLength: 30, colWidth: 6 } },
-  { name: "email", rules: { type: "email", label: "Email", required: true, maxLength: 100, colWidth: 6 } },
-  { name: "phoneNumber", rules: { type: "text", label: "Phone Number", required: true, minLength: 7, maxLength: 20, colWidth: 6 } },
-  { name: "address", rules: { type: "textarea", label: "Address", required: true, minLength: 10, maxLength: 200, colWidth: 12 } },
-  { name: "info", rules: { type: "textarea", label: "Specialty/Info", required: false, minLength: 10, maxLength: 500, colWidth: 12 } },
-  { name: "dsoMasterId", rules: { type: "popup", label: "DSO Master", required: true, colWidth: 6 } },
-  { name: "isActive", rules: { type: "toggle", label: "Active", colWidth: 6 } },
+// ── Tab definitions ───────────────────────────────────────────────────────────
+const tabs: TabConfig[] = [
+  {
+    key: "practices",
+    label: "Practices",
+    columns: [
+      {
+        key: "practiceId",
+        label: "Practice",
+        type: "text",
+        required: true,
+        placeholder: "Enter practice ID or name",
+      },
+    ],
+  },
 ];
 
 // ── Props ─────────────────────────────────────────────────────────────────────
-
 interface Props {
   show: boolean;
   onHide: () => void;
   onSuccess: () => void;
-  recordId: string | number;
+  recordId: number | null;
+  practiceOptions?: { value: string; label: string }[];
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
+const DSODoctorEditModal: React.FC<Props> = ({
+  show,
+  onHide,
+  onSuccess,
+  recordId,
+  practiceOptions = [],
+}) => {
+  const [initialHeaderData, setInitialHeaderData] = useState<Record<string, any>>({});
+  const [initialTabData,    setInitialTabData]    = useState<Record<string, Record<string, any>[]>>({
+    practices: [{ practiceId: "" }],
+  });
+  const [loading, setLoading] = useState(false);
 
-const DSODoctorEditModal: React.FC<Props> = ({ show, onHide, onSuccess, recordId }) => {
-  const [selectedMaster, setSelectedMaster] = useState<DSOmaster | null>(null);
-  const [masterOpen, setMasterOpen] = useState(false);
+  // ── Inject practiceOptions into the practices tab if provided ─────────────
+  const resolvedTabs: TabConfig[] = tabs.map((tab) => {
+    if (tab.key !== "practices") return tab;
+    return {
+      ...tab,
+      columns: tab.columns.map((col) => {
+        if (col.key !== "practiceId") return col;
+        return practiceOptions.length > 0
+          ? { ...col, type: "select" as const, options: practiceOptions }
+          : col;
+      }),
+    };
+  });
 
-  // Reset selection when modal closes
+  // ── Fetch existing record when modal opens ────────────────────────────────
+  useEffect(() => {
+    if (!show || !recordId) return;
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const response = await DSODoctorService.getById(recordId);
+
+        if (!response || !response.isSucess) {
+          throw new Error(response?.customMessage || response?.error || "Failed to load data");
+        }
+
+        const data = response.value;
+
+        // ── Map fetched data → header fields ──────────────────────────────
+        setInitialHeaderData({
+          doctorCode:  data.doctorCode  ?? "",
+          firstName:   data.firstName   ?? "",
+          lastName:    data.lastName    ?? "",
+          email:       data.email       ?? "",
+          phoneNumber: data.phoneNumber ?? "",
+          licenseNo:   data.licenseNo   ?? "",
+          info:        data.info        ?? "",
+          address:     data.address     ?? "",
+          isActive:    data.isActive    ?? true,
+        });
+
+        // ── Map fetched practices → tab rows ──────────────────────────────
+        const practiceRows: Record<string, any>[] =
+          Array.isArray(data.practices) && data.practices.length > 0
+            ? data.practices.map((p: any) => ({
+                practiceId: p.practiceId ?? p.id ?? "",
+              }))
+            : [{ practiceId: "" }];
+
+        setInitialTabData({ practices: practiceRows });
+
+      } catch (error: any) {
+        console.error("Failed to load DSO Doctor:", error);
+        onHide();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [show, recordId]);
+
+  // ── Reset when modal closes ───────────────────────────────────────────────
   useEffect(() => {
     if (!show) {
-      setSelectedMaster(null);
+      setInitialHeaderData({});
+      setInitialTabData({ practices: [{ practiceId: "" }] });
     }
   }, [show]);
 
-  // ── Fetch handler ─────────────────────────────────────────────────────────
-  const handleFetch = async (id: string | number) => {
-    const response = await DSODoctorService.getById(Number(id));
-    console.log("Fetch Response:", response);
-    
-    const data = response?.value || response;
-    
-    // Set the selected master from the fetched data
-    if (data?.dsoMasterId && data?.dsoName) {
-      setSelectedMaster({
-        id: data.dsoMasterId,
-        name: data.dsoName,
-      } as DSOmaster);
+  // ── Submit handler ────────────────────────────────────────────────────────
+  const handleSubmit = async (data: {
+    headerData: Record<string, any>;
+    tabData: Record<string, Record<string, any>[]>;
+  }) => {
+    if (!recordId) return;
+
+    const { headerData, tabData } = data;
+
+    // Filter out empty practice rows
+    const practices = (tabData.practices ?? []).filter(
+      (row) => row.practiceId && String(row.practiceId).trim() !== ""
+    );
+
+    const result = await DSODoctorService.update(recordId, {
+      doctorCode:  headerData.doctorCode,
+      firstName:   headerData.firstName,
+      lastName:    headerData.lastName,
+      fullName:    `${headerData.firstName} ${headerData.lastName}`,
+      email:       headerData.email       || undefined,
+      phoneNumber: headerData.phoneNumber || undefined,
+      licenseNo:   headerData.licenseNo   || undefined,
+      info:        headerData.info        || undefined,
+      address:     headerData.address     || undefined,
+      isActive:    headerData.isActive    ?? true,
+    });
+
+    if (!result || !result.isSucess) {
+      throw new Error(result?.customMessage || result?.error || "Failed to update DSO Doctor");
     }
-    
-    return response;
+
+    onSuccess();
   };
 
-  // ── Update handler ────────────────────────────────────────────────────────
-  const handleUpdate = async (id: string | number, formData: Record<string, any>) => {
-    const payload: Partial<DSODoctor> = {
-      id: Number(id),
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      fullName: `${formData.firstName} ${formData.lastName}`.trim(),
-      doctorCode: formData.doctorCode,
-      licenseNo: formData.licenseNo,
-      email: formData.email,
-      phoneNumber: formData.phoneNumber,
-      address: formData.address,
-      info: formData.info,
-      // KiduEditModal merges actualValue into submitData for popup fields
-      dsoMasterId: Number(formData.dsoMasterId),
-      isActive: formData.isActive ?? true,
-    };
-
-    await DSODoctorService.update(Number(id), payload);
-    return { isSucess: true, value: payload };
-  };
-
-  // ── Popup handlers ────────────────────────────────────────────────────────
-  // actualValue → the ID submitted at update time (merged by KiduEditModal)
-  // value       → the display name shown in the pill
-  // onClear     → required by KiduSelectInputPill interface
-  const popupHandlers = {
-    dsoMasterId: {
-      value: selectedMaster?.name ?? "",
-      actualValue: selectedMaster?.id,
-      onOpen: () => setMasterOpen(true),
-      onClear: () => setSelectedMaster(null),
-    },
-  };
+  // ── Loading state — don't mount the modal until data is ready ────────────
+  if (loading) {
+    return (
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.45)",
+          zIndex: 1055,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div style={{ color: "#fff", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: 10 }}>
+          <span
+            style={{
+              width: 18,
+              height: 18,
+              border: "2px solid rgba(255,255,255,0.35)",
+              borderTopColor: "#fff",
+              borderRadius: "50%",
+              display: "inline-block",
+              animation: "spin 0.65s linear infinite",
+            }}
+          />
+          Loading...
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <KiduEditModal
-        show={show}
-        onHide={onHide}
-        title="Edit Doctor"
-        subtitle="Update DSO Doctor details"
-        fields={fields}
-        recordId={recordId}
-        onFetch={handleFetch}
-        onUpdate={handleUpdate}
-        popupHandlers={popupHandlers}
-        successMessage="Doctor updated successfully!"
-        onSuccess={onSuccess}
-        submitButtonText="Update Doctor"
-      />
-
-      {/* Same DSOmasterSelectPopup as create page — clean pill UI */}
-      <DSOmasterSelectPopup
-        show={masterOpen}
-        onClose={() => setMasterOpen(false)}
-        onSelect={(master) => {
-          setSelectedMaster(master);
-          setMasterOpen(false);
-        }}
-      />
-    </>
+    <KiduTabbedFormEditModal
+      show={show}
+      onHide={onHide}
+      title="Edit DSO Doctor"
+      headerFields={headerFields}
+      tabs={resolvedTabs}
+      onSubmit={handleSubmit}
+      submitButtonText="Update Doctor"
+      initialHeaderData={initialHeaderData}
+      initialTabData={initialTabData}
+    />
   );
 };
 

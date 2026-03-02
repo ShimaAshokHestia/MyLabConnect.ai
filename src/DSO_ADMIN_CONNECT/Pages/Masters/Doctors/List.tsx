@@ -21,7 +21,6 @@ const columns: KiduColumn[] = [
     enableSorting: true,
     enableFiltering: true,
     filterType: "text",
-    // sent as firstName to backend
   },
   {
     key: "email",
@@ -29,7 +28,6 @@ const columns: KiduColumn[] = [
     enableSorting: true,
     enableFiltering: true,
     filterType: "text",
-    // now supported by backend ✅
   },
   {
     key: "phoneNumber",
@@ -37,7 +35,6 @@ const columns: KiduColumn[] = [
     enableSorting: true,
     enableFiltering: true,
     filterType: "text",
-    // now supported by backend ✅
   },
   {
     key: "licenseNo",
@@ -46,12 +43,12 @@ const columns: KiduColumn[] = [
     enableFiltering: true,
     filterType: "text",
   },
-  {
-    key: "dsoName",
-    label: "DSO Master",
-    enableSorting: true,
-    enableFiltering: false, // still int-based (dsoMasterId), not filterable by name
-  },
+  // {
+  //   key: "dsoName",
+  //   label: "DSO Master",
+  //   enableSorting: true,
+  //   enableFiltering: false, 
+  // },
   {
     key: "isActive",
     label: "Status",
@@ -59,7 +56,7 @@ const columns: KiduColumn[] = [
     enableSorting: false,
     enableFiltering: true,
     filterType: "select",
-    filterOptions: ["Inactive", "Active"], // mapped to showInactive in service ✅
+    filterOptions: ["Inactive", "Active"], 
     render: (value) => (
       <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>
         {value ? "Active" : "Inactive"}
@@ -70,19 +67,19 @@ const columns: KiduColumn[] = [
 
 const DSODoctorList: React.FC = () => {
   const [showCreate, setShowCreate] = useState(false);
-  const [showEdit,   setShowEdit]   = useState(false);
-  const [showView,   setShowView]   = useState(false);
-  const [recordId,   setRecordId]   = useState<string | number>("");
+  const [showEdit, setShowEdit] = useState(false);
+  const [showView, setShowView] = useState(false);
+  const [recordId, setRecordId] = useState<string | number>("");
   const tableKeyRef = useRef(0);
-  const [tableKey,   setTableKey]   = useState(0);
+  const [tableKey, setTableKey] = useState(0);
 
   const refreshTable = () => {
     tableKeyRef.current += 1;
     setTableKey(tableKeyRef.current);
   };
 
-  const handleEditClick  = (row: any) => { setRecordId(row.id); setShowEdit(true);  };
-  const handleViewClick  = (row: any) => { setRecordId(row.id); setShowView(true);  };
+  const handleEditClick = (row: any) => { setRecordId(row.id); setShowEdit(true); };
+  const handleViewClick = (row: any) => { setRecordId(row.id); setShowView(true); };
 
   const handleDeleteClick = async (row: any) => {
     const result = await Swal.fire({

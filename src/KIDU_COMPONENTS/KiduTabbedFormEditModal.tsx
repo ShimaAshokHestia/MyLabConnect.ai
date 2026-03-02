@@ -7,11 +7,11 @@ import "../Styles/KiduStyles/KiduTabbedFormModal.css";
 export interface TabbedFormField {
   name: string;
   label: string;
-  type: "text" | "select" | "number" | "email";
+  type: "text" | "select" | "number" | "email" | "textarea";
   required?: boolean;
   placeholder?: string;
   options?: { value: string | number; label: string }[];
-  colWidth?: 3 | 4 | 6 | 12;
+  colWidth?: 3 | 4 | 6 | 8 | 10 | 12;
 }
 
 export interface TabConfig {
@@ -83,12 +83,12 @@ const KiduTabbedFormEditModal: React.FC<KiduTabbedFormEditModalProps> = ({
   };
 
   // ── State — initialised from props ────────────────────────────────────────
-  const [headerData,   setHeaderData]   = useState<Record<string, any>>(buildHeaderFromInitial);
-  const [isActive,     setIsActive]     = useState<boolean>(initialHeaderData?.isActive ?? true);
-  const [activeTab,    setActiveTab]    = useState(tabs[0]?.key ?? "");
+  const [headerData, setHeaderData] = useState<Record<string, any>>(buildHeaderFromInitial);
+  const [isActive, setIsActive] = useState<boolean>(initialHeaderData?.isActive ?? true);
+  const [activeTab, setActiveTab] = useState(tabs[0]?.key ?? "");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors,       setErrors]       = useState<Record<string, string>>({});
-  const [tabData,      setTabData]      = useState<Record<string, Record<string, any>[]>>(buildTabFromInitial);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [tabData, setTabData] = useState<Record<string, Record<string, any>[]>>(buildTabFromInitial);
 
   // ── Sync state when initialHeaderData changes (new record opened) ─────────
   useEffect(() => {
@@ -137,9 +137,17 @@ const KiduTabbedFormEditModal: React.FC<KiduTabbedFormEditModalProps> = ({
   const removeRow = (tabKey: string, rowIdx: number) => {
     setTabData((prev) => {
       const rows = prev[tabKey].filter((_, i) => i !== rowIdx);
-      const tab  = tabs.find((t) => t.key === tabKey)!;
+      const tab = tabs.find((t) => t.key === tabKey)!;
       return { ...prev, [tabKey]: rows.length > 0 ? rows : [buildEmptyRow(tab)] };
     });
+  };
+
+  // ── Reset to initial data ─────────────────────────────────────────────────
+  const handleReset = () => {
+    setHeaderData(buildHeaderFromInitial());
+    setIsActive(initialHeaderData?.isActive ?? true);
+    setTabData(buildTabFromInitial());
+    setErrors({});
   };
 
   // ── Validation ────────────────────────────────────────────────────────────
@@ -177,178 +185,209 @@ const KiduTabbedFormEditModal: React.FC<KiduTabbedFormEditModalProps> = ({
     onHide();
   };
 
-  const currentTab  = tabs.find((t) => t.key === activeTab)!;
+  const currentTab = tabs.find((t) => t.key === activeTab)!;
   const currentRows = tabData[activeTab] ?? [];
 
   // ==================== RENDER ====================
 
   return (
     <div className="ktf-overlay" onClick={handleClose}>
-      <div className="ktf-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="ktf-modal-wrapper">
+        <div className="ktf-modal" onClick={(e) => e.stopPropagation()}>
 
-        {/* ── Header ── */}
-        <div className="ktf-header">
-          <div className="ktf-header-left">
-            <button className="ktf-close-btn" onClick={handleClose} type="button">✕</button>
-            <h2 className="ktf-title">{title}</h2>
-          </div>
-          <div className="ktf-header-right">
-            <span className="ktf-active-label">Active</span>
-            <div
-              className={`ktf-toggle ${isActive ? "ktf-toggle--on" : ""}`}
-              onClick={() => setIsActive((p) => !p)}
-              role="switch"
-              aria-checked={isActive}
-              tabIndex={0}
-              onKeyDown={(e) => { if (e.key === " " || e.key === "Enter") setIsActive((p) => !p); }}
-            >
-              <div className="ktf-toggle-thumb" />
-            </div>
-          </div>
-        </div>
-
-        {/* ── Top Fields ── */}
-        <div className="ktf-top-fields">
-          {headerFields.map((field) => (
-            <div
-              key={field.name}
-              className="ktf-field-group"
-              style={{
-                flex: field.colWidth === 3  ? "0 0 25%"    :
-                      field.colWidth === 4  ? "0 0 33.33%" :
-                      field.colWidth === 12 ? "0 0 100%"   : "1 1 0",
-              }}
-            >
-              <label className="ktf-label">
-                {field.label}
-                {field.required && <span className="ktf-required">*</span>}
-              </label>
-
-              {field.type === "select" ? (
-                <div className="ktf-select-wrap">
-                  <select
-                    className={`ktf-select ${errors[field.name] ? "ktf-input--error" : ""}`}
-                    value={headerData[field.name]}
-                    onChange={(e) => handleHeaderChange(field.name, e.target.value)}
-                  >
-                    <option value="">{field.placeholder ?? `Choose a ${field.label.toLowerCase()}...`}</option>
-                    {field.options?.map((opt) => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
-                  <span className="ktf-select-arrow">▾</span>
-                </div>
-              ) : (
-                <input
-                  type={field.type}
-                  className={`ktf-input ${errors[field.name] ? "ktf-input--error" : ""}`}
-                  placeholder={field.placeholder ?? `Enter ${field.label.toLowerCase()}`}
-                  value={headerData[field.name]}
-                  onChange={(e) => handleHeaderChange(field.name, e.target.value)}
-                />
-              )}
-
-              {errors[field.name] && (
-                <span className="ktf-error-msg">{errors[field.name]}</span>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* ── Tab Bar ── */}
-        <div className="ktf-tab-bar">
-          {tabs.map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              className={`ktf-tab-btn ${activeTab === tab.key ? "ktf-tab-btn--active" : ""}`}
-              onClick={() => setActiveTab(tab.key)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* ── Tab Content ── */}
-        <div className="ktf-tab-content">
-          <div className="ktf-tab-toolbar">
-            <button type="button" className="ktf-add-btn" onClick={() => addRow(activeTab)}>
-              <FaPlus size={10} /> Add
-            </button>
-          </div>
-
-          <div className="ktf-table-wrap">
-            <table className="ktf-table">
-              <thead>
-                <tr>
-                  {currentTab.columns.map((col) => (
-                    <th key={col.key} className="ktf-th">
-                      {col.label}{col.required && <span className="ktf-required"> *</span>}
-                    </th>
-                  ))}
-                  <th className="ktf-th ktf-th-action">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentRows.map((row, rowIdx) => (
-                  <tr key={rowIdx} className="ktf-tr">
-                    {currentTab.columns.map((col) => (
-                      <td key={col.key} className="ktf-td">
-                        {col.type === "select" ? (
-                          <div className="ktf-select-wrap ktf-select-wrap--sm">
-                            <select
-                              className="ktf-select ktf-select--sm"
-                              value={row[col.key]}
-                              onChange={(e) => handleRowChange(activeTab, rowIdx, col.key, e.target.value)}
-                            >
-                              <option value="">{col.placeholder ?? `Select a ${col.label.toLowerCase()}`}</option>
-                              {col.options?.map((opt) => (
-                                <option key={opt.value} value={opt.value}>{opt.label}</option>
-                              ))}
-                            </select>
-                            <span className="ktf-select-arrow">▾</span>
-                          </div>
-                        ) : (
-                          <input
-                            type={col.type}
-                            className="ktf-input ktf-input--sm"
-                            placeholder={col.placeholder ?? `Enter ${col.label.toLowerCase()}`}
-                            value={row[col.key]}
-                            onChange={(e) => handleRowChange(activeTab, rowIdx, col.key, e.target.value)}
-                          />
-                        )}
-                      </td>
-                    ))}
-                    <td className="ktf-td ktf-td-action">
-                      <button
-                        type="button"
-                        className="ktf-delete-btn"
-                        onClick={() => removeRow(activeTab, rowIdx)}
-                        title="Remove row"
-                      >
-                        <FaTrash size={13} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* ── Footer ── */}
-        <div className="ktf-footer">
+          {/* ── Floating close button (matches KiduCreateModal) ── */}
           <button
             type="button"
-            className="ktf-save-btn"
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-            style={{ backgroundColor: themeColor }}
+            className="ktf-floating-close-btn"
+            onClick={handleClose}
+            aria-label="Close"
           >
-            {isSubmitting ? (<><span className="ktf-spinner" />Updating...</>) : submitButtonText}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="11"
+              height="11"
+              viewBox="0 0 12 12"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+            >
+              <line x1="1" y1="1" x2="11" y2="11" />
+              <line x1="11" y1="1" x2="1" y2="11" />
+            </svg>
           </button>
-        </div>
 
+          {/* ── Header ── */}
+          <div className="ktf-header">
+            <div className="ktf-header-left">
+              <h2 className="ktf-title">{title}</h2>
+            </div>
+            <div className="ktf-header-right">
+              <span className="ktf-active-label">Active</span>
+              <div
+                className={`ktf-toggle ${isActive ? "ktf-toggle--on" : ""}`}
+                onClick={() => setIsActive((p) => !p)}
+                role="switch"
+                aria-checked={isActive}
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === " " || e.key === "Enter") setIsActive((p) => !p); }}
+              >
+                <div className="ktf-toggle-thumb" />
+              </div>
+            </div>
+          </div>
+
+          {/* ── Top Fields ── */}
+          <div className="ktf-top-fields">
+            {headerFields.map((field) => (
+              <div
+                key={field.name}
+                className="ktf-field-group"
+                style={{
+                  flex: field.colWidth === 3 ? "0 0 25%" :
+                    field.colWidth === 4 ? "0 0 33.33%" :
+                      field.colWidth === 12 ? "0 0 100%" : "1 1 0",
+                }}
+              >
+                <label className="ktf-label">
+                  {field.label}
+                  {field.required && <span className="ktf-required">*</span>}
+                </label>
+
+                {field.type === "select" ? (
+                  <div className="ktf-select-wrap">
+                    <select
+                      className={`ktf-select ${errors[field.name] ? "ktf-input--error" : ""}`}
+                      value={headerData[field.name]}
+                      onChange={(e) => handleHeaderChange(field.name, e.target.value)}
+                    >
+                      <option value="">{field.placeholder ?? `Choose a ${field.label.toLowerCase()}...`}</option>
+                      {field.options?.map((opt) => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                    <span className="ktf-select-arrow">▾</span>
+                  </div>
+                ) : (
+                  <input
+                    type={field.type}
+                    className={`ktf-input ${errors[field.name] ? "ktf-input--error" : ""}`}
+                    placeholder={field.placeholder ?? `Enter ${field.label.toLowerCase()}`}
+                    value={headerData[field.name]}
+                    onChange={(e) => handleHeaderChange(field.name, e.target.value)}
+                  />
+                )}
+
+                {errors[field.name] && (
+                  <span className="ktf-error-msg">{errors[field.name]}</span>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* ── Tab Bar ── */}
+          <div className="ktf-tab-bar">
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                className={`ktf-tab-btn ${activeTab === tab.key ? "ktf-tab-btn--active" : ""}`}
+                onClick={() => setActiveTab(tab.key)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* ── Tab Content ── */}
+          <div className="ktf-tab-content">
+            <div className="ktf-tab-toolbar">
+              <button type="button" className="ktf-add-btn" onClick={() => addRow(activeTab)}>
+                <FaPlus size={10} /> Add
+              </button>
+            </div>
+
+            <div className="ktf-table-wrap">
+              <table className="ktf-table">
+                <thead>
+                  <tr>
+                    {currentTab.columns.map((col) => (
+                      <th key={col.key} className="ktf-th">
+                        {col.label}{col.required && <span className="ktf-required"> *</span>}
+                      </th>
+                    ))}
+                    <th className="ktf-th ktf-th-action">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentRows.map((row, rowIdx) => (
+                    <tr key={rowIdx} className="ktf-tr">
+                      {currentTab.columns.map((col) => (
+                        <td key={col.key} className="ktf-td">
+                          {col.type === "select" ? (
+                            <div className="ktf-select-wrap ktf-select-wrap--sm">
+                              <select
+                                className="ktf-select ktf-select--sm"
+                                value={row[col.key]}
+                                onChange={(e) => handleRowChange(activeTab, rowIdx, col.key, e.target.value)}
+                              >
+                                <option value="">{col.placeholder ?? `Select a ${col.label.toLowerCase()}`}</option>
+                                {col.options?.map((opt) => (
+                                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                ))}
+                              </select>
+                              <span className="ktf-select-arrow">▾</span>
+                            </div>
+                          ) : (
+                            <input
+                              type={col.type}
+                              className="ktf-input ktf-input--sm"
+                              placeholder={col.placeholder ?? `Enter ${col.label.toLowerCase()}`}
+                              value={row[col.key]}
+                              onChange={(e) => handleRowChange(activeTab, rowIdx, col.key, e.target.value)}
+                            />
+                          )}
+                        </td>
+                      ))}
+                      <td className="ktf-td ktf-td-action">
+                        <button
+                          type="button"
+                          className="ktf-delete-btn"
+                          onClick={() => removeRow(activeTab, rowIdx)}
+                          title="Remove row"
+                        >
+                          <FaTrash size={13} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* ── Footer ── */}
+          <div className="ktf-footer">
+            <button
+              type="button"
+              className="ktf-reset-btn"
+              onClick={handleReset}
+              disabled={isSubmitting}
+            >
+              Reset
+            </button>
+            <button
+              type="button"
+              className="ktf-save-btn"
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              style={{ backgroundColor: themeColor }}
+            >
+              {isSubmitting ? (<><span className="ktf-spinner" />Updating...</>) : submitButtonText}
+            </button>
+          </div>
+
+        </div>
       </div>
     </div>
   );

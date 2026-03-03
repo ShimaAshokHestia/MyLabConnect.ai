@@ -1,9 +1,7 @@
 // src/DSO_ADMIN_CONNECT/Config/LayoutConfig.ts
 
-import {
-    Home,
-    BarChart3,
-    Users,
+import { Home, BarChart3,
+   Users,
     Settings,
     Link2,
     FileText,
@@ -46,13 +44,14 @@ export const dsoAdminMenuItems: MenuItem[] = [
     {
         title: 'Home',
         icon: Home,
-        children: [
-            { title: 'Case on Hold', url: '/dsoadmin-connect/case-on-hold', icon: Clock, badge: 12 },
-            { title: 'In Transit', url: '/dsoadmin-connect/in-transit', icon: Truck, badge: 8 },
-            { title: 'In Production', url: '/dsoadmin-connect/in-production', icon: Package, badge: 24 },
-            { title: 'Submitted', url: '/dsoadmin-connect/submitted', icon: ClipboardList, badge: 5 },
-            { title: 'Recent', url: '/dsoadmin-connect/recent', icon: FileText },
-        ],
+          url: '/dsoadmin-connect',
+        // children: [
+        //     { title: 'Case on Hold', url: '/dsoadmin-connect/case-on-hold', icon: Clock, badge: 12 },
+        //     { title: 'In Transit', url: '/dsoadmin-connect/in-transit', icon: Truck, badge: 8 },
+        //     { title: 'In Production', url: '/dsoadmin-connect/in-production', icon: Package, badge: 24 },
+        //     { title: 'Submitted', url: '/dsoadmin-connect/submitted', icon: ClipboardList, badge: 5 },
+        //     { title: 'Recent', url: '/dsoadmin-connect/recent', icon: FileText },
+        // ],
     },
     {
         title: 'Analytics',

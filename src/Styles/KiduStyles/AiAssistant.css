@@ -1,0 +1,1395 @@
+/* =============================================================
+   KiduAiAssistant.css
+   Full light + dark mode, responsive, React Bootstrap friendly
+   ============================================================= */
+
+/* ── Tokens ─────────────────────────────────────────────────── */
+:root {
+  --kai-primary: #ef0d50;
+  --kai-primary-dark: #be0a3e;
+  --kai-primary-light: #ff2464;
+
+  --kai-bg: #ffffff;
+  --kai-bg-body: linear-gradient(145deg, #fff5f7 0%, #ffffff 35%, #f8fafc 100%);
+  --kai-bg-card: #ffffff;
+  --kai-bg-card-2: #f8fafc;
+  --kai-bg-input: #f8fafc;
+  --kai-bg-chip: #ffffff;
+  --kai-bg-hdr: #ffffff;
+  --kai-bg-dd: #ffffff;
+
+  --kai-border: #f1f5f9;
+  --kai-border-soft: #e2e8f0;
+  --kai-border-dd: #fecdd3;
+
+  --kai-text-primary: #0f172a;
+  --kai-text-secondary: #475569;
+  --kai-text-muted: #94a3b8;
+
+  --kai-shadow-panel: -12px 0 80px rgba(0, 0, 0, 0.18);
+  --kai-shadow-card: 0 4px 24px rgba(0, 0, 0, 0.06);
+  --kai-shadow-fab: 0 8px 32px rgba(239, 13, 80, 0.45), 0 2px 8px rgba(0, 0, 0, 0.12);
+  --kai-shadow-send: 0 4px 16px rgba(239, 13, 80, 0.4);
+
+  --kai-radius-panel: 24px 0 0 24px;
+  --kai-transition: 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* step badge colours */
+  --kai-done-bg: #f0fdf4;
+  --kai-done-border: #bbf7d0;
+  --kai-done-color: #15803d;
+  --kai-done-dot-bg: #f0fdf4;
+  --kai-done-dot-border: rgba(34, 197, 94, 0.8);
+  --kai-done-dot-color: #22c55e;
+
+  --kai-active-bg: #fffbeb;
+  --kai-active-border: #fde68a;
+  --kai-active-color: #b45309;
+  --kai-active-dot-bg: #fffbeb;
+  --kai-active-dot-border: rgba(245, 158, 11, 0.8);
+  --kai-active-dot-color: #d97706;
+
+  --kai-pending-bg: #f8fafc;
+  --kai-pending-border: #e2e8f0;
+  --kai-pending-color: #64748b;
+  --kai-pending-dot-bg: #f8fafc;
+  --kai-pending-dot-border: #e2e8f0;
+  --kai-pending-dot-color: #94a3b8;
+}
+
+[data-theme="dark"] {
+  --kai-bg: #0d1117;
+  --kai-bg-body: linear-gradient(145deg, rgba(239, 13, 80, 0.03) 0%, #0d1117 35%, #0a0f18 100%);
+  --kai-bg-card: #1a2332;
+  --kai-bg-card-2: #1e293b;
+  --kai-bg-input: #1a2332;
+  --kai-bg-chip: #1a2332;
+  --kai-bg-hdr: #0d1117;
+  --kai-bg-dd: #1a2332;
+
+  --kai-border: #1e293b;
+  --kai-border-soft: #253347;
+  --kai-border-dd: rgba(239, 13, 80, 0.3);
+
+  --kai-text-primary: #f1f5f9;
+  --kai-text-secondary: #94a3b8;
+  --kai-text-muted: #64748b;
+
+  --kai-shadow-panel: -12px 0 80px rgba(0, 0, 0, 0.5);
+  --kai-shadow-card: 0 4px 20px rgba(0, 0, 0, 0.3);
+
+  --kai-done-bg: rgba(21, 128, 61, 0.12);
+  --kai-done-border: rgba(134, 239, 172, 0.25);
+  --kai-done-color: #86efac;
+  --kai-done-dot-bg: rgba(34, 197, 94, 0.1);
+  --kai-done-dot-border: rgba(34, 197, 94, 0.5);
+  --kai-done-dot-color: #22c55e;
+
+  --kai-active-bg: rgba(180, 83, 9, 0.12);
+  --kai-active-border: rgba(252, 211, 77, 0.2);
+  --kai-active-color: #fcd34d;
+  --kai-active-dot-bg: rgba(245, 158, 11, 0.1);
+  --kai-active-dot-border: rgba(245, 158, 11, 0.5);
+  --kai-active-dot-color: #f59e0b;
+
+  --kai-pending-bg: #1e293b;
+  --kai-pending-border: #334155;
+  --kai-pending-color: #64748b;
+  --kai-pending-dot-bg: #1e293b;
+  --kai-pending-dot-border: #334155;
+  --kai-pending-dot-color: #475569;
+}
+
+/* ── Reset ──────────────────────────────────────────────────── */
+.kai-fab, .kai-panel, .kai-overlay,
+.kai-fab *, .kai-panel *, .kai-overlay * {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FLOATING ACTION BUTTON
+══════════════════════════════════════════════════════════════ */
+.kai-fab {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 18px 11px 12px;
+  background: linear-gradient(135deg, var(--kai-primary) 0%, var(--kai-primary-dark) 100%);
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: var(--kai-shadow-fab);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  white-space: nowrap;
+  user-select: none;
+  outline: none;
+}
+
+.kai-fab:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 14px 40px rgba(239, 13, 80, 0.55);
+}
+
+.kai-fab:focus-visible {
+  outline: 3px solid rgba(239, 13, 80, 0.4);
+  outline-offset: 2px;
+}
+
+.kai-fab--hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.8) translateY(20px);
+}
+
+.kai-fab__ico {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.kai-fab__label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.kai-fab__badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #22c55e;
+  border: 2.5px solid var(--kai-primary-dark);
+  animation: kaiFabPulse 2.2s ease-in-out infinite;
+}
+
+@keyframes kaiFabPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6); }
+  50%       { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   OVERLAY
+══════════════════════════════════════════════════════════════ */
+.kai-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 600;
+  background: rgba(15, 23, 42, 0.25);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.kai-overlay--open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SIDE PANEL
+══════════════════════════════════════════════════════════════ */
+.kai-panel {
+  position: relative;
+  width: min(1060px, 100vw);
+  height: 100%;
+  background: var(--kai-bg);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--kai-shadow-panel);
+  border-radius: var(--kai-radius-panel);
+  transform: translateX(100%);
+  transition: transform var(--kai-transition);
+  overflow: hidden;
+}
+
+.kai-panel--open {
+  transform: translateX(0);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   HEADER
+══════════════════════════════════════════════════════════════ */
+.kai-hdr {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  flex-shrink: 0;
+  background: var(--kai-bg-hdr);
+  border-bottom: 1px solid var(--kai-border);
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+.kai-hdr__logo {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--kai-primary), var(--kai-primary-dark));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(239, 13, 80, 0.35);
+}
+
+.kai-hdr__titles {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  flex-shrink: 0;
+}
+
+.kai-hdr__name {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--kai-text-primary);
+  letter-spacing: -0.02em;
+}
+
+.kai-hdr__sub {
+  font-size: 0.6rem;
+  color: var(--kai-text-muted);
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.kai-hdr__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+/* ── Case Selector ── */
+.kai-case-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.kai-case-sel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(239, 13, 80, 0.06);
+  border: 1.5px solid rgba(239, 13, 80, 0.2);
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--kai-primary);
+  transition: all 0.2s;
+  white-space: nowrap;
+  font-family: inherit;
+  outline: none;
+}
+
+.kai-case-sel:hover {
+  background: rgba(239, 13, 80, 0.1);
+  border-color: rgba(239, 13, 80, 0.35);
+}
+
+.kai-chevron {
+  transition: transform 0.2s;
+}
+
+.kai-chevron--open {
+  transform: rotate(180deg);
+}
+
+/* ── Case Dropdown ── */
+.kai-case-dd {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 300px;
+  background: var(--kai-bg-dd);
+  border: 1.5px solid var(--kai-border-dd);
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(239, 13, 80, 0.15), 0 4px 16px rgba(0, 0, 0, 0.1);
+  z-index: 900;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-8px) scale(0.97);
+  transition: all 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.kai-case-dd--open {
+  opacity: 1;
+  pointer-events: all;
+  transform: translateY(0) scale(1);
+}
+
+.kai-case-dd__hdr {
+  padding: 11px 16px 8px;
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: var(--kai-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--kai-border);
+}
+
+.kai-case-dd__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--kai-border);
+}
+
+.kai-case-dd__input {
+  flex: 1;
+  border: none;
+  background: none;
+  outline: none;
+  font-size: 0.75rem;
+  color: var(--kai-text-primary);
+  font-family: inherit;
+}
+
+.kai-case-dd__input::placeholder {
+  color: var(--kai-text-muted);
+}
+
+.kai-case-dd__list {
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.kai-case-dd__list::-webkit-scrollbar { width: 3px; }
+.kai-case-dd__list::-webkit-scrollbar-thumb { background: rgba(239,13,80,0.2); border-radius: 2px; }
+
+.kai-case-dd__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.kai-case-dd__item:hover,
+.kai-case-dd__item--active {
+  background: rgba(239, 13, 80, 0.06);
+}
+
+.kai-case-dd__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.kai-case-dd__info { flex: 1; min-width: 0; }
+
+.kai-case-dd__id {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--kai-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kai-case-dd__name {
+  font-size: 0.62rem;
+  color: var(--kai-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kai-case-dd__status {
+  font-size: 0.58rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 50px;
+  flex-shrink: 0;
+}
+
+.kai-case-dd__empty {
+  padding: 16px;
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--kai-text-muted);
+}
+
+/* ── Status badges for dropdown items ── */
+.dds-hold {
+  background: #fff1f2; color: #e11d48;
+  border: 1px solid #fecdd3;
+}
+.dds-done {
+  background: #f0fdf4; color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+.dds-prod {
+  background: #eff6ff; color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+[data-theme="dark"] .dds-hold { background: rgba(225,29,72,.1); color:#fda4af; border-color: rgba(253,164,175,.2); }
+[data-theme="dark"] .dds-done { background: rgba(21,128,61,.1); color:#86efac; border-color: rgba(134,239,172,.2); }
+[data-theme="dark"] .dds-prod { background: rgba(29,78,216,.1); color:#93c5fd; border-color: rgba(147,197,253,.2); }
+
+/* ── Role pills ── */
+.kai-role-pill {
+  padding: 5px 13px;
+  border-radius: 50px;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rp-lab      { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.rp-doctor   { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+.rp-dso      { background: #fdf4ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+.rp-practice { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+.rp-integrator { background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd; }
+.rp-admin    { background: #f8fafc; color: #334155; border: 1px solid #e2e8f0; }
+
+[data-theme="dark"] .rp-lab      { background: rgba(29,78,216,.12); color:#93c5fd; border-color:rgba(147,197,253,.2); }
+[data-theme="dark"] .rp-doctor   { background: rgba(21,128,61,.12); color:#86efac; border-color:rgba(134,239,172,.2); }
+[data-theme="dark"] .rp-dso      { background: rgba(126,34,206,.12); color:#d8b4fe; border-color:rgba(216,180,254,.2); }
+[data-theme="dark"] .rp-practice { background: rgba(194,65,12,.12); color:#fdba74; border-color:rgba(253,186,116,.2); }
+[data-theme="dark"] .rp-integrator { background: rgba(3,105,161,.12); color:#7dd3fc; border-color:rgba(125,211,252,.2); }
+[data-theme="dark"] .rp-admin    { background: rgba(51,65,85,.2); color:#94a3b8; border-color:#334155; }
+
+/* ── Secure badge ── */
+.kai-secure {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 50px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #16a34a;
+  white-space: nowrap;
+}
+
+[data-theme="dark"] .kai-secure {
+  background: rgba(22,163,74,.1);
+  border-color: rgba(22,163,74,.3);
+  color: #4ade80;
+}
+
+/* ── Icon buttons ── */
+.kai-icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--kai-border-soft);
+  background: var(--kai-bg-card-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--kai-text-secondary);
+  transition: all 0.2s;
+  flex-shrink: 0;
+  outline: none;
+}
+
+.kai-icon-btn:hover {
+  background: var(--kai-primary);
+  color: #fff;
+  border-color: var(--kai-primary);
+}
+
+.kai-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #ef4444;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex-shrink: 0;
+  outline: none;
+}
+
+.kai-close:hover {
+  background: #ef4444;
+  color: #fff;
+  border-color: #ef4444;
+  transform: rotate(90deg) scale(1.1);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BODY
+══════════════════════════════════════════════════════════════ */
+.kai-body {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--kai-bg-body);
+}
+
+/* ── Messages area ── */
+.kai-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 20px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  scroll-behavior: smooth;
+}
+
+.kai-messages::-webkit-scrollbar { width: 4px; }
+.kai-messages::-webkit-scrollbar-thumb {
+  background: rgba(239, 13, 80, 0.2);
+  border-radius: 4px;
+}
+
+/* ── Two-column layout ── */
+.kai-two-col {
+  display: flex;
+  gap: 16px;
+  animation: kaiIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.kai-left-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.kai-right-col {
+  width: 268px;
+  flex-shrink: 0;
+}
+
+/* ── Main welcome card ── */
+.kai-main-card {
+  background: var(--kai-bg-card);
+  border: 1px solid var(--kai-border);
+  border-radius: 20px;
+  padding: 20px 22px;
+  box-shadow: var(--kai-shadow-card);
+  display: flex;
+  gap: 16px;
+}
+
+.kai-main-card__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #fce7ef, #fda4af);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+[data-theme="dark"] .kai-main-card__avatar {
+  background: linear-gradient(135deg, rgba(239,13,80,0.15), rgba(239,13,80,0.08));
+}
+
+.kai-main-card__body { flex: 1; min-width: 0; }
+
+.kai-main-card__title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--kai-text-primary);
+  margin-bottom: 5px;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.kai-main-card__sub {
+  font-size: 0.78rem;
+  color: var(--kai-text-secondary);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.kai-main-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.6rem;
+  color: var(--kai-text-muted);
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.kai-main-card__tick { color: #22c55e; font-weight: 700; }
+.kai-main-card__sep  { color: var(--kai-border-soft); }
+
+.kai-main-card__btns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ── Buttons ── */
+.kai-btn-primary {
+  padding: 9px 20px;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--kai-primary), var(--kai-primary-dark));
+  color: #fff;
+  font-size: 0.73rem;
+  font-weight: 700;
+  font-family: inherit;
+  box-shadow: 0 4px 14px rgba(239, 13, 80, 0.38);
+  transition: all 0.22s;
+  outline: none;
+}
+
+.kai-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 7px 20px rgba(239, 13, 80, 0.48);
+}
+
+.kai-btn-ghost {
+  padding: 9px 16px;
+  border-radius: 50px;
+  cursor: pointer;
+  background: rgba(239,13,80,0.06);
+  border: 1.5px solid rgba(239,13,80,0.2);
+  color: var(--kai-primary);
+  font-size: 0.73rem;
+  font-weight: 700;
+  font-family: inherit;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.kai-btn-ghost:hover {
+  background: rgba(239,13,80,0.1);
+}
+
+.kai-btn-outline {
+  padding: 9px 16px;
+  border-radius: 50px;
+  cursor: pointer;
+  background: var(--kai-bg-card);
+  border: 1.5px solid var(--kai-border-soft);
+  color: var(--kai-text-secondary);
+  font-size: 0.73rem;
+  font-weight: 700;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.kai-btn-outline:hover {
+  border-color: #94a3b8;
+  background: var(--kai-bg-card-2);
+  color: var(--kai-text-primary);
+}
+
+/* ── Mini case cards ── */
+.kai-mini-cards {
+  display: flex;
+  gap: 11px;
+  animation: kaiIn 0.4s 0.08s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.kai-mini-c {
+  flex: 1;
+  background: var(--kai-bg-card);
+  border: 1.5px solid var(--kai-border);
+  border-radius: 16px;
+  padding: 14px;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  transition: all 0.22s;
+  position: relative;
+  overflow: hidden;
+}
+
+.kai-mini-c::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+
+.mc-green::before { background: linear-gradient(90deg, #22c55e, #16a34a); }
+.mc-amber::before { background: linear-gradient(90deg, #f59e0b, #d97706); }
+.mc-red::before   { background: linear-gradient(90deg, #ef4444, #dc2626); }
+
+.kai-mini-c:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
+  border-color: rgba(239, 13, 80, 0.3);
+}
+
+.kai-mc__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 3px;
+}
+
+.kai-mc__id {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--kai-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90%;
+}
+
+.kai-mc__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.kai-mc__type {
+  font-size: 0.6rem;
+  color: var(--kai-text-muted);
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kai-mc__chip {
+  display: inline-flex;
+  padding: 3px 10px;
+  border-radius: 50px;
+  font-size: 0.57rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+.mcc-green { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+.mcc-amber { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+.mcc-red   { background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; }
+
+[data-theme="dark"] .mcc-green { background:rgba(21,128,61,.12); color:#86efac; border-color:rgba(134,239,172,.2); }
+[data-theme="dark"] .mcc-amber { background:rgba(180,83,9,.12); color:#fcd34d; border-color:rgba(252,211,77,.2); }
+[data-theme="dark"] .mcc-red   { background:rgba(190,18,60,.12); color:#fda4af; border-color:rgba(253,164,175,.2); }
+
+.kai-mc__divider {
+  height: 1px;
+  background: var(--kai-border);
+  margin: 6px 0;
+}
+
+.kai-mc__eta {
+  font-size: 0.62rem;
+  color: var(--kai-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Status Card (right col) ── */
+.kai-status-card {
+  background: var(--kai-bg-card);
+  border: 1px solid var(--kai-border);
+  border-radius: 18px;
+  padding: 18px 18px 16px;
+  box-shadow: var(--kai-shadow-card);
+  animation: kaiIn 0.4s 0.05s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.kai-status-card__title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--kai-text-primary);
+  margin-bottom: 14px;
+  letter-spacing: -0.01em;
+}
+
+/* ── Steps ── */
+.kai-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.kai-step-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.kai-step-dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+}
+
+.kai-step-dot--done {
+  background: var(--kai-done-dot-bg);
+  border: 2px solid var(--kai-done-dot-border);
+  color: var(--kai-done-dot-color);
+}
+
+.kai-step-dot--active {
+  background: var(--kai-active-dot-bg);
+  border: 2px solid var(--kai-active-dot-border);
+  color: var(--kai-active-dot-color);
+}
+
+.kai-step-dot--pending {
+  background: var(--kai-pending-dot-bg);
+  border: 2px solid var(--kai-pending-dot-border);
+  color: var(--kai-pending-dot-color);
+}
+
+.kai-step-lbl {
+  flex: 1;
+  font-size: 0.73rem;
+  color: var(--kai-text-secondary);
+  font-weight: 500;
+}
+
+.kai-step-badge {
+  padding: 3px 9px;
+  border-radius: 50px;
+  font-size: 0.57rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.sb-completed { background: var(--kai-done-bg); color: var(--kai-done-color); border: 1px solid var(--kai-done-border); }
+.sb-finished  { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.sb-inprog    { background: var(--kai-active-bg); color: var(--kai-active-color); border: 1px solid var(--kai-active-border); }
+.sb-awaiting  { background: var(--kai-pending-bg); color: var(--kai-pending-color); border: 1px solid var(--kai-pending-border); }
+
+[data-theme="dark"] .sb-finished { background:rgba(29,78,216,.12); color:#93c5fd; border-color:rgba(147,197,253,.2); }
+
+.kai-next-step {
+  font-size: 0.7rem;
+  color: var(--kai-text-secondary);
+  margin-bottom: 11px;
+  padding: 8px 11px;
+  background: var(--kai-bg-card-2);
+  border-radius: 9px;
+  line-height: 1.45;
+}
+
+.kai-next-step strong {
+  color: var(--kai-text-primary);
+  font-weight: 700;
+}
+
+/* ── Action bar ── */
+.kai-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #fff1f2, #ffe4e6);
+  border: 1.5px solid rgba(239, 13, 80, 0.2);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #e11d48;
+  transition: all 0.22s;
+  user-select: none;
+}
+
+.kai-action-bar:hover {
+  background: linear-gradient(135deg, #ffe4e6, #ffd0d8);
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .kai-action-bar {
+  background: rgba(239, 13, 80, 0.08);
+  border-color: rgba(239, 13, 80, 0.25);
+  color: #fb7185;
+}
+
+.kai-pulse-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--kai-primary);
+  flex-shrink: 0;
+  animation: kaiFabPulse 1.6s infinite;
+}
+
+/* ── Chat messages ── */
+.kai-user-bubble {
+  align-self: flex-end;
+  max-width: 72%;
+  background: linear-gradient(135deg, var(--kai-primary), var(--kai-primary-dark));
+  color: #fff;
+  padding: 11px 16px;
+  border-radius: 20px 20px 4px 20px;
+  font-size: 0.79rem;
+  line-height: 1.55;
+  font-weight: 500;
+  animation: kaiIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+  word-break: break-word;
+}
+
+.kai-bot-bubble {
+  align-self: flex-start;
+  max-width: 78%;
+  display: flex;
+  gap: 9px;
+  align-items: flex-end;
+  animation: kaiIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.kai-bot-bubble__avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--kai-primary), var(--kai-primary-dark));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kai-bot-bubble__text {
+  background: var(--kai-bg-card);
+  border: 1px solid var(--kai-border);
+  border-radius: 20px 20px 20px 4px;
+  padding: 11px 16px;
+  font-size: 0.79rem;
+  line-height: 1.55;
+  color: var(--kai-text-primary);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  word-break: break-word;
+}
+
+/* ── Typing indicator ── */
+.kai-typing-dots {
+  background: var(--kai-bg-card);
+  border: 1px solid var(--kai-border);
+  border-radius: 20px 20px 20px 4px;
+  padding: 14px 18px;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+.kai-typing-dots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--kai-primary);
+  animation: kaiTyping 1.4s ease-in-out infinite;
+}
+
+.kai-typing-dots span:nth-child(2) { animation-delay: 0.18s; }
+.kai-typing-dots span:nth-child(3) { animation-delay: 0.36s; }
+
+@keyframes kaiTyping {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-6px); opacity: 1; }
+}
+
+/* ── System message ── */
+.kai-sys-msg {
+  align-self: center;
+  font-size: 0.64rem;
+  color: var(--kai-text-muted);
+  background: var(--kai-bg-card-2);
+  padding: 4px 14px;
+  border-radius: 50px;
+  border: 1px solid var(--kai-border);
+  animation: kaiIn 0.25s ease both;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SUGGESTION CHIPS
+══════════════════════════════════════════════════════════════ */
+.kai-chips-wrap {
+  padding: 8px 20px 12px;
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--kai-border);
+  animation: kaiIn 0.4s 0.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+  background: var(--kai-bg);
+}
+
+.kai-chip {
+  padding: 7px 13px;
+  border-radius: 50px;
+  border: 1.5px solid var(--kai-border-soft);
+  background: var(--kai-bg-chip);
+  font-size: 0.67rem;
+  font-weight: 600;
+  color: var(--kai-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  font-family: inherit;
+  outline: none;
+}
+
+.kai-chip:hover {
+  border-color: rgba(239, 13, 80, 0.4);
+  color: var(--kai-primary);
+  background: rgba(239, 13, 80, 0.04);
+  transform: translateY(-1px);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   INPUT BAR
+══════════════════════════════════════════════════════════════ */
+.kai-input-bar {
+  padding: 12px 18px;
+  background: var(--kai-bg-hdr);
+  border-top: 1px solid var(--kai-border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.kai-input-field {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: var(--kai-bg-input);
+  border: 1.5px solid var(--kai-border-soft);
+  border-radius: 50px;
+  padding: 10px 14px;
+  transition: all 0.22s;
+}
+
+.kai-input-field:focus-within {
+  border-color: rgba(239, 13, 80, 0.4);
+  background: var(--kai-bg-card);
+  box-shadow: 0 0 0 4px rgba(239, 13, 80, 0.07);
+}
+
+.kai-input-field__input {
+  flex: 1;
+  border: none;
+  background: none;
+  outline: none;
+  font-size: 0.8rem;
+  color: var(--kai-text-primary);
+  font-family: inherit;
+  min-width: 0;
+}
+
+.kai-input-field__input::placeholder {
+  color: var(--kai-text-muted);
+}
+
+.kai-inp-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--kai-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.18s;
+  outline: none;
+}
+
+.kai-inp-btn:hover {
+  color: var(--kai-primary);
+  background: rgba(239, 13, 80, 0.08);
+}
+
+.kai-send {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--kai-primary), var(--kai-primary-dark));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.25s;
+  box-shadow: var(--kai-shadow-send);
+  outline: none;
+}
+
+.kai-send:hover {
+  transform: scale(1.1) rotate(-5deg);
+  box-shadow: 0 7px 22px rgba(239, 13, 80, 0.5);
+}
+
+.kai-send:active {
+  transform: scale(0.95);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ANIMATIONS
+══════════════════════════════════════════════════════════════ */
+@keyframes kaiIn {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVE — TABLET (≤ 1024px)
+══════════════════════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .kai-panel {
+    width: 100vw;
+    border-radius: 0;
+  }
+
+  .kai-two-col {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .kai-right-col {
+    width: 100%;
+  }
+
+  .kai-status-card {
+    /* Show steps in a horizontal row on tablet */
+    padding: 14px 16px;
+  }
+
+  .kai-steps {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .kai-main-card__btns {
+    gap: 6px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVE — MOBILE (≤ 640px)
+══════════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  /* FAB becomes smaller on mobile */
+  .kai-fab {
+    bottom: 16px;
+    right: 16px;
+    padding: 10px 14px 10px 10px;
+    font-size: 0.72rem;
+  }
+
+  .kai-fab__ico {
+    width: 26px;
+    height: 26px;
+  }
+
+  /* Full-screen panel on mobile */
+  .kai-panel {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+  }
+
+  /* Compact header on mobile */
+  .kai-hdr {
+    padding: 10px 14px;
+    gap: 8px;
+  }
+
+  .kai-hdr__logo {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+  }
+
+  .kai-hdr__name { font-size: 0.82rem; }
+  .kai-hdr__sub  { display: none; }
+
+  /* Hide some header actions on mobile to save space */
+  .kai-secure { display: none; }
+
+  .kai-case-sel {
+    padding: 6px 10px;
+    font-size: 0.65rem;
+    max-width: 160px;
+    overflow: hidden;
+  }
+
+  .kai-case-sel span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+    display: inline-block;
+  }
+
+  /* Full-width dropdown on mobile */
+  .kai-case-dd {
+    min-width: 260px;
+    max-width: calc(100vw - 32px);
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px) scale(0.97);
+  }
+
+  .kai-case-dd--open {
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+
+  /* Messages */
+  .kai-messages { padding: 14px 14px 8px; gap: 12px; }
+
+  /* Two-col stacked */
+  .kai-two-col { flex-direction: column; gap: 12px; }
+  .kai-right-col { width: 100%; }
+
+  /* Main card compact */
+  .kai-main-card {
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .kai-main-card__avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+  }
+
+  .kai-main-card__title { font-size: 0.88rem; }
+  .kai-main-card__sub   { font-size: 0.72rem; }
+
+  /* Mini cards: single column scroll */
+  .kai-mini-cards {
+    flex-direction: row;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    gap: 10px;
+  }
+
+  .kai-mini-c {
+    min-width: 140px;
+    flex-shrink: 0;
+  }
+
+  /* Steps: vertical on mobile */
+  .kai-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .kai-step-lbl  { font-size: 0.68rem; }
+  .kai-step-badge { font-size: 0.53rem; padding: 2px 7px; }
+
+  /* Chips: horizontal scroll */
+  .kai-chips-wrap {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 6px 14px 10px;
+  }
+
+  .kai-chip {
+    flex-shrink: 0;
+    font-size: 0.63rem;
+    padding: 6px 11px;
+  }
+
+  /* Input bar */
+  .kai-input-bar { padding: 10px 12px; gap: 8px; }
+  .kai-inp-btn:nth-child(3) { display: none; } /* hide attach on mobile */
+
+  .kai-send {
+    width: 40px;
+    height: 40px;
+  }
+
+  /* Chat bubbles */
+  .kai-user-bubble { max-width: 88%; font-size: 0.75rem; }
+  .kai-bot-bubble  { max-width: 92%; }
+  .kai-bot-bubble__text { font-size: 0.75rem; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SCROLLBAR (messages area)
+══════════════════════════════════════════════════════════════ */
+.kai-messages::-webkit-scrollbar { width: 4px; }
+.kai-messages::-webkit-scrollbar-track { background: transparent; }
+.kai-messages::-webkit-scrollbar-thumb {
+  background: rgba(239, 13, 80, 0.2);
+  border-radius: 4px;
+}
+
+/* Reduce motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .kai-fab,
+  .kai-panel,
+  .kai-overlay,
+  .kai-two-col,
+  .kai-main-card,
+  .kai-mini-cards,
+  .kai-status-card,
+  .kai-chips-wrap,
+  .kai-user-bubble,
+  .kai-bot-bubble {
+    animation: none !important;
+    transition: opacity 0.2s ease !important;
+  }
+
+  .kai-fab__badge,
+  .kai-pulse-dot { animation: none !important; }
+}

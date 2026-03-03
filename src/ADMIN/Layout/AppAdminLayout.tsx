@@ -24,6 +24,12 @@ export const AppAdminLayout: React.FC = () => {
     navigate('/', { replace: true });
   };
 
+  // Read userTypeId from the decoded JWT user — no extra API call needed.
+  // AuthService.buildUserFromToken() stores this in _cache.user.userTypeId.
+  // Role IDs: 1=DSO | 2=Lab | 3=Doctor | 4=Practice | 5=Integrator | 6=AppAdmin
+  const user = AuthService.getUser();
+  const assistantType = user?.userTypeId ?? 6;
+
   // ✅ FIX: Explicitly type result as CustomApiResponse so TS knows .isSucess exists
   const handleChangePassword = async (currentPassword: string, newPassword: string) => {
     const result = await AuthService.changePassword({ currentPassword, newPassword }) as CustomApiResponse;
@@ -53,6 +59,7 @@ export const AppAdminLayout: React.FC = () => {
         onProfileClick={() => setShowProfile(true)}
         onChangePassword={handleChangePassword}
         onSignOut={handleSignOut}
+        assistantType={assistantType} 
       />
 
       <KiduProfileModal

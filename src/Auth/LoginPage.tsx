@@ -126,7 +126,7 @@ const LoginPage: React.FC = () => {
               />
 
               <p className="login-footer text-center mt-4">
-                © 2024 {'{my}'}labconnect.ai – Dental Care Platform. All rights reserved.
+                © 2026 {'{my}'}labconnect.ai – Dental Care Platform. All rights reserved.
               </p>
             </div>
           </Col>

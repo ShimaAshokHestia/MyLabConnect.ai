@@ -224,7 +224,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onForgotPassword, onRequires2FA }
       </Button>
 
       <p className="text-center mt-3 role-info">
-        Access for AppAdmin, DSO, Lab, Practice, Doctor &amp; Integrator
+        Access for DSO, Lab, Practice, Doctor &amp; Integrator
       </p>
     </Form>
   );

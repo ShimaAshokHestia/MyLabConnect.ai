@@ -19,6 +19,12 @@ export const DoctorLayout: React.FC = () => {
     navigate('/', { replace: true });
   };
 
+  // Read userTypeId from the decoded JWT user — no extra API call needed.
+  // AuthService.buildUserFromToken() stores this in _cache.user.userTypeId.
+  // Role IDs: 1=DSO | 2=Lab | 3=Doctor | 4=Practice | 5=Integrator | 6=AppAdmin
+  const user = AuthService.getUser();
+  const assistantType = user?.userTypeId ?? 3; // fallback to 3 (Doctor) for this layout
+
   return (
     <KiduLayout
       menuItems={doctorConnectConfig.menuItems}
@@ -36,6 +42,8 @@ export const DoctorLayout: React.FC = () => {
         setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
       }
       onSignOut={handleSignOut}
+      assistantType={assistantType}   // Add this line
+  // showAssistant is optional, default true
     />
   );
 };

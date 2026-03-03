@@ -5,6 +5,8 @@ import type { UserProfile, NotificationItem, NavbarAction } from '../Types/KiduT
 import '../Styles/KiduStyles/KiduLayout.css';
 import KiduSidebar from './KiduSidebar';
 import KiduNavbar from './KiduNavbar';
+import type { AssistantType } from './Common/KiduAiAssistant';
+import KiduAiAssistant from './Common/KiduAiAssistant';
 
 interface KiduLayoutProps {
   // Sidebar Configuration
@@ -12,7 +14,6 @@ interface KiduLayoutProps {
   logoIcon?: React.ReactNode;
   logoTitle?: string;
   logoSubtitle?: string;
-
   // Navbar Configuration
   user: UserProfile;
   searchPlaceholder?: string;
@@ -26,10 +27,12 @@ interface KiduLayoutProps {
   onProfileClick?: () => void;
   onChangePassword?: (currentPassword: string, newPassword: string) => void;
   onSignOut: () => void;
-
   // Additional
   additionalNavbarActions?: React.ReactNode;
   defaultSidebarCollapsed?: boolean;
+  //Ai assistant
+  assistantType?: AssistantType;   // e.g., 'lab', 'doctor', etc.
+  showAssistant?: boolean;         // optional flag to hide it (default true)
 }
 
 /**
@@ -60,6 +63,8 @@ const KiduLayout: React.FC<KiduLayoutProps> = ({
   onSignOut,
   additionalNavbarActions,
   defaultSidebarCollapsed = false,
+  assistantType,
+  showAssistant = true,
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -75,13 +80,15 @@ const KiduLayout: React.FC<KiduLayoutProps> = ({
     if (window.innerWidth <= 991) setMobileMenuOpen(false);
   };
 
+  // Determine whether to render the AI assistant
+  const shouldShowAssistant = showAssistant && assistantType !== undefined;
+
   return (
     <div className="kidu-layout">
       {/* Sidebar */}
       <aside
-        className={`kidu-sidebar-slot ${sidebarCollapsed ? 'collapsed' : ''} ${
-          mobileMenuOpen ? 'mobile-open' : ''
-        }`}
+        className={`kidu-sidebar-slot ${sidebarCollapsed ? 'collapsed' : ''} ${mobileMenuOpen ? 'mobile-open' : ''
+          }`}
       >
         <KiduSidebar
           menuItems={menuItems}
@@ -125,9 +132,27 @@ const KiduLayout: React.FC<KiduLayoutProps> = ({
 
         {/* Page content */}
         <main className="kidu-content">
+
           <Outlet />
         </main>
       </div>
+      {/*
+       * ── AI Assistant ───────────────────────────────────────────────
+       * Rendered at the layout level so it floats above every page.
+       * The floating button sits in the bottom-right corner and is
+       * scoped to the authenticated user's role via `assistantType`.
+       *
+       * Role mapping:
+       *   1 = DSO        → "DSO Assistant"       (purple pill)
+       *   2 = Lab        → "Lab Assistant"        (blue pill)
+       *   3 = Doctor     → "Doctor Assistant"     (green pill)
+       *   4 = Practice   → "Practice Assistant"   (orange pill)
+       *   5 = Integrator → "Integrator Assistant" (sky pill)
+       *   6 = AppAdmin   → "Admin Assistant"      (slate pill)
+       */}
+      {shouldShowAssistant && (
+        <KiduAiAssistant type={assistantType as AssistantType} />
+      )}
     </div>
   );
 };

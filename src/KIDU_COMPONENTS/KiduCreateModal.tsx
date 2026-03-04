@@ -4,7 +4,7 @@ import toast, { Toaster } from "react-hot-toast";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Swal from "sweetalert2";
 import "../Styles/KiduStyles/CreateModal.css";
-import KiduValidation from "./KiduValidation";
+import KiduValidation, { KiduCharacterCounter } from "./KiduValidation";
 import { KiduSelectInputPill } from "./KiduSelectPopup";
 import type { KiduDropdownOption, KiduDropdownPaginatedParams, KiduDropdownPaginatedResult } from "./KiduDropdown";
 import KiduDropdown from "./KiduDropdown";
@@ -111,12 +111,10 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
   size = "lg",
   centered = true,
 }) => {
-  // ── Detect if there is an "active" toggle field ───────────────────────────
   const activeField = fields.find(
     (f) => f.name.toLowerCase() === "active" && f.rules.type === "toggle"
   );
 
-  // ── Initialise form state from field definitions ──────────────────────────
   const buildInitial = () => {
     const values: Record<string, any> = {};
     const errs: Record<string, string> = {};
@@ -144,7 +142,6 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
   const [dropdownValues, setDropdownValues] = useState<Record<string, any>>({});
 
-  // Reset when modal closes
   useEffect(() => {
     if (!show) {
       setFormData(initialValues);
@@ -411,6 +408,7 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
             onBlur={() => handleBlur(name)}
             isInvalid={!!errors[name]}
             disabled={disabled}
+            maxLength={rules.maxLength}
             className={`kidu-textarea ${disabled ? "kidu-input-disabled" : ""}`}
           />
         );
@@ -518,7 +516,6 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
       return <div key={`rowbreak-${index}`} className="w-100" />;
     }
 
-    // "active" toggle is rendered in the header — skip it in the form body
     if (name.toLowerCase() === "active" && rules.type === "toggle") {
       return null;
     }
@@ -527,10 +524,18 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
 
     return (
       <Col md={colWidth} className="mb-3" key={name}>
-        <Form.Label className="kidu-form-label">
-          {rules.label}
-          {rules.required && <span className="kidu-required-star">*</span>}
-        </Form.Label>
+        {/* Label row — KiduCharacterCounter renders itself only when applicable */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+          <Form.Label className="kidu-form-label" style={{ marginBottom: 0 }}>
+            {rules.label}
+            {rules.required && <span className="kidu-required-star">*</span>}
+          </Form.Label>
+          <KiduCharacterCounter
+            value={formData[name] ?? ""}
+            maxLength={rules.maxLength}
+            type={rules.type}
+          />
+        </div>
 
         {renderFormControl(field)}
 
@@ -555,7 +560,6 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
         contentClassName="kidu-modal-content"
         dialogClassName="kidu-modal-dialog"
       >
-        {/* ── Floating close button ── */}
         <button
           type="button"
           className="kidu-modal-close-btn"
@@ -583,7 +587,6 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
             {subtitle && <p className="kidu-modal-subtitle">{subtitle}</p>}
           </div>
 
-          {/* ── Active toggle in header (only when field name === "active") ── */}
           {activeField && (
             <div className="kidu-modal-header-active">
               <span
@@ -628,11 +631,7 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
           >
             {isSubmitting || loadingState ? (
               <>
-                <span
-                  className="spinner-border spinner-border-sm me-2"
-                  role="status"
-                  aria-hidden="true"
-                />
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
                 Processing...
               </>
             ) : (

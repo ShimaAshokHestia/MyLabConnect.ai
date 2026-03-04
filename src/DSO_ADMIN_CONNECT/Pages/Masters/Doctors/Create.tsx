@@ -5,7 +5,7 @@ import KiduTabbedFormCreateModal, {
 } from "../../../../KIDU_COMPONENTS/KiduTabbedFormCreateModal";
 import DSODoctorService from "../../../Services/Masters/DsoDoctor.services";
 
-// ── Header fields (top section of the modal) ──────────────────────────────────
+// ── Header fields ─────────────────────────────────────────────────────────────
 const headerFields: TabbedFormField[] = [
   {
     name: "doctorCode",
@@ -14,6 +14,7 @@ const headerFields: TabbedFormField[] = [
     required: true,
     placeholder: "Enter doctor code",
     colWidth: 3,
+    maxLength: 200,
   },
   {
     name: "firstName",
@@ -22,6 +23,7 @@ const headerFields: TabbedFormField[] = [
     required: true,
     placeholder: "Enter first name",
     colWidth: 3,
+    maxLength: 200,
   },
   {
     name: "lastName",
@@ -30,6 +32,7 @@ const headerFields: TabbedFormField[] = [
     required: true,
     placeholder: "Enter last name",
     colWidth: 3,
+    maxLength: 200,
   },
   {
     name: "email",
@@ -38,6 +41,7 @@ const headerFields: TabbedFormField[] = [
     required: false,
     placeholder: "Enter email address",
     colWidth: 4,
+    maxLength: 100,
   },
   {
     name: "phoneNumber",
@@ -46,14 +50,16 @@ const headerFields: TabbedFormField[] = [
     required: false,
     placeholder: "Enter phone number",
     colWidth: 4,
+    maxLength: 100,
   },
   {
     name: "licenseNo",
     label: "License No",
     type: "text",
-    required: false,
+    required: true,
     placeholder: "Enter license number",
     colWidth: 4,
+    maxLength: 200,
   },
   {
     name: "info",
@@ -61,7 +67,8 @@ const headerFields: TabbedFormField[] = [
     type: "text",
     required: false,
     placeholder: "Enter specialty or additional info",
-    colWidth: 8,
+    colWidth: 6,
+    maxLength: 500,
   },
   {
     name: "address",
@@ -69,11 +76,12 @@ const headerFields: TabbedFormField[] = [
     type: "text",
     required: false,
     placeholder: "Enter address",
-    colWidth: 10,
+    colWidth: 6,
+    maxLength: 500,
   },
 ];
 
-// ── Tab definitions (row-based section) ───────────────────────────────────────
+// ── Tab definitions ───────────────────────────────────────────────────────────
 const tabs: TabConfig[] = [
   {
     key: "practices",
@@ -133,17 +141,17 @@ const DSODoctorCreateModal: React.FC<Props> = ({
     );
 
     const result = await DSODoctorService.create({
-      doctorCode: headerData.doctorCode,
-      firstName: headerData.firstName,
-      lastName: headerData.lastName,
-      fullName: `${headerData.firstName} ${headerData.lastName}`,
-      email: headerData.email || undefined,
+      doctorCode:  headerData.doctorCode,
+      firstName:   headerData.firstName,
+      lastName:    headerData.lastName,
+      fullName:    `${headerData.firstName} ${headerData.lastName}`,
+      email:       headerData.email       || undefined,
       phoneNumber: headerData.phoneNumber || undefined,
-      licenseNo: headerData.licenseNo || undefined,
-      info: headerData.info || undefined,
-      address: headerData.address || undefined,
-      isActive: headerData.isActive ?? true,
-      isDeleted: false,
+      licenseNo:   headerData.licenseNo   || undefined,
+      info:        headerData.info        || undefined,
+      address:     headerData.address     || undefined,
+      isActive:    headerData.isActive    ?? true,
+      isDeleted:   false,
     });
 
     if (!result || !result.isSucess) {

@@ -4,7 +4,7 @@ import toast, { Toaster } from "react-hot-toast";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Swal from 'sweetalert2';
 import "../Styles/KiduStyles/EditModal.css";
-import KiduValidation from "./KiduValidation";
+import KiduValidation, { KiduCharacterCounter } from "./KiduValidation";
 import { KiduSelectInputPill } from "./KiduSelectPopup";
 import type { KiduDropdownOption, KiduDropdownPaginatedParams, KiduDropdownPaginatedResult } from "./KiduDropdown";
 import type { DropdownHandlers } from "./KiduCreateModal";
@@ -491,6 +491,7 @@ const KiduEditModal: React.FC<KiduEditModalProps> = ({
             onBlur={() => handleBlur(name)}
             isInvalid={!!errors[name]}
             disabled={rules.disabled}
+            maxLength={rules.maxLength}
             className={`kidu-textarea ${rules.disabled ? 'kidu-input-disabled' : ''}`}
           />
         );
@@ -596,14 +597,26 @@ const KiduEditModal: React.FC<KiduEditModalProps> = ({
     if (rules.type === "rowbreak") {
       return <div key={`rowbreak-${index}`} className="w-100"></div>;
     }
+
     const colWidth = rules.colWidth || 6;
+
     return (
       <Col md={colWidth} className="mb-3" key={name}>
-        <Form.Label className="kidu-form-label">
-          {rules.label}
-          {rules.required && <span className="kidu-required-star">*</span>}
-        </Form.Label>
+        {/* Label row — KiduCharacterCounter renders itself only when applicable */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+          <Form.Label className="kidu-form-label" style={{ marginBottom: 0 }}>
+            {rules.label}
+            {rules.required && <span className="kidu-required-star">*</span>}
+          </Form.Label>
+          <KiduCharacterCounter
+            value={formData[name] ?? ""}
+            maxLength={rules.maxLength}
+            type={rules.type}
+          />
+        </div>
+
         {renderFormControl(field)}
+
         {rules.type !== "popup" && rules.type !== "smartdropdown" && errors[name] && (
           <div className="kidu-error-message">{errors[name]}</div>
         )}
@@ -624,7 +637,6 @@ const KiduEditModal: React.FC<KiduEditModalProps> = ({
         contentClassName="kidu-modal-content"
         dialogClassName="kidu-modal-dialog"
       >
-        {/* ── Floating close button ── */}
         <button
           type="button"
           className="kidu-modal-close-btn"
@@ -648,14 +660,8 @@ const KiduEditModal: React.FC<KiduEditModalProps> = ({
 
         <Modal.Header className="kidu-modal-header">
           <div>
-            <Modal.Title className="kidu-modal-title">
-              {title}
-            </Modal.Title>
-            {subtitle && (
-              <p className="kidu-modal-subtitle">
-                {subtitle}
-              </p>
-            )}
+            <Modal.Title className="kidu-modal-title">{title}</Modal.Title>
+            {subtitle && <p className="kidu-modal-subtitle">{subtitle}</p>}
           </div>
         </Modal.Header>
 

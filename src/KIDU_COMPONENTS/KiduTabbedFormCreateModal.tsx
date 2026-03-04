@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaTrash, FaPlus } from "react-icons/fa";
 import "../Styles/KiduStyles/KiduTabbedFormModal.css";
+import KiduValidation, { KiduCharacterCounter } from "./KiduValidation";
 
 // ==================== TYPES ====================
 
@@ -12,6 +13,8 @@ export interface TabbedFormField {
   placeholder?: string;
   options?: { value: string | number; label: string }[];
   colWidth?: 3 | 4 | 6 | 8 | 10 | 12;
+  maxLength?: number; // ← added
+  minLength?: number; // ← added
 }
 
 export interface TabConfig {
@@ -135,16 +138,25 @@ const KiduTabbedFormCreateModal: React.FC<KiduTabbedFormCreateModalProps> = ({
     setTabData(buildTabInitial());
   };
 
-  // ── Validation ────────────────────────────────────────────────────────────
+  // ── Validation using KiduValidation ──────────────────────────────────────
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
     let valid = true;
+
     headerFields.forEach((f) => {
-      if (f.required && !headerData[f.name]) {
-        newErrors[f.name] = `${f.label} is required`;
+      const result = KiduValidation.validate(headerData[f.name], {
+        type: f.type as any,
+        required: f.required,
+        label: f.label,
+        minLength: f.minLength,
+        maxLength: f.maxLength,
+      });
+      if (!result.isValid) {
+        newErrors[f.name] = result.message ?? `${f.label} is invalid`;
         valid = false;
       }
     });
+
     setErrors(newErrors);
     return valid;
   };
@@ -183,7 +195,7 @@ const KiduTabbedFormCreateModal: React.FC<KiduTabbedFormCreateModalProps> = ({
       <div className="ktf-modal-wrapper">
         <div className="ktf-modal" onClick={(e) => e.stopPropagation()}>
 
-          {/* ── Floating close button (matches KiduCreateModal) ── */}
+          {/* ── Floating close button ── */}
           <button
             type="button"
             className="ktf-floating-close-btn"
@@ -237,10 +249,18 @@ const KiduTabbedFormCreateModal: React.FC<KiduTabbedFormCreateModalProps> = ({
                       field.colWidth === 12 ? "0 0 100%" : "1 1 0",
                 }}
               >
-                <label className="ktf-label">
-                  {field.label}
-                  {field.required && <span className="ktf-required">*</span>}
-                </label>
+                {/* Label row with character counter */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                  <label className="ktf-label" style={{ marginBottom: 0 }}>
+                    {field.label}
+                    {field.required && <span className="ktf-required">*</span>}
+                  </label>
+                  <KiduCharacterCounter
+                    value={headerData[field.name] ?? ""}
+                    maxLength={field.maxLength}
+                    type={field.type}
+                  />
+                </div>
 
                 {field.type === "select" ? (
                   <div className="ktf-select-wrap">
@@ -256,12 +276,22 @@ const KiduTabbedFormCreateModal: React.FC<KiduTabbedFormCreateModalProps> = ({
                     </select>
                     <span className="ktf-select-arrow">▾</span>
                   </div>
+                ) : field.type === "textarea" ? (
+                  <textarea
+                    className={`ktf-input ktf-textarea ${errors[field.name] ? "ktf-input--error" : ""}`}
+                    placeholder={field.placeholder ?? `Enter ${field.label.toLowerCase()}`}
+                    value={headerData[field.name]}
+                    maxLength={field.maxLength}
+                    rows={3}
+                    onChange={(e) => handleHeaderChange(field.name, e.target.value)}
+                  />
                 ) : (
                   <input
                     type={field.type}
                     className={`ktf-input ${errors[field.name] ? "ktf-input--error" : ""}`}
                     placeholder={field.placeholder ?? `Enter ${field.label.toLowerCase()}`}
                     value={headerData[field.name]}
+                    maxLength={field.maxLength}
                     onChange={(e) => handleHeaderChange(field.name, e.target.value)}
                   />
                 )}

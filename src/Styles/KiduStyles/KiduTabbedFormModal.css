@@ -72,13 +72,11 @@
     0 16px 40px -4px rgba(0, 0, 0, 0.13),
     0 0 0 1px rgba(0, 0, 0, 0.04);
   animation: ktfModalIn 0.2s cubic-bezier(0.22, 1, 0.36, 1);
-  overflow: visible; /* ← must be visible so floating close btn isn't clipped */
+  overflow: visible;
   display: flex;
   flex-direction: column;
   position: relative;
 }
-
-/* Clip header/footer individually since modal overflow is visible */
 
 /* Accent bar at top */
 .ktf-modal::before {
@@ -138,7 +136,7 @@
   color: var(--kidu-text-secondary, #64748b);
 }
 
-/* ── Toggle switch (matches KiduCreateModal toggle exactly) ── */
+/* ── Toggle switch ── */
 .ktf-toggle {
   width: 44px;
   height: 24px;
@@ -314,16 +312,8 @@
   font-size: 0.71rem;
   color: #ef4444;
   margin-top: 2px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
 }
-.ktf-error-msg::before {
-  content: "●";
-  font-size: 5px;
-  opacity: 0.7;
-  flex-shrink: 0;
-}
+/* ← removed ::before { content: "●" } */
 
 /* ── Tab bar ── */
 .ktf-tab-bar {
@@ -482,676 +472,7 @@
   overflow: hidden;
 }
 
-/* ── Reset button (matches kidu-btn-cancel style) ── */
-.ktf-reset-btn {
-  padding: 7px 18px;
-  border-radius: 8px;
-  font-size: 0.79rem;
-  font-weight: 600;
-  border: 1.5px solid var(--kidu-border, #e2e8f0);
-  color: var(--kidu-text-secondary, #64748b);
-  background: var(--kidu-bg, #f8fafc);
-  cursor: pointer;
-  transition: border-color 0.14s, color 0.14s, background 0.14s;
-  line-height: 1.4;
-}
-
-.ktf-reset-btn:hover:not(:disabled) {
-  border-color: var(--kidu-text-secondary, #64748b);
-  color: var(--kidu-text-primary, #0f172a);
-  background: var(--kidu-border, #e2e8f0);
-}
-
-.ktf-reset-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* ── Save button ── */
-.ktf-save-btn {
-  padding: 7px 20px;
-  border-radius: 8px;
-  border: none;
-  color: #fff;
-  font-size: 0.79rem;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  letter-spacing: 0.1px;
-  transition: opacity 0.14s, transform 0.1s, box-shadow 0.14s;
-  line-height: 1.4;
-}
-
-.ktf-save-btn:hover:not(:disabled) {
-  opacity: 0.92;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(239, 13, 80, 0.35);
-}
-
-.ktf-save-btn:active:not(:disabled) {
-  transform: scale(0.97);
-}
-
-.ktf-save-btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-/* ── Spinner ── */
-.ktf-spinner {
-  width: 14px;
-  height: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.35);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: ktfSpin 0.65s linear infinite;
-  flex-shrink: 0;
-}
-
-@keyframes ktfSpin {
-  to { transform: rotate(360deg); }
-}
-
-/* ══════════════════════════════════════════════════════════════════════════
-   DARK THEME
-══════════════════════════════════════════════════════════════════════════ */
-
-[data-theme="dark"] .ktf-modal {
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.4),
-    0 20px 50px -8px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(255, 255, 255, 0.06);
-}
-
-[data-theme="dark"] .ktf-toggle {
-  background-color: #334155;
-  border-color: #334155;
-}
-
-[data-theme="dark"] .ktf-toggle--on {
-  background-color: var(--kidu-accent, #ef0d50) !important;
-  border-color: rgba(239, 13, 80, 0.6) !important;
-}
-
-/* ══════════════════════════════════════════════════════════════════════════
-   RESPONSIVE
-══════════════════════════════════════════════════════════════════════════ */
-
-@media (max-width: 768px) {
-  .ktf-overlay {
-    padding: 0;
-    align-items: flex-end;
-  }
-
-  .ktf-modal-wrapper {
-    max-width: 100%;
-  }
-
-  .ktf-modal {
-    border-radius: 18px 18px 0 0;
-    max-height: 95vh;
-    overflow-y: auto;
-  }
-
-  /* On mobile the floating button would be clipped — move it inside */
-  .ktf-floating-close-btn {
-    top: 10px;
-    right: 10px;
-  }
-
-  .ktf-top-fields {
-    flex-direction: column;
-  }
-
-  .ktf-field-group {
-    flex: 1 1 100% !important;
-  }
-
-  .ktf-tab-bar {
-    overflow-x: auto;
-    padding: 6px 16px 0;
-    gap: 2px;
-  }
-
-  .ktf-tab-btn {
-    padding: 8px 14px;
-    font-size: 0.75rem;
-  }
-
-  .ktf-tab-content {
-    padding: 12px 16px;
-  }
-
-  .ktf-header {
-    padding: 16px 18px 14px;
-  }
-
-  .ktf-footer {
-    padding: 12px 16px 16px;
-    flex-direction: column-reverse;
-  }
-
-  .ktf-reset-btn,
-  .ktf-save-btn {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
-/* ══════════════════════════════════════════════════════════════════════════
-   ACCESSIBILITY
-══════════════════════════════════════════════════════════════════════════ */
-
-.ktf-input:focus-visible,
-.ktf-select:focus-visible,
-.ktf-save-btn:focus-visible,
-.ktf-reset-btn:focus-visible,
-.ktf-add-btn:focus-visible {
-  outline: 2px solid var(--kidu-accent, #ef0d50);
-  outline-offset: 2px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ktf-modal,
-  .ktf-overlay,
-  .ktf-toggle,
-  .ktf-toggle-thumb,
-  .ktf-input,
-  .ktf-select,
-  .ktf-save-btn,
-  .ktf-reset-btn,
-  .ktf-floating-close-btn {
-    animation: none !important;
-    transition: none !important;
-  }
-}
-/* ============================================
-   KiduTabbedFormModal
-   Matches KiduCreateModal theme exactly
-   ============================================ */
-
-/* ── Overlay ── */
-.ktf-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  z-index: 1055;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 32px 16px;
-  overflow-y: auto;
-  animation: ktfOverlayIn 0.18s ease;
-}
-
-@keyframes ktfOverlayIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-/* ── Modal wrapper — needed to anchor the floating close button ── */
-.ktf-modal-wrapper {
-  position: relative;
-  width: 100%;
-  max-width: 900px;
-}
-
-/* ── Floating close button (matches KiduCreateModal exactly) ── */
-.ktf-floating-close-btn {
-  position: absolute;
-  top: -13px;
-  right: -13px;
-  z-index: 1070;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background-color: var(--kidu-accent, #ef0d50);
-  border: 2px solid #fff;
-  color: #ffffff;
-  line-height: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-  padding: 0;
-  padding-top: 1px;
-}
-
-.ktf-floating-close-btn:hover {
-  transform: scale(1.12);
-  box-shadow: 0 4px 14px rgba(239, 13, 80, 0.45);
-}
-
-.ktf-floating-close-btn:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(239, 13, 80, 0.35);
-}
-
-/* ── Modal shell ── */
-.ktf-modal {
-  background: var(--kidu-bg-paper, #ffffff);
-  border-radius: 18px;
-  width: 100%;
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.07),
-    0 16px 40px -4px rgba(0, 0, 0, 0.13),
-    0 0 0 1px rgba(0, 0, 0, 0.04);
-  animation: ktfModalIn 0.2s cubic-bezier(0.22, 1, 0.36, 1);
-  overflow: visible; /* ← must be visible so floating close btn isn't clipped */
-  display: flex;
-  flex-direction: column;
-  position: relative;
-}
-
-/* Clip header/footer individually since modal overflow is visible */
-
-/* Accent bar at top */
-.ktf-modal::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(
-    90deg,
-    var(--kidu-accent, #ef0d50),
-    rgba(239, 13, 80, 0.35)
-  );
-  border-radius: 18px 18px 0 0;
-  z-index: 1;
-}
-
-@keyframes ktfModalIn {
-  from { opacity: 0; transform: scale(0.96) translateY(8px); }
-  to   { opacity: 1; transform: scale(1)    translateY(0);   }
-}
-
-/* ── Header ── */
-.ktf-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 24px 16px;
-  border-bottom: 1px solid var(--kidu-divider, #f1f5f9);
-  background: var(--kidu-bg-paper, #ffffff);
-  border-radius: 18px 18px 0 0;
-  overflow: hidden;
-}
-
-.ktf-header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.ktf-title {
-  font-size: 0.97rem;
-  font-weight: 700;
-  color: var(--kidu-text-primary, #0f172a);
-  letter-spacing: -0.25px;
-  margin: 0;
-}
-
-.ktf-header-right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.ktf-active-label {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--kidu-text-secondary, #64748b);
-}
-
-/* ── Toggle switch (matches KiduCreateModal toggle exactly) ── */
-.ktf-toggle {
-  width: 44px;
-  height: 24px;
-  border-radius: 999px;
-  background-color: #cbd5e1;
-  border: 2px solid #cbd5e1;
-  position: relative;
-  cursor: pointer;
-  transition: background-color 0.22s ease, border-color 0.22s ease;
-  outline: none;
-  flex-shrink: 0;
-}
-
-.ktf-toggle:focus-visible {
-  box-shadow: 0 0 0 3px rgba(239, 13, 80, 0.2);
-}
-
-.ktf-toggle--on {
-  background-color: var(--kidu-accent, #ef0d50) !important;
-  border-color: rgba(239, 13, 80, 0.55) !important;
-  box-shadow: 0 0 0 3px rgba(239, 13, 80, 0.18);
-}
-
-.ktf-toggle-thumb {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  left: 3px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #ffffff;
-  transition: left 0.22s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-}
-
-.ktf-toggle--on .ktf-toggle-thumb {
-  left: calc(44px - 18px - 5px);
-}
-
-/* ── Top fields row ── */
-.ktf-top-fields {
-  display: flex;
-  gap: 14px;
-  padding: 16px 24px;
-  background: var(--kidu-bg-paper, #ffffff);
-  border-bottom: 1px solid var(--kidu-divider, #f1f5f9);
-  flex-wrap: wrap;
-}
-
-.ktf-field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-/* ── Labels ── */
-.ktf-label {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--kidu-text-secondary, #64748b);
-  text-transform: uppercase;
-  letter-spacing: 0.35px;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-
-.ktf-required {
-  color: var(--kidu-accent, #ef0d50);
-  font-weight: 700;
-}
-
-/* ── Inputs ── */
-.ktf-input {
-  height: 38px;
-  padding: 0 11px;
-  border: 1.5px solid var(--kidu-border, #e2e8f0);
-  border-radius: 9px;
-  font-size: 0.8rem;
-  font-family: inherit;
-  background: var(--kidu-bg, #f8fafc);
-  color: var(--kidu-text-primary, #0f172a);
-  outline: none;
-  width: 100%;
-  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-.ktf-input:hover:not(:disabled) {
-  border-color: var(--kidu-text-disabled, #94a3b8);
-}
-
-.ktf-input:focus {
-  border-color: var(--kidu-accent, #ef0d50);
-  box-shadow: 0 0 0 3px rgba(239, 13, 80, 0.1);
-  background: var(--kidu-bg-paper, #ffffff);
-}
-
-.ktf-input::placeholder {
-  color: var(--kidu-text-disabled, #94a3b8);
-}
-
-.ktf-input--error {
-  border-color: #ef4444 !important;
-}
-
-/* Small variant for table rows */
-.ktf-input--sm {
-  height: 36px;
-  font-size: 0.79rem;
-  border-radius: 8px;
-}
-
-/* ── Select ── */
-.ktf-select-wrap {
-  position: relative;
-  width: 100%;
-}
-
-.ktf-select {
-  height: 38px;
-  padding: 0 32px 0 11px;
-  border: 1.5px solid var(--kidu-border, #e2e8f0);
-  border-radius: 9px;
-  font-size: 0.8rem;
-  font-family: inherit;
-  background: var(--kidu-bg, #f8fafc);
-  color: var(--kidu-text-primary, #0f172a);
-  outline: none;
-  width: 100%;
-  cursor: pointer;
-  -webkit-appearance: none;
-  appearance: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.ktf-select:hover {
-  border-color: var(--kidu-text-disabled, #94a3b8);
-}
-
-.ktf-select:focus {
-  border-color: var(--kidu-accent, #ef0d50);
-  box-shadow: 0 0 0 3px rgba(239, 13, 80, 0.1);
-  background: var(--kidu-bg-paper, #ffffff);
-}
-
-.ktf-select--sm {
-  height: 36px;
-  font-size: 0.79rem;
-  border-radius: 8px;
-}
-
-.ktf-select-wrap--sm .ktf-select-arrow {
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.ktf-select-arrow {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--kidu-text-disabled, #94a3b8);
-  font-size: 0.7rem;
-  pointer-events: none;
-}
-
-/* ── Error message ── */
-.ktf-error-msg {
-  font-size: 0.71rem;
-  color: #ef4444;
-  margin-top: 2px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.ktf-error-msg::before {
-  content: "●";
-  font-size: 5px;
-  opacity: 0.7;
-  flex-shrink: 0;
-}
-
-/* ── Tab bar ── */
-.ktf-tab-bar {
-  display: flex;
-  background: var(--kidu-bg, #f8fafc);
-  border-bottom: 1px solid var(--kidu-divider, #f1f5f9);
-  padding: 6px 24px 0;
-  gap: 4px;
-}
-
-.ktf-tab-btn {
-  padding: 8px 20px;
-  border: none;
-  border-radius: 10px 10px 0 0;
-  background: transparent;
-  font-size: 0.79rem;
-  font-weight: 500;
-  color: var(--kidu-text-secondary, #64748b);
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-  white-space: nowrap;
-  position: relative;
-  bottom: -1px;
-}
-
-.ktf-tab-btn:hover:not(.ktf-tab-btn--active) {
-  background: var(--kidu-border, #e2e8f0);
-  color: var(--kidu-text-primary, #0f172a);
-}
-
-.ktf-tab-btn--active {
-  background: var(--kidu-bg-paper, #ffffff);
-  color: var(--kidu-text-primary, #0f172a);
-  font-weight: 700;
-  border: 1px solid var(--kidu-divider, #f1f5f9);
-  border-bottom-color: var(--kidu-bg-paper, #ffffff);
-}
-
-/* ── Tab content ── */
-.ktf-tab-content {
-  padding: 16px 24px;
-  background: var(--kidu-bg-paper, #ffffff);
-  min-height: 200px;
-}
-
-.ktf-tab-toolbar {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 12px;
-}
-
-.ktf-add-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 16px;
-  border: 1.5px solid var(--kidu-border, #e2e8f0);
-  border-radius: 8px;
-  background: var(--kidu-bg-paper, #ffffff);
-  color: var(--kidu-text-secondary, #64748b);
-  font-size: 0.78rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color 0.14s, color 0.14s, background 0.14s;
-}
-
-.ktf-add-btn:hover {
-  border-color: var(--kidu-accent, #ef0d50);
-  color: var(--kidu-accent, #ef0d50);
-  background: rgba(239, 13, 80, 0.04);
-}
-
-/* ── Table ── */
-.ktf-table-wrap {
-  border: 1px solid var(--kidu-border, #e2e8f0);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.ktf-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.8rem;
-}
-
-.ktf-th {
-  padding: 10px 14px;
-  text-align: left;
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--kidu-text-secondary, #64748b);
-  text-transform: uppercase;
-  letter-spacing: 0.35px;
-  background: var(--kidu-bg, #f8fafc);
-  border-bottom: 1px solid var(--kidu-border, #e2e8f0);
-}
-
-.ktf-th-action {
-  width: 80px;
-  text-align: right;
-}
-
-.ktf-tr {
-  transition: background 0.12s;
-}
-
-.ktf-tr:not(:last-child) {
-  border-bottom: 1px solid var(--kidu-divider, #f1f5f9);
-}
-
-.ktf-tr:hover {
-  background: var(--kidu-bg, #f8fafc);
-}
-
-.ktf-td {
-  padding: 8px 10px;
-  vertical-align: middle;
-}
-
-.ktf-td-action {
-  text-align: right;
-  padding-right: 12px;
-}
-
-/* ── Delete button ── */
-.ktf-delete-btn {
-  width: 30px;
-  height: 30px;
-  border-radius: 7px;
-  border: 1.5px solid var(--kidu-border, #e2e8f0);
-  background: var(--kidu-bg-paper, #ffffff);
-  color: var(--kidu-text-disabled, #94a3b8);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: border-color 0.14s, color 0.14s, background 0.14s;
-}
-
-.ktf-delete-btn:hover {
-  border-color: #ef4444;
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.06);
-}
-
-/* ── Footer ── */
-.ktf-footer {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 24px 20px;
-  border-top: 1px solid var(--kidu-divider, #f1f5f9);
-  background: var(--kidu-bg-paper, #ffffff);
-  border-radius: 0 0 18px 18px;
-  overflow: hidden;
-}
-
-/* ── Reset button (matches kidu-btn-cancel style) ── */
+/* ── Reset button ── */
 .ktf-reset-btn {
   padding: 7px 18px;
   border-radius: 8px;
@@ -1227,7 +548,6 @@
    VIEW MODAL — READ-ONLY SPECIFIC STYLES
 ══════════════════════════════════════════════════════════════════════════ */
 
-/* Read-only inputs */
 .ktf-view-readonly {
   background-color: var(--kidu-bg, #f8fafc) !important;
   color: var(--kidu-text-secondary, #64748b) !important;
@@ -1237,7 +557,6 @@
   border-color: var(--kidu-border, #e2e8f0) !important;
 }
 
-/* Textarea read-only */
 .ktf-textarea {
   height: auto;
   padding: 9px 11px;
@@ -1246,7 +565,6 @@
   line-height: 1.5;
 }
 
-/* Subtitle in header */
 .ktf-subtitle {
   font-size: 0.72rem;
   color: var(--kidu-text-secondary, #64748b);
@@ -1254,7 +572,6 @@
   font-weight: 400;
 }
 
-/* Read Only badge */
 .ktf-view-badge {
   font-size: 0.68rem;
   font-weight: 700;
@@ -1266,14 +583,12 @@
   white-space: nowrap;
 }
 
-/* Toggle read-only state */
 .ktf-toggle--readonly {
   cursor: default !important;
   pointer-events: none;
   opacity: 0.8;
 }
 
-/* Toggle + label wrapper */
 .ktf-view-toggle-wrapper {
   display: flex;
   align-items: center;
@@ -1291,7 +606,6 @@
   font-weight: 500;
 }
 
-/* Loading state */
 .ktf-loading {
   display: flex;
   align-items: center;
@@ -1302,13 +616,11 @@
   color: var(--kidu-text-secondary, #64748b);
 }
 
-/* Dark spinner variant for loading overlay */
 .ktf-spinner--dark {
   border-color: rgba(100, 116, 139, 0.3);
   border-top-color: var(--kidu-text-secondary, #64748b);
 }
 
-/* Empty state */
 .ktf-empty {
   display: flex;
   align-items: center;
@@ -1317,17 +629,6 @@
   font-size: 0.82rem;
   color: var(--kidu-text-disabled, #94a3b8);
 }
-
-/* Dark theme adjustments for view */
-[data-theme="dark"] .ktf-view-readonly {
-  background-color: var(--kidu-bg, #0f1419) !important;
-  color: var(--kidu-text-secondary, #94a3b8) !important;
-}
-
-[data-theme="dark"] .ktf-view-toggle-wrapper {
-  background-color: var(--kidu-bg, #0f1419);
-}
-
 
 /* ══════════════════════════════════════════════════════════════════════════
    DARK THEME
@@ -1350,6 +651,15 @@
   border-color: rgba(239, 13, 80, 0.6) !important;
 }
 
+[data-theme="dark"] .ktf-view-readonly {
+  background-color: var(--kidu-bg, #0f1419) !important;
+  color: var(--kidu-text-secondary, #94a3b8) !important;
+}
+
+[data-theme="dark"] .ktf-view-toggle-wrapper {
+  background-color: var(--kidu-bg, #0f1419);
+}
+
 /* ══════════════════════════════════════════════════════════════════════════
    RESPONSIVE
 ══════════════════════════════════════════════════════════════════════════ */
@@ -1370,7 +680,6 @@
     overflow-y: auto;
   }
 
-  /* On mobile the floating button would be clipped — move it inside */
   .ktf-floating-close-btn {
     top: 10px;
     right: 10px;

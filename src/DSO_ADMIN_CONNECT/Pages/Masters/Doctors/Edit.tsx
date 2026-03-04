@@ -14,6 +14,7 @@ const headerFields: TabbedFormField[] = [
     required: true,
     placeholder: "Enter doctor code",
     colWidth: 4,
+    maxLength: 200,
   },
   {
     name: "firstName",
@@ -22,6 +23,7 @@ const headerFields: TabbedFormField[] = [
     required: true,
     placeholder: "Enter first name",
     colWidth: 4,
+    maxLength: 200,
   },
   {
     name: "lastName",
@@ -30,6 +32,7 @@ const headerFields: TabbedFormField[] = [
     required: true,
     placeholder: "Enter last name",
     colWidth: 4,
+    maxLength: 200,
   },
   {
     name: "email",
@@ -38,6 +41,7 @@ const headerFields: TabbedFormField[] = [
     required: false,
     placeholder: "Enter email address",
     colWidth: 4,
+    maxLength: 100,
   },
   {
     name: "phoneNumber",
@@ -46,14 +50,16 @@ const headerFields: TabbedFormField[] = [
     required: false,
     placeholder: "Enter phone number",
     colWidth: 4,
+    maxLength: 100,
   },
   {
     name: "licenseNo",
     label: "License No",
     type: "text",
-    required: false,
+    required: true,
     placeholder: "Enter license number",
     colWidth: 4,
+    maxLength: 200,
   },
   {
     name: "info",
@@ -62,6 +68,7 @@ const headerFields: TabbedFormField[] = [
     required: false,
     placeholder: "Enter specialty or additional info",
     colWidth: 6,
+    maxLength: 500,
   },
   {
     name: "address",
@@ -70,6 +77,7 @@ const headerFields: TabbedFormField[] = [
     required: false,
     placeholder: "Enter address",
     colWidth: 6,
+    maxLength: 500,
   },
 ];
 
@@ -108,7 +116,7 @@ const DSODoctorEditModal: React.FC<Props> = ({
   practiceOptions = [],
 }) => {
   const [initialHeaderData, setInitialHeaderData] = useState<Record<string, any>>({});
-  const [initialTabData,    setInitialTabData]    = useState<Record<string, Record<string, any>[]>>({
+  const [initialTabData, setInitialTabData] = useState<Record<string, Record<string, any>[]>>({
     practices: [{ practiceId: "" }],
   });
   const [loading, setLoading] = useState(false);
@@ -218,7 +226,7 @@ const DSODoctorEditModal: React.FC<Props> = ({
     onSuccess();
   };
 
-  // ── Loading state — don't mount the modal until data is ready ────────────
+  // ── Loading state ─────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div

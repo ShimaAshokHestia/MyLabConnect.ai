@@ -42,7 +42,7 @@ export const dsoadminConnectRoutes = (
     {/* Masters */}
     <Route path="masters/labgroup-list" element={<LabGroupList />} />
     <Route path="masters/lab-list" element={<LabMasterList />} />
-    <Route path="masters/practice-list" element={<div><h5>Practice</h5></div>}/>
+    <Route path="masters/practice-list" element={<DSODentalOfficeList/>}/>
     <Route path="masters/doctor-list" element={<DsoDoctorList />} />
     <Route path="masters/productGroup-list" element={<DsoProductGroupList />} />
     <Route path="masters/user-role-creation-list" element={<div><h5>User Role Creation</h5></div>} />

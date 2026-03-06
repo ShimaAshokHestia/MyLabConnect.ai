@@ -3,9 +3,7 @@ import '../../Styles/KiduStyles/AiAssistant.css';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-// Strict config keys
 type AssistantTypeStrict = 1 | 2 | 3 | 4 | 5 | 6;
-// Loose exported type — callers may pass number|string from API/context
 export type AssistantType = AssistantTypeStrict | number | string;
 
 interface StepItem {
@@ -60,11 +58,15 @@ interface KiduAiAssistantProps {
   type: AssistantType;
 }
 
+interface FabPosition {
+  x: number; // distance from LEFT edge of viewport
+  y: number; // distance from BOTTOM edge of viewport
+}
+
 // ─── Role Configurations ──────────────────────────────────────────────────────
 
 const ROLE_CONFIGS: Record<AssistantTypeStrict, RoleConfig> = {
   1: {
-    // DSO
     fabLabel: 'DSO Assistant',
     name: 'DSO Assistant',
     subtitle: 'Smart Organisation Assistant · Powered by AI',
@@ -100,7 +102,6 @@ const ROLE_CONFIGS: Record<AssistantTypeStrict, RoleConfig> = {
     ],
   },
   2: {
-    // Lab
     fabLabel: 'Lab Assistant',
     name: 'Lab Assistant',
     subtitle: 'Smart Case Assistant · Powered by AI',
@@ -139,7 +140,6 @@ const ROLE_CONFIGS: Record<AssistantTypeStrict, RoleConfig> = {
     ],
   },
   3: {
-    // Doctor
     fabLabel: 'Doctor Assistant',
     name: 'Doctor Assistant',
     subtitle: 'Smart Clinical Assistant · Powered by AI',
@@ -176,7 +176,6 @@ const ROLE_CONFIGS: Record<AssistantTypeStrict, RoleConfig> = {
     ],
   },
   4: {
-    // Practice
     fabLabel: 'Practice Assistant',
     name: 'Practice Assistant',
     subtitle: 'Smart Practice Assistant · Powered by AI',
@@ -212,7 +211,6 @@ const ROLE_CONFIGS: Record<AssistantTypeStrict, RoleConfig> = {
     ],
   },
   5: {
-    // Integrator
     fabLabel: 'Integrator Assistant',
     name: 'Integrator Assistant',
     subtitle: 'Smart Integration Assistant · Powered by AI',
@@ -248,7 +246,6 @@ const ROLE_CONFIGS: Record<AssistantTypeStrict, RoleConfig> = {
     ],
   },
   6: {
-    // AppAdmin
     fabLabel: 'Admin Assistant',
     name: 'Admin Assistant',
     subtitle: 'Smart Platform Assistant · Powered by AI',
@@ -285,28 +282,63 @@ const ROLE_CONFIGS: Record<AssistantTypeStrict, RoleConfig> = {
   },
 };
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const ROLE_NAME_MAP: Record<string, AssistantTypeStrict> = {
+  dso: 1, lab: 2, doctor: 3, practice: 4, integrator: 5, appadmin: 6, admin: 6,
+};
+
+function resolveAssistantType(raw: AssistantType): AssistantTypeStrict {
+  const n = Number(raw);
+  if (!isNaN(n) && n >= 1 && n <= 6) return n as AssistantTypeStrict;
+  if (typeof raw === 'string') {
+    const mapped = ROLE_NAME_MAP[raw.toLowerCase().trim()];
+    if (mapped) return mapped;
+  }
+  if (import.meta.env.DEV) {
+    console.warn(`[KiduAiAssistant] Unrecognised assistantType="${raw}". Falling back to Lab (2).`);
+  }
+  return 2;
+}
+
+/**
+ * Default FAB position — sits in the pagination bar row, between the
+ * "Go" button and the "Records per page" dropdown (the blue-circled area).
+ *
+ * Layout reference (from screenshots):
+ *   - Viewport width ≈ 1456px
+ *   - "Records per page" label+dropdown occupies the far right ~180px
+ *   - FAB is ~160px wide
+ *   - We place it at right ≈ 190px so it clears the Records dropdown
+ *     and sits right where the blue circle was drawn.
+ *
+ * We calculate x from the LEFT using window.innerWidth so it stays
+ * correct on any screen size.
+ */
+function getDefaultFabPosition(): FabPosition {
+  const fabWidth = 160;
+  const rightOffset = 400;  // pushes it left of "Records per page" dropdown
+  const x = Math.max(0, window.innerWidth - fabWidth - rightOffset);
+  return { x, y: 18 };  // y:18 aligns it with the pagination row bottom
+}
+
 // ─── AI Avatar SVG ────────────────────────────────────────────────────────────
 
 const AiAvatarIcon: React.FC<{ size?: number; color?: string }> = ({ size = 20, color = 'white' }) => (
   <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle cx="20" cy="20" r="20" fill="transparent" />
-    {/* Head */}
     <ellipse cx="20" cy="16" rx="8" ry="8.5" fill={color} fillOpacity="0.95" />
-    {/* Body */}
     <path d="M8 34c0-6.627 5.373-12 12-12h0c6.627 0 12 5.373 12 12" stroke={color} strokeWidth="2.2" strokeLinecap="round" fill="none" />
-    {/* Eyes */}
     <circle cx="17" cy="15" r="1.3" fill="#ef0d50" />
     <circle cx="23" cy="15" r="1.3" fill="#ef0d50" />
-    {/* Smile */}
     <path d="M16.5 19.5 Q20 22 23.5 19.5" stroke="#ef0d50" strokeWidth="1.4" strokeLinecap="round" fill="none" />
-    {/* AI dots on forehead */}
     <circle cx="20" cy="10" r="1" fill={color} fillOpacity="0.6" />
     <circle cx="17" cy="11.5" r="0.7" fill={color} fillOpacity="0.4" />
     <circle cx="23" cy="11.5" r="0.7" fill={color} fillOpacity="0.4" />
   </svg>
 );
 
-// ─── Step Dot Icons ───────────────────────────────────────────────────────────
+// ─── Step icons ───────────────────────────────────────────────────────────────
 
 const DoneIcon = () => (
   <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
@@ -326,24 +358,6 @@ const PendingIcon = () => (
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-// Map string role names → numeric keys
-const ROLE_NAME_MAP: Record<string, AssistantTypeStrict> = {
-  dso: 1, lab: 2, doctor: 3, practice: 4, integrator: 5, appadmin: 6, admin: 6,
-};
-
-function resolveAssistantType(raw: AssistantType): AssistantTypeStrict {
-  const n = Number(raw);
-  if (!isNaN(n) && n >= 1 && n <= 6) return n as AssistantTypeStrict;
-  if (typeof raw === 'string') {
-    const mapped = ROLE_NAME_MAP[raw.toLowerCase().trim()];
-    if (mapped) return mapped;
-  }
-  if (import.meta.env.DEV) {
-    console.warn(`[KiduAiAssistant] Unrecognised assistantType="${raw}". Expected 1-6 or "doctor","lab","dso","practice","integrator","admin". Falling back to Lab (2).`);
-  }
-  return 2;
-}
-
 const KiduAiAssistant: React.FC<KiduAiAssistantProps> = ({ type }) => {
   const resolvedKey = resolveAssistantType(type);
   const config: RoleConfig = ROLE_CONFIGS[resolvedKey];
@@ -358,6 +372,88 @@ const KiduAiAssistant: React.FC<KiduAiAssistantProps> = ({ type }) => {
   const [caseDDOpen, setCaseDDOpen] = useState(false);
   const [caseSearch, setCaseSearch] = useState('');
 
+  // ── Draggable FAB ──────────────────────────────────────────────────────────
+  const [fabPos, setFabPos] = useState<FabPosition>(() => getDefaultFabPosition());
+  const [isDragging, setIsDragging] = useState(false);
+  const [showDragHint, setShowDragHint] = useState(true);
+  const dragStart = useRef<{ mouseX: number; mouseY: number; fabX: number; fabY: number } | null>(null);
+  const fabRef = useRef<HTMLButtonElement>(null);
+  const hasDragged = useRef(false);
+
+  // Auto-hide drag hint
+  useEffect(() => {
+    const t = setTimeout(() => setShowDragHint(false), 4000);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Mouse drag — start
+  const onMouseDown = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    hasDragged.current = false;
+    dragStart.current = { mouseX: e.clientX, mouseY: e.clientY, fabX: fabPos.x, fabY: fabPos.y };
+    setIsDragging(true);
+  }, [fabPos]);
+
+  // Mouse drag — move + end
+  useEffect(() => {
+    if (!isDragging) return;
+    const onMove = (e: MouseEvent) => {
+      if (!dragStart.current) return;
+      const dx = e.clientX - dragStart.current.mouseX;
+      const dy = e.clientY - dragStart.current.mouseY;
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) hasDragged.current = true;
+      const fabW = fabRef.current?.offsetWidth ?? 160;
+      const fabH = fabRef.current?.offsetHeight ?? 46;
+      setFabPos({
+        x: Math.max(0, Math.min(dragStart.current.fabX + dx, window.innerWidth - fabW)),
+        y: Math.max(0, Math.min(dragStart.current.fabY - dy, window.innerHeight - fabH)),
+      });
+    };
+    const onUp = () => { setIsDragging(false); dragStart.current = null; };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+  }, [isDragging]);
+
+  // Touch drag — start
+  const onTouchStart = useCallback((e: React.TouchEvent<HTMLButtonElement>) => {
+    const t = e.touches[0];
+    hasDragged.current = false;
+    dragStart.current = { mouseX: t.clientX, mouseY: t.clientY, fabX: fabPos.x, fabY: fabPos.y };
+    setIsDragging(true);
+  }, [fabPos]);
+
+  // Touch drag — move + end
+  useEffect(() => {
+    if (!isDragging) return;
+    const onMove = (e: TouchEvent) => {
+      if (!dragStart.current) return;
+      e.preventDefault();
+      const t = e.touches[0];
+      const dx = t.clientX - dragStart.current.mouseX;
+      const dy = t.clientY - dragStart.current.mouseY;
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) hasDragged.current = true;
+      const fabW = fabRef.current?.offsetWidth ?? 160;
+      const fabH = fabRef.current?.offsetHeight ?? 46;
+      setFabPos({
+        x: Math.max(0, Math.min(dragStart.current.fabX + dx, window.innerWidth - fabW)),
+        y: Math.max(0, Math.min(dragStart.current.fabY - dy, window.innerHeight - fabH)),
+      });
+    };
+    const onEnd = () => { setIsDragging(false); dragStart.current = null; };
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('touchend', onEnd);
+    return () => { window.removeEventListener('touchmove', onMove); window.removeEventListener('touchend', onEnd); };
+  }, [isDragging]);
+
+  // Click opens panel only if it was NOT a drag
+  const handleFabClick = useCallback(() => {
+    if (hasDragged.current) return;
+    openPanel();
+  }, []);
+
+  // ── Chat logic ─────────────────────────────────────────────────────────────
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const caseDDRef = useRef<HTMLDivElement>(null);
@@ -366,62 +462,43 @@ const KiduAiAssistant: React.FC<KiduAiAssistantProps> = ({ type }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, isTyping, scrollToBottom]);
+  useEffect(() => { scrollToBottom(); }, [messages, isTyping, scrollToBottom]);
 
-  // Close case dropdown on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (caseDDRef.current && !caseDDRef.current.contains(e.target as Node)) {
-        setCaseDDOpen(false);
-      }
+      if (caseDDRef.current && !caseDDRef.current.contains(e.target as Node)) setCaseDDOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const openPanel = () => {
-    setIsOpen(true);
-    setTimeout(() => inputRef.current?.focus(), 400);
-  };
-
+  const openPanel = () => { setIsOpen(true); setTimeout(() => inputRef.current?.focus(), 400); };
   const closePanel = () => setIsOpen(false);
-
-  const clearChat = () => {
-    setMessages([]);
-  };
+  const clearChat = () => setMessages([]);
 
   const sendMessage = (text?: string) => {
     const msg = (text ?? inputValue).trim();
     if (!msg || isTyping) return;
     setInputValue('');
-
     const userMsg: Message = { id: Date.now().toString(), role: 'user', text: msg };
     setMessages(prev => [...prev, userMsg]);
     setIsTyping(true);
-
-    const delay = 900 + Math.random() * 700;
     setTimeout(() => {
       const reply = config.replies[Math.floor(Math.random() * config.replies.length)];
-      const botMsg: Message = { id: (Date.now() + 1).toString(), role: 'bot', text: reply };
-      setMessages(prev => [...prev, botMsg]);
+      setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: 'bot', text: reply }]);
       setIsTyping(false);
-    }, delay);
+    }, 900 + Math.random() * 700);
   };
 
   const handleChipClick = (chip: string) => {
-    // Strip emoji
-    const clean = chip.replace(/^[\u{1F300}-\u{1FFFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}⚠✅✓]\s*/u, '');
-    sendMessage(clean);
+    sendMessage(chip.replace(/^[\u{1F300}-\u{1FFFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}⚠✅✓]\s*/u, ''));
   };
 
   const handleSelectCase = (caseId: string) => {
     setSelectedCaseId(caseId);
     setCaseDDOpen(false);
     setCaseSearch('');
-    const sysMsg: Message = { id: Date.now().toString(), role: 'system', text: `Now discussing ${caseId}` };
-    setMessages(prev => [...prev, sysMsg]);
+    setMessages(prev => [...prev, { id: Date.now().toString(), role: 'system', text: `Now discussing ${caseId}` }]);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -436,8 +513,8 @@ const KiduAiAssistant: React.FC<KiduAiAssistantProps> = ({ type }) => {
     };
     const resp = {
       view: `Here are the full details for **${selectedCaseId}** — currently in the ${config.steps.find(s => s.state === 'active')?.label ?? 'processing'} stage.`,
-      why: `This case is in the current stage because the previous step was completed recently and it\'s been queued for the next action.`,
-      notify: `✓ Notification sent to the assigned lab. They typically respond within 1 hour.`,
+      why: 'This case is in the current stage because the previous step was completed recently and it\'s been queued for the next action.',
+      notify: '✓ Notification sent to the assigned lab. They typically respond within 1 hour.',
     };
     sendMessage(msgs[action]);
     setIsTyping(true);
@@ -456,24 +533,38 @@ const KiduAiAssistant: React.FC<KiduAiAssistantProps> = ({ type }) => {
     c.name.toLowerCase().includes(caseSearch.toLowerCase())
   );
 
-  const selectedCase = config.cases.find(c => c.id === selectedCaseId);
-
-  const renderBoldText = (text: string) => {
-    const parts = text.split(/(\*\*.*?\*\*)/g);
-    return parts.map((part, i) =>
+  const renderBoldText = (text: string) =>
+    text.split(/(\*\*.*?\*\*)/g).map((part, i) =>
       part.startsWith('**') && part.endsWith('**')
         ? <strong key={i}>{part.slice(2, -2)}</strong>
         : part
     );
-  };
 
-  // Safety guard — prevents blank crash if type is completely invalid
   if (!config) return null;
+
+  // Inline style: position driven fully by JS state (left + bottom)
+  const fabStyle: React.CSSProperties = {
+    left: `${fabPos.x}px`,
+    bottom: `${fabPos.y}px`,
+    right: 'unset',        // override any CSS right value
+    top: 'unset',          // ensure top doesn't interfere
+  };
 
   return (
     <>
       {/* ── Floating Action Button ── */}
-      <button className={`kai-fab ${isOpen ? 'kai-fab--hidden' : ''}`} onClick={openPanel} aria-label="Open AI Assistant">
+      <button
+        ref={fabRef}
+        className={`kai-fab ${isOpen ? 'kai-fab--hidden' : ''} ${isDragging ? 'kai-fab--dragging' : ''}`}
+        style={fabStyle}
+        onMouseDown={onMouseDown}
+        onTouchStart={onTouchStart}
+        onClick={handleFabClick}
+        aria-label="Open AI Assistant"
+      >
+        {showDragHint && !isOpen && (
+          <span className="kai-fab__drag-hint" aria-hidden="true">✥ Drag to move</span>
+        )}
         <div className="kai-fab__ico">
           <AiAvatarIcon size={18} color="white" />
         </div>
@@ -482,20 +573,20 @@ const KiduAiAssistant: React.FC<KiduAiAssistantProps> = ({ type }) => {
       </button>
 
       {/* ── Overlay + Panel ── */}
-      <div className={`kai-overlay ${isOpen ? 'kai-overlay--open' : ''}`} onClick={(e) => { if (e.target === e.currentTarget) closePanel(); }}>
+      <div
+        className={`kai-overlay ${isOpen ? 'kai-overlay--open' : ''}`}
+        onClick={(e) => { if (e.target === e.currentTarget) closePanel(); }}
+      >
         <div className={`kai-panel ${isOpen ? 'kai-panel--open' : ''}`} role="dialog" aria-modal="true" aria-label="AI Assistant">
 
-          {/* ── Header ── */}
+          {/* Header */}
           <div className="kai-hdr">
-            <div className="kai-hdr__logo">
-              <AiAvatarIcon size={22} color="white" />
-            </div>
+            <div className="kai-hdr__logo"><AiAvatarIcon size={22} color="white" /></div>
             <div className="kai-hdr__titles">
               <div className="kai-hdr__name">{config.name}</div>
               <div className="kai-hdr__sub">{config.subtitle}</div>
             </div>
 
-            {/* Case selector */}
             <div className="kai-case-wrap" ref={caseDDRef}>
               <button className="kai-case-sel" onClick={() => setCaseDDOpen(v => !v)}>
                 <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -507,29 +598,17 @@ const KiduAiAssistant: React.FC<KiduAiAssistantProps> = ({ type }) => {
                   <path d="M6 9l6 6 6-6" />
                 </svg>
               </button>
-
-              {/* Dropdown */}
               <div className={`kai-case-dd ${caseDDOpen ? 'kai-case-dd--open' : ''}`}>
                 <div className="kai-case-dd__hdr">Select a case to discuss</div>
                 <div className="kai-case-dd__search">
                   <svg width="12" height="12" fill="none" stroke="#94a3b8" strokeWidth="2" viewBox="0 0 24 24">
                     <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
                   </svg>
-                  <input
-                    type="text"
-                    placeholder="Search cases…"
-                    value={caseSearch}
-                    onChange={e => setCaseSearch(e.target.value)}
-                    className="kai-case-dd__input"
-                  />
+                  <input type="text" placeholder="Search cases…" value={caseSearch} onChange={e => setCaseSearch(e.target.value)} className="kai-case-dd__input" />
                 </div>
                 <div className="kai-case-dd__list">
                   {filteredCases.map(c => (
-                    <div
-                      key={c.id}
-                      className={`kai-case-dd__item ${selectedCaseId === c.id ? 'kai-case-dd__item--active' : ''}`}
-                      onClick={() => handleSelectCase(c.id)}
-                    >
+                    <div key={c.id} className={`kai-case-dd__item ${selectedCaseId === c.id ? 'kai-case-dd__item--active' : ''}`} onClick={() => handleSelectCase(c.id)}>
                       <div className="kai-case-dd__dot" style={{ background: c.dot }} />
                       <div className="kai-case-dd__info">
                         <div className="kai-case-dd__id">{c.id}</div>
@@ -538,14 +617,11 @@ const KiduAiAssistant: React.FC<KiduAiAssistantProps> = ({ type }) => {
                       <span className={`kai-case-dd__status ${c.cls}`}>{c.status}</span>
                     </div>
                   ))}
-                  {filteredCases.length === 0 && (
-                    <div className="kai-case-dd__empty">No cases found</div>
-                  )}
+                  {filteredCases.length === 0 && <div className="kai-case-dd__empty">No cases found</div>}
                 </div>
               </div>
             </div>
 
-            {/* Header actions */}
             <div className="kai-hdr__actions">
               <span className={`kai-role-pill ${config.pillCls}`}>{config.pill}</span>
               <div className="kai-secure">
@@ -569,19 +645,13 @@ const KiduAiAssistant: React.FC<KiduAiAssistantProps> = ({ type }) => {
             </div>
           </div>
 
-          {/* ── Body ── */}
+          {/* Body */}
           <div className="kai-body">
             <div className="kai-messages" id="kai-messages">
-
-              {/* Welcome / status area — always shown */}
               <div className="kai-two-col">
-                {/* Left col */}
                 <div className="kai-left-col">
-                  {/* Main welcome card */}
                   <div className="kai-main-card">
-                    <div className="kai-main-card__avatar">
-                      <AiAvatarIcon size={26} color="#ef0d50" />
-                    </div>
+                    <div className="kai-main-card__avatar"><AiAvatarIcon size={26} color="#ef0d50" /></div>
                     <div className="kai-main-card__body">
                       <div className="kai-main-card__title">{config.cardTitle}</div>
                       <div className="kai-main-card__sub">{config.cardSub}</div>
@@ -603,8 +673,6 @@ const KiduAiAssistant: React.FC<KiduAiAssistantProps> = ({ type }) => {
                       </div>
                     </div>
                   </div>
-
-                  {/* Mini case cards */}
                   <div className="kai-mini-cards">
                     {config.miniCards.map(card => (
                       <div key={card.id} className={`kai-mini-c ${card.colorCls}`}>
@@ -620,8 +688,6 @@ const KiduAiAssistant: React.FC<KiduAiAssistantProps> = ({ type }) => {
                     ))}
                   </div>
                 </div>
-
-                {/* Right col — status */}
                 <div className="kai-right-col">
                   <div className="kai-status-card">
                     <div className="kai-status-card__title">Details &amp; Status</div>
@@ -638,9 +704,7 @@ const KiduAiAssistant: React.FC<KiduAiAssistantProps> = ({ type }) => {
                         </div>
                       ))}
                     </div>
-                    <div className="kai-next-step">
-                      <strong>Next Step:</strong> {config.nextStep}
-                    </div>
+                    <div className="kai-next-step"><strong>Next Step:</strong> {config.nextStep}</div>
                     <div className="kai-action-bar">
                       <div className="kai-pulse-dot" />
                       <span>{config.actionLabel}</span>
@@ -649,53 +713,32 @@ const KiduAiAssistant: React.FC<KiduAiAssistantProps> = ({ type }) => {
                 </div>
               </div>
 
-              {/* Chat messages */}
               {messages.map(msg => {
-                if (msg.role === 'system') {
-                  return (
-                    <div key={msg.id} className="kai-sys-msg">{msg.text}</div>
-                  );
-                }
-                if (msg.role === 'user') {
-                  return (
-                    <div key={msg.id} className="kai-user-bubble">{msg.text}</div>
-                  );
-                }
+                if (msg.role === 'system') return <div key={msg.id} className="kai-sys-msg">{msg.text}</div>;
+                if (msg.role === 'user') return <div key={msg.id} className="kai-user-bubble">{msg.text}</div>;
                 return (
                   <div key={msg.id} className="kai-bot-bubble">
-                    <div className="kai-bot-bubble__avatar">
-                      <AiAvatarIcon size={13} color="white" />
-                    </div>
+                    <div className="kai-bot-bubble__avatar"><AiAvatarIcon size={13} color="white" /></div>
                     <div className="kai-bot-bubble__text">{renderBoldText(msg.text)}</div>
                   </div>
                 );
               })}
 
-              {/* Typing indicator */}
               {isTyping && (
                 <div className="kai-bot-bubble">
-                  <div className="kai-bot-bubble__avatar">
-                    <AiAvatarIcon size={13} color="white" />
-                  </div>
-                  <div className="kai-typing-dots">
-                    <span /><span /><span />
-                  </div>
+                  <div className="kai-bot-bubble__avatar"><AiAvatarIcon size={13} color="white" /></div>
+                  <div className="kai-typing-dots"><span /><span /><span /></div>
                 </div>
               )}
-
               <div ref={messagesEndRef} />
             </div>
 
-            {/* ── Suggestion chips ── */}
             <div className="kai-chips-wrap">
               {config.chips.map((chip, i) => (
-                <button key={i} className="kai-chip" onClick={() => handleChipClick(chip)}>
-                  {chip}
-                </button>
+                <button key={i} className="kai-chip" onClick={() => handleChipClick(chip)}>{chip}</button>
               ))}
             </div>
 
-            {/* ── Input bar ── */}
             <div className="kai-input-bar">
               <div className="kai-input-field">
                 <svg width="14" height="14" fill="none" stroke="#94a3b8" strokeWidth="2" viewBox="0 0 24 24" style={{ flexShrink: 0 }}>
@@ -729,7 +772,6 @@ const KiduAiAssistant: React.FC<KiduAiAssistantProps> = ({ type }) => {
               </button>
             </div>
           </div>
-
         </div>
       </div>
     </>

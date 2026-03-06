@@ -109,11 +109,13 @@
 
 /* ══════════════════════════════════════════════════════════════
    FLOATING ACTION BUTTON
+   - Position is now controlled entirely via inline style (JS)
+   - We only set z-index, appearance, and transitions here
+   - Default placement is set in the React component as:
+       bottom: 28px, left: calc(50% - 80px)   ← near pagination
 ══════════════════════════════════════════════════════════════ */
 .kai-fab {
   position: fixed;
-  bottom: 28px;
-  right: 28px;
   z-index: 500;
   display: flex;
   align-items: center;
@@ -122,19 +124,32 @@
   background: linear-gradient(135deg, var(--kai-primary) 0%, var(--kai-primary-dark) 100%);
   border: none;
   border-radius: 50px;
-  cursor: pointer;
+  cursor: grab;
   box-shadow: var(--kai-shadow-fab);
   font-family: inherit;
   font-size: 0.8rem;
   font-weight: 700;
   color: #fff;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   white-space: nowrap;
   user-select: none;
   outline: none;
+  /* 
+    NO transition on transform here — we want instant drag response.
+    Opacity/scale transitions only fire on hidden state change.
+  */
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease;
 }
 
-.kai-fab:hover {
+/* While actively dragging */
+.kai-fab--dragging {
+  cursor: grabbing !important;
+  box-shadow: 0 18px 50px rgba(239, 13, 80, 0.6), 0 4px 16px rgba(0, 0, 0, 0.2);
+  transform: scale(1.06);
+  transition: box-shadow 0.15s ease, transform 0.1s ease !important;
+}
+
+/* Hover only when NOT dragging */
+.kai-fab:not(.kai-fab--dragging):hover {
   transform: translateY(-3px) scale(1.05);
   box-shadow: 0 14px 40px rgba(239, 13, 80, 0.55);
 }
@@ -145,9 +160,9 @@
 }
 
 .kai-fab--hidden {
-  opacity: 0;
-  pointer-events: none;
-  transform: scale(0.8) translateY(20px);
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: scale(0.8) translateY(20px) !important;
 }
 
 .kai-fab__ico {
@@ -159,12 +174,15 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  /* drag handle cursor cue */
+  cursor: inherit;
 }
 
 .kai-fab__label {
   font-size: 0.78rem;
   font-weight: 700;
   line-height: 1;
+  pointer-events: none;
 }
 
 .kai-fab__badge {
@@ -177,6 +195,41 @@
   background: #22c55e;
   border: 2.5px solid var(--kai-primary-dark);
   animation: kaiFabPulse 2.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Drag hint tooltip — shows on first render, fades out */
+.kai-fab__drag-hint {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.82);
+  color: #fff;
+  font-size: 0.58rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 50px;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: kaiHintFade 3.5s ease forwards;
+}
+
+.kai-fab__drag-hint::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: rgba(15, 23, 42, 0.82);
+}
+
+@keyframes kaiHintFade {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(4px); }
+  15%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+  75%  { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 @keyframes kaiFabPulse {
@@ -1204,7 +1257,6 @@
   }
 
   .kai-status-card {
-    /* Show steps in a horizontal row on tablet */
     padding: 14px 16px;
   }
 
@@ -1223,10 +1275,11 @@
    RESPONSIVE — MOBILE (≤ 640px)
 ══════════════════════════════════════════════════════════════ */
 @media (max-width: 640px) {
-  /* FAB becomes smaller on mobile */
   .kai-fab {
-    bottom: 16px;
-    right: 16px;
+    bottom: 16px !important;
+    /* on mobile snap to right edge — override JS position */
+    right: 16px !important;
+    left: auto !important;
     padding: 10px 14px 10px 10px;
     font-size: 0.72rem;
   }
@@ -1236,14 +1289,12 @@
     height: 26px;
   }
 
-  /* Full-screen panel on mobile */
   .kai-panel {
     width: 100vw;
     height: 100vh;
     border-radius: 0;
   }
 
-  /* Compact header on mobile */
   .kai-hdr {
     padding: 10px 14px;
     gap: 8px;
@@ -1258,7 +1309,6 @@
   .kai-hdr__name { font-size: 0.82rem; }
   .kai-hdr__sub  { display: none; }
 
-  /* Hide some header actions on mobile to save space */
   .kai-secure { display: none; }
 
   .kai-case-sel {
@@ -1276,7 +1326,6 @@
     display: inline-block;
   }
 
-  /* Full-width dropdown on mobile */
   .kai-case-dd {
     min-width: 260px;
     max-width: calc(100vw - 32px);
@@ -1288,14 +1337,11 @@
     transform: translateX(-50%) translateY(0) scale(1);
   }
 
-  /* Messages */
   .kai-messages { padding: 14px 14px 8px; gap: 12px; }
 
-  /* Two-col stacked */
   .kai-two-col { flex-direction: column; gap: 12px; }
   .kai-right-col { width: 100%; }
 
-  /* Main card compact */
   .kai-main-card {
     flex-direction: column;
     gap: 12px;
@@ -1311,7 +1357,6 @@
   .kai-main-card__title { font-size: 0.88rem; }
   .kai-main-card__sub   { font-size: 0.72rem; }
 
-  /* Mini cards: single column scroll */
   .kai-mini-cards {
     flex-direction: row;
     overflow-x: auto;
@@ -1325,7 +1370,6 @@
     flex-shrink: 0;
   }
 
-  /* Steps: vertical on mobile */
   .kai-steps {
     display: flex;
     flex-direction: column;
@@ -1335,7 +1379,6 @@
   .kai-step-lbl  { font-size: 0.68rem; }
   .kai-step-badge { font-size: 0.53rem; padding: 2px 7px; }
 
-  /* Chips: horizontal scroll */
   .kai-chips-wrap {
     flex-wrap: nowrap;
     overflow-x: auto;
@@ -1349,16 +1392,14 @@
     padding: 6px 11px;
   }
 
-  /* Input bar */
   .kai-input-bar { padding: 10px 12px; gap: 8px; }
-  .kai-inp-btn:nth-child(3) { display: none; } /* hide attach on mobile */
+  .kai-inp-btn:nth-child(3) { display: none; }
 
   .kai-send {
     width: 40px;
     height: 40px;
   }
 
-  /* Chat bubbles */
   .kai-user-bubble { max-width: 88%; font-size: 0.75rem; }
   .kai-bot-bubble  { max-width: 92%; }
   .kai-bot-bubble__text { font-size: 0.75rem; }

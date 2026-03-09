@@ -1,0 +1,230 @@
+/* ═══════════════════════════════════════════
+   RestorationBreadcrumb.css
+   Responsive breadcrumb navigation for the
+   restoration multi-step modal.
+═══════════════════════════════════════════ */
+
+.rb-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--theme-border, rgba(180, 210, 225, 0.4));
+  background: var(--theme-bg-paper, #fff);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Steps row ── */
+.rb-steps-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+/* ── Individual step ── */
+.rb-step {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 7px 14px;
+  border-radius: 10px;
+  background: var(--theme-bg-elevated, #f7fcfe);
+  border: 1.5px solid var(--theme-border, rgba(180, 210, 225, 0.4));
+  cursor: default;
+  min-width: 100px;
+  transition: all 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+.rb-step::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: transparent;
+  transition: background 0.2s;
+}
+
+/* Active step */
+.rb-step--active {
+  border-color: var(--theme-primary, #ef0d50);
+  background: rgba(239, 13, 80, 0.04);
+  box-shadow: 0 0 0 3px rgba(239, 13, 80, 0.08);
+}
+
+.rb-step--active::before {
+  background: linear-gradient(90deg, var(--theme-primary, #ef0d50), #eb3a70);
+}
+
+/* Completed step */
+.rb-step--completed {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.04);
+}
+
+.rb-step--completed::before {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+/* Clickable (completed, navigable) */
+.rb-step--clickable {
+  cursor: pointer;
+}
+
+.rb-step--clickable:hover {
+  border-color: var(--theme-primary, #ef0d50);
+  background: rgba(239, 13, 80, 0.06);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 13, 80, 0.12);
+}
+
+/* Empty / pending step */
+.rb-step--empty {
+  opacity: 0.7;
+}
+
+/* ── Labels & values ── */
+.rb-step-label {
+  font-size: 0.55rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--theme-text-secondary, #475569);
+  white-space: nowrap;
+}
+
+.rb-step--active .rb-step-label {
+  color: var(--theme-primary, #ef0d50);
+}
+
+.rb-step--completed .rb-step-label {
+  color: #10b981;
+}
+
+.rb-step-value {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--theme-text-primary, #0f172a);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.rb-step-value--empty {
+  color: var(--theme-text-disabled, #94a3b8);
+  font-weight: 400;
+}
+
+/* Completed checkmark */
+.rb-step-check {
+  position: absolute;
+  top: 6px;
+  right: 7px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #10b981;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Chevron separator ── */
+.bc-arrow {
+  color: var(--theme-text-disabled, #94a3b8);
+  flex-shrink: 0;
+}
+
+/* ── Close button ── */
+.rb-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #ef4444;
+  flex-shrink: 0;
+  margin-left: 4px;
+  transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.rb-close:hover {
+  background: #ef4444;
+  color: #fff;
+  border-color: #ef4444;
+  transform: rotate(90deg) scale(1.1);
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
+}
+
+/* ── Dark theme ── */
+[data-theme='dark'] .rb-container {
+  background: var(--theme-bg-paper, #1a1f26);
+}
+
+[data-theme='dark'] .rb-step {
+  background: var(--theme-bg-elevated, #2d3440);
+  border-color: var(--theme-border, rgba(255, 255, 255, 0.07));
+}
+
+[data-theme='dark'] .rb-step-value {
+  color: var(--theme-text-primary, #f1f5f9);
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .rb-container {
+    padding: 10px 12px;
+    gap: 4px;
+  }
+
+  .rb-step {
+    padding: 5px 10px;
+    min-width: 80px;
+  }
+
+  .rb-step-value {
+    font-size: 0.7rem;
+    max-width: 90px;
+  }
+
+  .rb-step-label {
+    font-size: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .rb-steps-wrap {
+    gap: 2px;
+  }
+
+  .rb-step {
+    padding: 4px 8px;
+    min-width: 68px;
+  }
+
+  .rb-step-value {
+    font-size: 0.65rem;
+    max-width: 70px;
+  }
+
+  .bc-arrow {
+    width: 10px;
+    height: 10px;
+  }
+}

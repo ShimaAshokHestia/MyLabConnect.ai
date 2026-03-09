@@ -1,5 +1,14 @@
 import type { AuditTrails } from "../../../Types/Auditlog.types";
 
+// ── Dental Office mapping (mirrors DSODoctorDentalOfficeCreateUpdateDTO) ───────
+export interface DSODoctorDentalOffice {
+  id?: number;
+  dSODentalOfficeId?: number;
+  dSODoctorId?: number;
+  isActive?: boolean;
+  isDeleted?: boolean;
+}
+
 export interface DSODoctor {
   // Core Identity Fields
   id?: number;
@@ -8,23 +17,26 @@ export interface DSODoctor {
   fullName?: string;
   doctorCode?: string;
   licenseNo?: string;
-  
+
   // Contact Information
   email?: string;
   phoneNumber?: string;
   address?: string;
-  
+
   // Professional Information
   info?: string; // Specialty/Additional info
   dsoMasterId?: number;
   dsoName?: string;
-  
+
+  // Dental Office Mappings (mirrors C# DsoDentalDoctors)
+  dsoDentalDoctors?: DSODoctorDentalOffice[];
+
   // Audit Fields
   createdAt?: string;
   updatedAt?: string | null;
   isDeleted?: boolean;
   isActive?: boolean;
-  
+
   // Pagination/Filtering Fields
   pageNumber?: number;
   pageSize?: number;
@@ -33,7 +45,7 @@ export interface DSODoctor {
   sortDescending?: boolean;
   showDeleted?: boolean;
   showInactive?: boolean;
-  
+
   // Optional Audit Trail
   auditlog?: AuditTrails[];
 }

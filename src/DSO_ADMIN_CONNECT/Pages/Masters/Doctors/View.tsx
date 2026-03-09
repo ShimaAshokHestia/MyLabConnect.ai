@@ -5,19 +5,18 @@ import KiduTabbedFormViewModal, {
 } from "../../../../KIDU_COMPONENTS/KiduTabbedFormViewModal";
 import DSODoctorService from "../../../Services/Masters/DsoDoctor.services";
 
-// ── Header fields (top read-only section) ─────────────────────────────────────
+// ── Header fields ─────────────────────────────────────────────────────────────
+// colWidth maps to flex basis: 3=25%, 4=33.33%, 6=50%(default), 12=100%
 const headerFields: ViewHeaderField[] = [
-  { name: "fullName", label: "Full Name", colWidth: 6 },
-  { name: "doctorCode", label: "Doctor Code", colWidth: 6 },
-  { name: "licenseNo", label: "License No", colWidth: 6 },
-  { name: "firstName", label: "First Name", colWidth: 6 },
-  { name: "lastName", label: "Last Name", colWidth: 6 },
-  { name: "email", label: "Email", colWidth: 6 },
-  { name: "phoneNumber", label: "Phone Number", colWidth: 6 },
-  { name: "dsoName", label: "DSO Master", colWidth: 6 },
-  { name: "address", label: "Address", colWidth: 6, isTextarea: true },
-  { name: "info", label: "Specialty/Info", colWidth: 6, isTextarea: true },
-  { name: "isActive", label: "Status", colWidth: 6, isToggle: true },
+  { name: "doctorCode",   label: "Doctor Code",     colWidth: 4  },
+  { name: "licenseNo",    label: "License No",      colWidth: 4  },
+  { name: "firstName",    label: "First Name",      colWidth: 4  },
+  { name: "lastName",     label: "Last Name",       colWidth: 4  },
+  { name: "email",        label: "Email",           colWidth: 4  },
+  { name: "phoneNumber",  label: "Phone Number",    colWidth: 4  },
+  { name: "address",      label: "Address",         colWidth: 4, isTextarea: true },
+  { name: "info",         label: "Specialty / Info",colWidth: 4, isTextarea: true },
+  { name: "isActive",     label: "Status",          colWidth: 12, isToggle: true  },
 ];
 
 // ── Tab definitions ───────────────────────────────────────────────────────────
@@ -26,7 +25,7 @@ const tabs: ViewTabConfig[] = [
     key: "practices",
     label: "Practices",
     columns: [
-      { key: "practiceId", label: "Practice ID" },
+      { key: "practiceId",   label: "Practice ID"   },
       { key: "practiceName", label: "Practice Name" },
     ],
   },
@@ -53,15 +52,14 @@ const DSODoctorViewModal: React.FC<Props> = ({ show, onHide, recordId }) => {
       onFetch={(id) => DSODoctorService.getById(Number(id))}
       showBadge={true}
       badgeText="Read Only"
-      // mapTabData lets you reshape the API response into tab rows.
-      // Adjust the property names to match what your API actually returns.
       mapTabData={(data) => ({
-        practices: Array.isArray(data.practices) && data.practices.length > 0
-          ? data.practices.map((p: any) => ({
-            practiceId: p.practiceId ?? p.id ?? "",
-            practiceName: p.practiceName ?? p.name ?? "",
-          }))
-          : [],
+        practices:
+          Array.isArray(data.practices) && data.practices.length > 0
+            ? data.practices.map((p: any) => ({
+                practiceId:   p.practiceId   ?? p.id   ?? "",
+                practiceName: p.practiceName ?? p.name ?? "",
+              }))
+            : [],
       })}
     />
   );

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaTrash, FaPlus } from "react-icons/fa";
+import toast from "react-hot-toast";                          // ← ADDED
 import "../Styles/KiduStyles/KiduTabbedFormModal.css";
 import KiduValidation, { KiduCharacterCounter } from "./KiduValidation";
 
@@ -13,8 +14,8 @@ export interface TabbedFormField {
   placeholder?: string;
   options?: { value: string | number; label: string }[];
   colWidth?: 3 | 4 | 6 | 8 | 10 | 12;
-  maxLength?: number; // ← added
-  minLength?: number; // ← added
+  maxLength?: number;
+  minLength?: number;
 }
 
 export interface TabConfig {
@@ -163,13 +164,19 @@ const KiduTabbedFormCreateModal: React.FC<KiduTabbedFormCreateModalProps> = ({
 
   // ── Submit ────────────────────────────────────────────────────────────────
   const handleSubmit = async () => {
-    if (!validate()) return;
+    if (!validate()) {
+      toast.error("Please fix the validation errors before submitting.");  // ← ADDED
+      return;
+    }
     setIsSubmitting(true);
     try {
       await onSubmit({ headerData: { ...headerData, isActive }, tabData });
       handleClose();
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {                                                    // ← CHANGED
+      // useApiErrorHandler in the caller already showed toast + Swal.
+      // This is a safety net in case it didn't reach that handler.
+      const msg = err?.message ?? "An unexpected error occurred.";
+      toast.error(msg, { duration: 5000 });                                 // ← CHANGED
     } finally {
       setIsSubmitting(false);
     }

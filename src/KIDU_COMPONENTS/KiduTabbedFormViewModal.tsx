@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import toast from "react-hot-toast";                          // ← ADDED
+import Swal from "sweetalert2";                               // ← ADDED
 import "../Styles/KiduStyles/KiduTabbedFormModal.css";
 
 // ==================== TYPES ====================
@@ -69,7 +71,18 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
         const response = await onFetch(recordId);
 
         if (!response || !response.isSucess) {
-          throw new Error(response?.customMessage || response?.error || "Failed to load data");
+          // ── CHANGED: was just console.error + onHide() ──────────────────
+          const msg = response?.customMessage || response?.error || "Failed to load record.";
+          toast.error(msg, { duration: 5000 });
+          await Swal.fire({
+            icon: "error",
+            title: "Load Failed",
+            text: msg,
+            confirmButtonColor: themeColor,
+            confirmButtonText: "OK",
+          });
+          onHide();
+          return;
         }
 
         const data = response.value;
@@ -99,7 +112,6 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
         if (mapTabData) {
           setTabData(mapTabData(data));
         } else {
-          // Default: try matching tab.key directly on the response object
           const mapped: Record<string, Record<string, any>[]> = {};
           tabs.forEach((tab) => {
             const rows = data[tab.key];
@@ -108,7 +120,16 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
           setTabData(mapped);
         }
       } catch (error: any) {
-        console.error("Failed to load data:", error);
+        // ── CHANGED: was just console.error + onHide() ──────────────────
+        const msg = error?.message ?? "An unexpected error occurred.";
+        toast.error(msg, { duration: 5000 });
+        await Swal.fire({
+          icon: "error",
+          title: "Load Failed",
+          text: msg,
+          confirmButtonColor: themeColor,
+          confirmButtonText: "OK",
+        });
         onHide();
       } finally {
         setLoading(false);

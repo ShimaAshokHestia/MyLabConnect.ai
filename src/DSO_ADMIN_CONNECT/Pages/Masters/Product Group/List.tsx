@@ -22,12 +22,12 @@ const columns: KiduColumn[] = [
     enableFiltering: true,
     filterType: "text",
   },
-  {
-    key: "dsoName",
-    label: "DSO Master",
-    enableSorting: true,
-    enableFiltering: false, // Not filterable by name (uses dsoMasterId internally)
-  },
+  // {
+  //   key: "dsoName",
+  //   label: "DSO Master",
+  //   enableSorting: true,
+  //   enableFiltering: false, // Not filterable by name (uses dsoMasterId internally)
+  // },
   {
     key: "isActive",
     label: "Status",

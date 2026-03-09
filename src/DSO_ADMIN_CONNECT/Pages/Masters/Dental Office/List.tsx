@@ -22,14 +22,14 @@ const columns: KiduColumn[] = [
     enableFiltering: true,
     filterType: "text",
   },
-  {
-    key: "dsoMasterId",
-    label: "DSO Master",
-    enableSorting: true,
-    enableFiltering: true,
-    filterType: "text",
-    render: (value, row) => <span>{row.dsoName || `DSO #${value}`}</span>,
-  },
+  // {
+  //   key: "dsoMasterId",
+  //   label: "DSO Master",
+  //   enableSorting: true,
+  //   enableFiltering: true,
+  //   filterType: "text",
+  //   render: (value, row) => <span>{row.dsoName || `DSO #${value}`}</span>,
+  // },
   {
     key: "info",
     label: "Info",

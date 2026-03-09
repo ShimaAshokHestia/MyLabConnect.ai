@@ -46,53 +46,53 @@ const ToothLogo = () => (
 // ── Icons ─────────────────────────────────────────────────────────────────
 const LocationIcon = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
-    <circle cx="12" cy="10" r="3"/>
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+    <circle cx="12" cy="10" r="3" />
   </svg>
 );
 const ToothIcon = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-    <path d="M12 2C8 2 5 5 5 9c0 4 1.5 7 3 10 .8 1.6 1.5 3 2 3s1.2-1.4 2-3c1.5-3 3-6 3-10 0-4-3-7-3-7z"/>
+    <path d="M12 2C8 2 5 5 5 9c0 4 1.5 7 3 10 .8 1.6 1.5 3 2 3s1.2-1.4 2-3c1.5-3 3-6 3-10 0-4-3-7-3-7z" />
   </svg>
 );
 const ClockIcon = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-    <circle cx="12" cy="12" r="10"/>
-    <polyline points="12 6 12 12 16 14"/>
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="12 6 12 12 16 14" />
   </svg>
 );
 const ChevronDown = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-    <polyline points="6 9 12 15 18 9"/>
+    <polyline points="6 9 12 15 18 9" />
   </svg>
 );
 const SearchIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-    <circle cx="11" cy="11" r="8"/>
-    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    <circle cx="11" cy="11" r="8" />
+    <line x1="21" y1="21" x2="16.65" y2="16.65" />
   </svg>
 );
 const SortArrow = () => (
   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-    <line x1="12" y1="5" x2="12" y2="19"/>
-    <polyline points="19 12 12 19 5 12"/>
+    <line x1="12" y1="5" x2="12" y2="19" />
+    <polyline points="19 12 12 19 5 12" />
   </svg>
 );
 
 // ── Data ──────────────────────────────────────────────────────────────────
 const LABS = [
-  { id: 1, name: "ALS Dental Lab",       location: "",                      restoration: "Ceramic,Fixed Restorati...", eta: "5-10 days", price: 12, rating: 5 },
-  { id: 2, name: "CosTech MD Pilot",     location: "DERING WAY,GRAVESEND",  restoration: "",                          eta: "",           price: 12, rating: 5 },
-  { id: 3, name: "Dental Infinity Lab",  location: "LOUGHTON",              restoration: "Ceramic",                   eta: "5-10 days",  price: 12, rating: 5 },
-  { id: 4, name: "Dental Infinity",      location: "",                      restoration: "",                          eta: "",           price: 12, rating: 5 },
-  { id: 5, name: "MLC LAB",              location: "",                      restoration: "",                          eta: "",           price: null, rating: 5 },
-  { id: 6, name: "MLC LAB",              location: "CHENNAI",               restoration: "",                          eta: "",           price: null, rating: 5 },
-  { id: 7, name: "MLC LAB",              location: "",                      restoration: "",                          eta: "",           price: null, rating: 5 },
-  { id: 8, name: "MLC LAB",              location: "",                      restoration: "",                          eta: "",           price: null, rating: 5 },
+  { id: 1, name: "ALS Dental Lab", location: "", restoration: "Ceramic,Fixed Restorati...", eta: "5-10 days", price: 12, rating: 5 },
+  { id: 2, name: "CosTech MD Pilot", location: "DERING WAY,GRAVESEND", restoration: "", eta: "", price: 12, rating: 5 },
+  { id: 3, name: "Dental Infinity Lab", location: "LOUGHTON", restoration: "Ceramic", eta: "5-10 days", price: 12, rating: 5 },
+  { id: 4, name: "Dental Infinity", location: "", restoration: "", eta: "", price: 12, rating: 5 },
+  { id: 5, name: "MLC LAB", location: "", restoration: "", eta: "", price: null, rating: 5 },
+  { id: 6, name: "MLC LAB", location: "CHENNAI", restoration: "", eta: "", price: null, rating: 5 },
+  { id: 7, name: "MLC LAB", location: "", restoration: "", eta: "", price: null, rating: 5 },
+  { id: 8, name: "MLC LAB", location: "", restoration: "", eta: "", price: null, rating: 5 },
 ];
 
 const SERVICE_OPTIONS = ["Digital", "Analog", "Hybrid"];
-const NHS_OPTIONS     = ["NHS", "Private", "Mixed"];
+const NHS_OPTIONS = ["NHS", "Private", "Mixed"];
 const PRODUCT_OPTIONS = ["Select Product...", "Crown", "Bridge", "Veneer", "Implant", "Denture"];
 
 // ── Dropdown sub-component ────────────────────────────────────────────────
@@ -128,10 +128,10 @@ function Dropdown({ value, options, onChange, wide = false }: {
 // ── Main Component ────────────────────────────────────────────────────────
 export default function Marketplace() {
   const [service, setService] = useState("Digital");
-  const [nhs,     setNhs]     = useState("NHS");
+  const [nhs, setNhs] = useState("NHS");
   const [product, setProduct] = useState("Select Product...");
   const [searchOpen, setSearchOpen] = useState(false);
-  const [searchVal,  setSearchVal]  = useState("");
+  const [searchVal, setSearchVal] = useState("");
   const [added, setAdded] = useState<Set<number>>(new Set());
 
   const handleAdd = (id: number, e: React.MouseEvent) => {
@@ -155,7 +155,7 @@ export default function Marketplace() {
 
         <div className="mp-filters">
           <Dropdown value={service} options={SERVICE_OPTIONS} onChange={setService} />
-          <Dropdown value={nhs}     options={NHS_OPTIONS}     onChange={setNhs} />
+          <Dropdown value={nhs} options={NHS_OPTIONS} onChange={setNhs} />
           <Dropdown value={product} options={PRODUCT_OPTIONS} onChange={setProduct} wide />
 
           <button className="mp-sort-btn">PRICE <SortArrow /></button>
@@ -200,7 +200,7 @@ export default function Marketplace() {
 
               <div className="mp-card-stars">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" strokeWidth="1">
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                 </svg>
                 <span>{lab.rating}</span>
               </div>

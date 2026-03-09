@@ -1,14 +1,16 @@
-import React, { useState } from "react";
+import React from "react";
 import KiduEditModal, {
   type Field,
-  type PopupHandler,
 } from "../../../../KIDU_COMPONENTS/KiduEditModal";
-import type { DSOmaster } from "../../../../ADMIN/Types/Master/Master.types";
-import DSOmasterSelectPopup from "../../../../ADMIN/Pages/Master/PopUp";
 import DSOSettingService from "../../../Services/Setup/DSOSetting.services";
+import { useCurrentUser } from "../../../../Services/AuthServices/CurrentUser.services";
+import { useApiErrorHandler } from "../../../../Services/AuthServices/APIErrorHandler.services";
 
 // ── Field definitions ─────────────────────────────────────────────────────────
-
+//
+// dsoMasterId is taken from the session token via requireDSOMasterId(),
+// so it is not shown as a form field.
+//
 const fields: Field[] = [
   {
     name: "settingType",
@@ -21,10 +23,6 @@ const fields: Field[] = [
   {
     name: "value",
     rules: { type: "text", label: "Value", required: true, minLength: 3, maxLength: 100, colWidth: 12 },
-  },
-  {
-    name: "dsoMasterId",
-    rules: { type: "popup", label: "DSO Master", required: true, colWidth: 6 },
   },
   {
     name: "isActive",
@@ -44,69 +42,61 @@ interface Props {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 const DSOSettingEditModal: React.FC<Props> = ({ show, onHide, onSuccess, recordId }) => {
-  const [selectedMaster, setSelectedMaster] = useState<DSOmaster | null>(null);
-  const [masterOpen, setMasterOpen] = useState(false);
-
-  // ── Popup handlers wired into KiduEditModal ───────────────────────────────
-  const popupHandlers: Record<string, PopupHandler> = {
-    dsoMasterId: {
-      value: selectedMaster?.name ?? "",
-      actualValue: selectedMaster?.id ?? undefined,
-      onOpen: () => setMasterOpen(true),
-      onClear: () => setSelectedMaster(null),
-    },
-  };
+  const { requireDSOMasterId }               = useCurrentUser();
+  const { handleApiError, assertApiSuccess } = useApiErrorHandler();
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
   const handleFetch = async (id: string | number) => {
-    const response = await DSOSettingService.getById(Number(id));
-    // Pre-fill the pill label when the record loads
-    if (response?.isSucess && response?.value?.dsoName) {
-      setSelectedMaster({
-        id: response.value.dsoMasterId,
-        name: response.value.dsoName,
-      } as DSOmaster);
-    }
-    return response;
+    return await DSOSettingService.getById(Number(id));
   };
 
   // ── Update ────────────────────────────────────────────────────────────────
   const handleUpdate = async (id: string | number, formData: Record<string, any>) => {
-    return await DSOSettingService.update(Number(id), formData);
-  };
+    // 1. Get DSOMasterId from token
+    let dsOMasterId: number;
+    try {
+      dsOMasterId = requireDSOMasterId();
+    } catch (err) {
+      await handleApiError(err, "session");
+      return;
+    }
 
-  // ── Reset local state when modal closes ───────────────────────────────────
-  const handleHide = () => {
-    setSelectedMaster(null);
-    onHide();
+    // 2. Build payload
+    const payload = {
+      ...formData,
+      id:          Number(id),
+      dsoMasterId: dsOMasterId,
+      isActive:    formData.isActive ?? true,
+    };
+
+    // 3. Call API
+    let result: any;
+    try {
+      result = await DSOSettingService.update(Number(id), payload);
+    } catch (err) {
+      await handleApiError(err, "network");
+      return;
+    }
+
+    // 4. Assert success
+    await assertApiSuccess(result, "Failed to update DSO Setting.");
+
+    return result;
   };
 
   return (
-    <>
-      <KiduEditModal
-        show={show}
-        onHide={handleHide}
-        title="Edit Setting"
-        subtitle="Update DSO Setting details"
-        fields={fields}
-        recordId={recordId}
-        onFetch={handleFetch}
-        onUpdate={handleUpdate}
-        popupHandlers={popupHandlers}
-        successMessage="Setting updated successfully!"
-        onSuccess={onSuccess}
-      />
-
-      {/* DSO Master picker — sibling to avoid z-index conflicts */}
-      <DSOmasterSelectPopup
-        show={masterOpen}
-        onClose={() => setMasterOpen(false)}
-        onSelect={(master) => {
-          setSelectedMaster(master);
-          setMasterOpen(false);
-        }}
-      />
-    </>
+    <KiduEditModal
+      show={show}
+      onHide={onHide}
+      title="Edit Setting"
+      subtitle="Update DSO Setting details"
+      fields={fields}
+      recordId={recordId}
+      onFetch={handleFetch}
+      onUpdate={handleUpdate}
+      successMessage="Setting updated successfully!"
+      onSuccess={onSuccess}
+    />
   );
 };
 

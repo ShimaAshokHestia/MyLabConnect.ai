@@ -1,20 +1,21 @@
-import React, { useState } from "react";
-import type { Field, PopupHandlers } from "../../../KIDU_COMPONENTS/KiduCreateModal";
-import type { DSOmaster } from "../../../ADMIN/Types/Master/Master.types";
+import React from "react";
+import KiduCreateModal, {
+  type Field,
+} from "../../../KIDU_COMPONENTS/KiduCreateModal";
 import type { DSOSchema } from "../../Types/Schema/Schema.types";
 import DSOSchemaService from "../../Services/Schema/Schema.services";
-import KiduCreateModal from "../../../KIDU_COMPONENTS/KiduCreateModal";
-import DSOmasterSelectPopup from "../../../ADMIN/Pages/Master/PopUp";
+import { useCurrentUser } from "../../../Services/AuthServices/CurrentUser.services";
+import { useApiErrorHandler } from "../../../Services/AuthServices/APIErrorHandler.services";
 
-
+// ── Field definitions ─────────────────────────────────────────────────────────
+//
+// dsoMasterId is taken from the session token via requireDSOMasterId(),
+// so it is not shown as a form field.
+//
 const fields: Field[] = [
   {
     name: "name",
     rules: { type: "text", label: "Schema Name", required: true, maxLength: 100, colWidth: 12 },
-  },
-  {
-    name: "dsoMasterId",
-    rules: { type: "popup", label: "DSO Master", required: true, colWidth: 6 },
   },
   {
     name: "isActive",
@@ -22,66 +23,62 @@ const fields: Field[] = [
   },
 ];
 
+// ── Props ─────────────────────────────────────────────────────────────────────
+
 interface Props {
   show: boolean;
   onHide: () => void;
   onSuccess: () => void;
 }
 
+// ── Component ─────────────────────────────────────────────────────────────────
+
 const DSOSchemaCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }) => {
-  const [selectedMaster, setSelectedMaster] = useState<DSOmaster | null>(null);
-  const [masterOpen, setMasterOpen] = useState(false);
+  const { requireDSOMasterId }               = useCurrentUser();
+  const { handleApiError, assertApiSuccess } = useApiErrorHandler();
 
-  const popupHandlers: PopupHandlers = {
-    dsoMasterId: {
-      value:   selectedMaster?.name ?? "",
-      onOpen:  () => setMasterOpen(true),
-      onClear: () => setSelectedMaster(null),
-    },
-  };
-
-  const extraValues = {
-    dsoMasterId: selectedMaster?.id ?? null,
-  };
-
+  // ── Submit handler ────────────────────────────────────────────────────────
   const handleSubmit = async (formData: Record<string, any>) => {
+    // 1. Get DSOMasterId from token
+    let dsOMasterId: number;
+    try {
+      dsOMasterId = requireDSOMasterId();
+    } catch (err) {
+      await handleApiError(err, "session");
+      return;
+    }
+
+    // 2. Build payload
     const payload: Partial<DSOSchema> = {
       name:        formData.name,
-      dsoMasterId: Number(formData.dsoMasterId),
+      dsoMasterId: dsOMasterId,
       isActive:    formData.isActive ?? true,
     };
-    await DSOSchemaService.create(payload);
-  };
 
-  const handleHide = () => {
-    setSelectedMaster(null);
-    onHide();
+    // 3. Call API
+    let result: any;
+    try {
+      result = await DSOSchemaService.create(payload);
+    } catch (err) {
+      await handleApiError(err, "network");
+      return;
+    }
+
+    // 4. Assert success
+    await assertApiSuccess(result, "Failed to create DSO Schema.");
   };
 
   return (
-    <>
-      <KiduCreateModal
-        show={show}
-        onHide={handleHide}
-        title="Create Schema"
-        subtitle="Add a new DSO Schema"
-        fields={fields}
-        onSubmit={handleSubmit}
-        popupHandlers={popupHandlers}
-        extraValues={extraValues}
-        successMessage="Schema created successfully!"
-        onSuccess={onSuccess}
-      />
-
-      <DSOmasterSelectPopup
-        show={masterOpen}
-        onClose={() => setMasterOpen(false)}
-        onSelect={(master) => {
-          setSelectedMaster(master);
-          setMasterOpen(false);
-        }}
-      />
-    </>
+    <KiduCreateModal
+      show={show}
+      onHide={onHide}
+      title="Create Schema"
+      subtitle="Add a new DSO Schema"
+      fields={fields}
+      onSubmit={handleSubmit}
+      successMessage="Schema created successfully!"
+      onSuccess={onSuccess}
+    />
   );
 };
 

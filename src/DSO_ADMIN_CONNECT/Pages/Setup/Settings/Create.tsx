@@ -1,17 +1,16 @@
-import React, { useState } from "react";
+import React from "react";
 import KiduCreateModal, {
   type Field,
-  type PopupHandlers,
 } from "../../../../KIDU_COMPONENTS/KiduCreateModal";
-import type { DSOmaster } from "../../../../ADMIN/Types/Master/Master.types";
-import DSOmasterSelectPopup from "../../../../ADMIN/Pages/Master/PopUp";
 import type { DSOSetting } from "../../../Types/Setup/DSOSetting.types";
 import DSOSettingService from "../../../Services/Setup/DSOSetting.services";
+import { useCurrentUser } from "../../../../Services/AuthServices/CurrentUser.services";
+import { useApiErrorHandler } from "../../../../Services/AuthServices/APIErrorHandler.services";
 
 // ── Field definitions ─────────────────────────────────────────────────────────
 //
-// The "dsoMasterId" field uses type "popup" — KiduCreateModal renders it as a
-// KiduSelectInputPill automatically; no custom JSX needed here.
+// dsoMasterId is taken from the session token via requireDSOMasterId(),
+// so it is not shown as a form field.
 //
 const fields: Field[] = [
   {
@@ -25,10 +24,6 @@ const fields: Field[] = [
   {
     name: "value",
     rules: { type: "text", label: "Value", required: true, minLength: 3, maxLength: 100, colWidth: 12 },
-  },
-  {
-    name: "dsoMasterId",
-    rules: { type: "popup", label: "DSO Master", required: true, colWidth: 6 },
   },
   {
     name: "isActive",
@@ -47,68 +42,53 @@ interface Props {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 const DSOSettingCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }) => {
-  // Track the selected master object so we can display its name in the pill
-  const [selectedMaster, setSelectedMaster] = useState<DSOmaster | null>(null);
-  const [masterOpen, setMasterOpen] = useState(false);
-
-  // ── Popup handlers wired into KiduCreateModal ─────────────────────────────
-  const popupHandlers: PopupHandlers = {
-    dsoMasterId: {
-      value: selectedMaster?.name ?? "",
-      onOpen: () => setMasterOpen(true),
-      onClear: () => setSelectedMaster(null),
-    },
-  };
-
-  // extraValues carries the actual IDs that will be merged at submit time
-  const extraValues = {
-    dsoMasterId: selectedMaster?.id ?? null,
-  };
+  const { requireDSOMasterId }               = useCurrentUser();
+  const { handleApiError, assertApiSuccess } = useApiErrorHandler();
 
   // ── Submit handler ────────────────────────────────────────────────────────
   const handleSubmit = async (formData: Record<string, any>) => {
-    // formData already includes dsoMasterId from extraValues (merged by KiduCreateModal)
+    // 1. Get DSOMasterId from token
+    let dsOMasterId: number;
+    try {
+      dsOMasterId = requireDSOMasterId();
+    } catch (err) {
+      await handleApiError(err, "session");
+      return;
+    }
+
+    // 2. Build payload
     const payload: Partial<DSOSetting> = {
       settingType: formData.settingType,
-      key: formData.key,
-      value: formData.value,
-      dsoMasterId: Number(formData.dsoMasterId),
-      isActive: formData.isActive ?? true,
+      key:         formData.key,
+      value:       formData.value,
+      dsoMasterId: dsOMasterId,
+      isActive:    formData.isActive ?? true,
     };
-    await DSOSettingService.create(payload);
-  };
 
-  // ── Reset local state when the modal closes ───────────────────────────────
-  const handleHide = () => {
-    setSelectedMaster(null);
-    onHide();
+    // 3. Call API
+    let result: any;
+    try {
+      result = await DSOSettingService.create(payload);
+    } catch (err) {
+      await handleApiError(err, "network");
+      return;
+    }
+
+    // 4. Assert success
+    await assertApiSuccess(result, "Failed to create DSO Setting.");
   };
 
   return (
-    <>
-      <KiduCreateModal
-        show={show}
-        onHide={handleHide}
-        title="Create Setting"
-        subtitle="Add a new DSO Setting"
-        fields={fields}
-        onSubmit={handleSubmit}
-        popupHandlers={popupHandlers}
-        extraValues={extraValues}
-        successMessage="Setting created successfully!"
-        onSuccess={onSuccess}
-      />
-
-      {/* DSO Master picker — rendered outside KiduCreateModal to avoid z-index issues */}
-      <DSOmasterSelectPopup
-        show={masterOpen}
-        onClose={() => setMasterOpen(false)}
-        onSelect={(master) => {
-          setSelectedMaster(master);
-          setMasterOpen(false);
-        }}
-      />
-    </>
+    <KiduCreateModal
+      show={show}
+      onHide={onHide}
+      title="Create Setting"
+      subtitle="Add a new DSO Setting"
+      fields={fields}
+      onSubmit={handleSubmit}
+      successMessage="Setting created successfully!"
+      onSuccess={onSuccess}
+    />
   );
 };
 

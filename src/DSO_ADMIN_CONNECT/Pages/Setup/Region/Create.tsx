@@ -1,26 +1,21 @@
-import React, { useState } from "react";
+import React from "react";
 import KiduCreateModal, {
   type Field,
-  type PopupHandlers,
 } from "../../../../KIDU_COMPONENTS/KiduCreateModal";
-import type { DSOmaster } from "../../../../ADMIN/Types/Master/Master.types";
-import DSOmasterSelectPopup from "../../../../ADMIN/Pages/Master/PopUp";
 import DSORegionService from "../../../Services/Setup/DSORegion.services";
 import type { DSORegion } from "../../../Types/Setup/DSORegion.types";
+import { useCurrentUser } from "../../../../Services/AuthServices/CurrentUser.services";
+import { useApiErrorHandler } from "../../../../Services/AuthServices/APIErrorHandler.services";
 
 // ── Field definitions ─────────────────────────────────────────────────────────
 //
-// The "dsoMasterId" field uses type "popup" — KiduCreateModal renders it as a
-// KiduSelectInputPill automatically; no custom JSX needed here.
+// dsoMasterId is taken from the session token via requireDSOMasterId(),
+// so it is not shown as a form field.
 //
 const fields: Field[] = [
   {
     name: "name",
     rules: { type: "text", label: "Region Name", required: true, minLength: 3, maxLength: 100, colWidth: 12 },
-  },
-  {
-    name: "dsoMasterId",
-    rules: { type: "popup", label: "DSO Master", required: true, colWidth: 6 },
   },
   {
     name: "isActive",
@@ -39,66 +34,51 @@ interface Props {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 const DSORegionCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }) => {
-  // Track the selected master object so we can display its name in the pill
-  const [selectedMaster, setSelectedMaster] = useState<DSOmaster | null>(null);
-  const [masterOpen, setMasterOpen] = useState(false);
-
-  // ── Popup handlers wired into KiduCreateModal ─────────────────────────────
-  const popupHandlers: PopupHandlers = {
-    dsoMasterId: {
-      value: selectedMaster?.name ?? "",
-      onOpen: () => setMasterOpen(true),
-      onClear: () => setSelectedMaster(null),
-    },
-  };
-
-  // extraValues carries the actual IDs that will be merged at submit time
-  const extraValues = {
-    dsoMasterId: selectedMaster?.id ?? null,
-  };
+  const { requireDSOMasterId }               = useCurrentUser();
+  const { handleApiError, assertApiSuccess } = useApiErrorHandler();
 
   // ── Submit handler ────────────────────────────────────────────────────────
   const handleSubmit = async (formData: Record<string, any>) => {
-    // formData already includes dsoMasterId from extraValues (merged by KiduCreateModal)
-    const payload: Partial<DSORegion> = {
-      name: formData.name,
-      dsoMasterId: Number(formData.dsoMasterId),
-      isActive: formData.isActive ?? true,
-    };
-    await DSORegionService.create(payload);
-  };
+    // 1. Get DSOMasterId from token
+    let dsOMasterId: number;
+    try {
+      dsOMasterId = requireDSOMasterId();
+    } catch (err) {
+      await handleApiError(err, "session");
+      return;
+    }
 
-  // ── Reset local state when the modal closes ───────────────────────────────
-  const handleHide = () => {
-    setSelectedMaster(null);
-    onHide();
+    // 2. Build payload
+    const payload: Partial<DSORegion> = {
+      name:        formData.name,
+      dsoMasterId: dsOMasterId,
+      isActive:    formData.isActive ?? true,
+    };
+
+    // 3. Call API
+    let result: any;
+    try {
+      result = await DSORegionService.create(payload);
+    } catch (err) {
+      await handleApiError(err, "network");
+      return;
+    }
+
+    // 4. Assert success
+    await assertApiSuccess(result, "Failed to create DSO Region.");
   };
 
   return (
-    <>
-      <KiduCreateModal
-        show={show}
-        onHide={handleHide}
-        title="Create Region"
-        subtitle="Add a new DSO Region"
-        fields={fields}
-        onSubmit={handleSubmit}
-        popupHandlers={popupHandlers}
-        extraValues={extraValues}
-        successMessage="Region created successfully!"
-        onSuccess={onSuccess}
-      />
-
-      {/* DSO Master picker — rendered outside KiduCreateModal to avoid z-index issues */}
-      <DSOmasterSelectPopup
-        show={masterOpen}
-        onClose={() => setMasterOpen(false)}
-        onSelect={(master) => {
-          setSelectedMaster(master);
-          setMasterOpen(false);
-        }}
-      />
-    </>
+    <KiduCreateModal
+      show={show}
+      onHide={onHide}
+      title="Create Region"
+      subtitle="Add a new DSO Region"
+      fields={fields}
+      onSubmit={handleSubmit}
+      successMessage="Region created successfully!"
+      onSuccess={onSuccess}
+    />
   );
 };
 

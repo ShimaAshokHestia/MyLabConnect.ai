@@ -27,6 +27,7 @@ import HomePage from '../Pages/Home/HomePage';
 
 // ── New Pages ──────────────────────────────────────────────────────
 import CaseFlowSLA from '../Pages/CaseFlowSLA/CaseFlowSLA';
+import DSOIndicationList from '../Pages/Indication/List';
 
 export const dsoadminConnectRoutes = (
   <Route path="/" element={<DsoUserLayout />}>
@@ -65,7 +66,7 @@ export const dsoadminConnectRoutes = (
     <Route path="prosthesis" element={<DSOProsthesisTypeList />} />
     <Route path="Restoration" element={<DSORestorationTypeList />} />
     <Route path="schema-list" element={<DSOSchemaList />} />
-    <Route path="indication-list" element={<div><h5>Indication</h5></div>} />
+    <Route path="indication-list" element={<DSOIndicationList/>} />
     <Route path="materialName-list" element={<div><h5>Material Name</h5></div>} />
     <Route path="shadeGuide-list" element={<div><h5>Shade Guide</h5></div>} />
     <Route path="shade-list" element={<div><h5>Shade</h5></div>} />

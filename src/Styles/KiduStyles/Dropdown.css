@@ -55,10 +55,12 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--theme-text-primary, #0f172a);
+  background: transparent;        /* ← prevent any inherited bg showing as a bar */
 }
 
 .kidu-dropdown-value.placeholder {
   color: var(--theme-text-disabled, #94a3b8);
+  background: transparent;        /* ← ensure no background on placeholder state */
 }
 
 /* ── Right-side icons ─────────────────────────────────────── */
@@ -134,7 +136,7 @@
   font-size: 0.8125rem;
   border: 1px solid var(--theme-border, #dee2e6);
   border-radius: 0.375rem;
-  background: var(--theme-bg, #e1f2f7);
+  background: var(--theme-bg-paper, #fff);   /* ← was #e1f2f7, now matches panel bg */
   color: var(--theme-text-primary, #0f172a);
   outline: none;
   transition: border-color 0.15s;

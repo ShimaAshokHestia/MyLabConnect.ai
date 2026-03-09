@@ -220,7 +220,10 @@ const KiduDropdown: React.FC<KiduDropdownProps> = ({
           if (e.key === "Escape") setOpen(false);
         }}
       >
-        <span className={`kidu-dropdown-value ${!hasValue ? "placeholder" : ""}`}>
+        <span
+          className={`kidu-dropdown-value ${!hasValue ? "placeholder" : ""}`}
+          style={{ background: "transparent" }}  /* ← belt-and-suspenders: no bar in any context */
+        >
           {hasValue ? displayLabel : placeholder}
         </span>
         <span className="kidu-dropdown-icons">

@@ -10,14 +10,14 @@ import DSORestorationTypeService from "../../Services/Restoration/Restoration.se
 // ── Column definitions ────────────────────────────────────────────────────────
 
 const columns: KiduColumn[] = [
-  {
-    key: "id",
-    label: "ID",
-    enableSorting: true,
-    enableFiltering: true,
-    filterType: "number",
-    width: 80,
-  },
+  // {
+  //   key: "id",
+  //   label: "ID",
+  //   enableSorting: true,
+  //   enableFiltering: true,
+  //   filterType: "number",
+  //   width: 80,
+  // },
   {
     key: "name",
     label: "Restoration Name",

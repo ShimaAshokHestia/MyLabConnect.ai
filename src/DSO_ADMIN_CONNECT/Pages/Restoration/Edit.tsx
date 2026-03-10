@@ -27,10 +27,10 @@ interface Props {
 const DSORestorationTypeEditModal: React.FC<Props> = ({ show, onHide, onSuccess, recordId }) => {
   const [selectedProsthesis, setSelectedProsthesis] = useState<DSOProsthesisType | null>(null);
   const [prosthesisOpen, setProsthesisOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // Removed isSubmitting since KiduEditModal handles its own submitting state
 
   const { handleApiError, assertApiSuccess } = useApiErrorHandler();
-  const { requireDSOMasterId } = useCurrentUser(); // This gives us the DSO Master ID from auth
+  const { requireDSOMasterId } = useCurrentUser();
 
   useEffect(() => {
     if (!show) {
@@ -47,7 +47,6 @@ const DSORestorationTypeEditModal: React.FC<Props> = ({ show, onHide, onSuccess,
       const data = response?.value ?? response?.data ?? response;
 
       if (data?.dsoProthesisTypeId) {
-        // Create a prosthesis object from the fetched data
         setSelectedProsthesis({
           id: data.dsoProthesisTypeId,
           name: data.dsoProthesisname || `Prosthesis #${data.dsoProthesisTypeId}`,
@@ -71,22 +70,19 @@ const DSORestorationTypeEditModal: React.FC<Props> = ({ show, onHide, onSuccess,
       throw new Error("No prosthesis selected");
     }
 
-    setIsSubmitting(true);
-
     try {
-      // Get DSO Master ID from user session using the auth service
+      // Get DSO Master ID from user session
       let dsoMasterId: number;
       try {
-        dsoMasterId = requireDSOMasterId(); // This comes from useCurrentUser hook
+        dsoMasterId = requireDSOMasterId();
         console.log("DSO Master ID from auth:", dsoMasterId);
       } catch (err) {
         console.error("Failed to get DSO Master ID:", err);
         await handleApiError(err, "session");
-        setIsSubmitting(false);
         throw err;
       }
 
-      // Build payload with all required fields including dsoMasterId from auth
+      // Build payload with all required fields
       const payload: Partial<DSORestoration> = {
         id: Number(id),
         name: formData.name,
@@ -95,12 +91,11 @@ const DSORestorationTypeEditModal: React.FC<Props> = ({ show, onHide, onSuccess,
         dsoMasterId: dsoMasterId,
       };
 
-      console.log("Update payload with DSO Master ID:", payload);
+      console.log("Update payload:", payload);
 
       const result = await DSORestorationTypeService.update(Number(id), payload);
       console.log("Update response:", result);
 
-      // Check if the response indicates success
       if (result && result.isSucess) {
         await assertApiSuccess(result, "Failed to update Restoration Type.");
         return result;
@@ -110,9 +105,7 @@ const DSORestorationTypeEditModal: React.FC<Props> = ({ show, onHide, onSuccess,
       }
     } catch (err: any) {
       console.error("Error in handleUpdate:", err);
-      throw err; // Re-throw to let the modal show the error once
-    } finally {
-      setIsSubmitting(false);
+      throw err;
     }
   };
 

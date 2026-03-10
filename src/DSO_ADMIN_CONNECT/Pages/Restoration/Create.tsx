@@ -28,7 +28,7 @@ interface Props {
 const DSORestorationTypeCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }) => {
   const [selectedProsthesis, setSelectedProsthesis] = useState<DSOProsthesisType | null>(null);
   const [prosthesisOpen, setProsthesisOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false); // ← FIXED: both variable and setter use capital 'S'
+  // Removed isSubmitting since KiduCreateModal handles its own submitting state
 
   const { handleApiError, assertApiSuccess } = useApiErrorHandler();
   const { requireDSOMasterId } = useCurrentUser();
@@ -59,8 +59,6 @@ const DSORestorationTypeCreateModal: React.FC<Props> = ({ show, onHide, onSucces
       return;
     }
 
-    setIsSubmitting(true); // ← Now works correctly
-
     try {
       // Get DSO Master ID from user session
       let dsoMasterId: number;
@@ -70,7 +68,6 @@ const DSORestorationTypeCreateModal: React.FC<Props> = ({ show, onHide, onSucces
       } catch (err) {
         console.error("Failed to get DSO Master ID:", err);
         await handleApiError(err, "session");
-        setIsSubmitting(false);
         return;
       }
 
@@ -98,8 +95,6 @@ const DSORestorationTypeCreateModal: React.FC<Props> = ({ show, onHide, onSucces
       console.error("Error in handleSubmit:", err);
       await handleApiError(err, "network");
       throw err;
-    } finally {
-      setIsSubmitting(false);
     }
   };
 

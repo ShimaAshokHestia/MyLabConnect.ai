@@ -99,6 +99,11 @@ const KiduEditModal: React.FC<KiduEditModalProps> = ({
   size = "lg",
   centered = true,
 }) => {
+  // Find the active toggle field if it exists
+  const activeField = fields.find(
+    (f) => (f.name.toLowerCase() === "isactive" || f.name.toLowerCase() === "active") && f.rules.type === "toggle"
+  );
+
   const initialValues: Record<string, any> = {};
   const initialErrors: Record<string, string> = {};
 
@@ -533,16 +538,8 @@ const KiduEditModal: React.FC<KiduEditModalProps> = ({
         );
 
       case "toggle":
-        return (
-          <Form.Check
-            type="switch"
-            id={name}
-            name={name}
-            label={rules.label}
-            checked={!!formData[name]}
-            onChange={handleChange}
-          />
-        );
+        // Skip rendering toggle fields here - they're handled in the header
+        return null;
 
       case "date":
         return (
@@ -596,6 +593,11 @@ const KiduEditModal: React.FC<KiduEditModalProps> = ({
     const { name, rules } = field;
     if (rules.type === "rowbreak") {
       return <div key={`rowbreak-${index}`} className="w-100"></div>;
+    }
+
+    // Skip rendering toggle fields in the body - they're shown in header
+    if (rules.type === "toggle") {
+      return null;
     }
 
     const colWidth = rules.colWidth || 6;
@@ -659,9 +661,46 @@ const KiduEditModal: React.FC<KiduEditModalProps> = ({
         </button>
 
         <Modal.Header className="kidu-modal-header">
-          <div>
+          <div className="kidu-modal-header-left">
             <Modal.Title className="kidu-modal-title">{title}</Modal.Title>
             {subtitle && <p className="kidu-modal-subtitle">{subtitle}</p>}
+          </div>
+
+          {/* Active Toggle in Header - Matching KiduCreateModal style */}
+          <div className="kidu-modal-header-right">
+            <span className="kidu-active-label">Active</span>
+            <div
+              className={`kidu-toggle ${(formData.isActive || formData.active) ? "kidu-toggle--on" : ""}`}
+              onClick={() => {
+                const activeFieldName = activeField?.name || "isActive";
+                handleChange({
+                  target: {
+                    name: activeFieldName,
+                    value: !(formData[activeFieldName] || formData.isActive || formData.active),
+                    type: "switch",
+                    checked: !(formData[activeFieldName] || formData.isActive || formData.active)
+                  }
+                } as any);
+              }}
+              role="switch"
+              aria-checked={formData.isActive || formData.active || false}
+              tabIndex={0}
+              onKeyDown={(e) => { 
+                if (e.key === " " || e.key === "Enter") {
+                  const activeFieldName = activeField?.name || "isActive";
+                  handleChange({
+                    target: {
+                      name: activeFieldName,
+                      value: !(formData[activeFieldName] || formData.isActive || formData.active),
+                      type: "switch",
+                      checked: !(formData[activeFieldName] || formData.isActive || formData.active)
+                    }
+                  } as any);
+                }
+              }}
+            >
+              <div className="kidu-toggle-thumb" />
+            </div>
           </div>
         </Modal.Header>
 

@@ -21,31 +21,31 @@ import CITIES from "../../../../Configs/City";
 //
 
 const fields: Field[] = [
-  { name: "officeCode", rules: { type: "text",          label: "Office Code",     required: true,  maxLength: 50,  colWidth: 6  } },
-  { name: "officeName", rules: { type: "text",          label: "Office Name",     required: true,  maxLength: 100, colWidth: 6  } },
-  { name: "email",      rules: { type: "email",          label: "Email",           required: false, maxLength: 150, colWidth: 6  } },
-  { name: "mobileNum",  rules: { type: "number",          label: "Mobile Number",   required: false, maxLength: 20,  colWidth: 6  } },
-  { name: "postCode",   rules: { type: "text",          label: "Post Code",       required: false, maxLength: 20,  colWidth: 6  } },
-  { name: "country",    rules: { type: "smartdropdown", label: "Country",         required: false,                 colWidth: 6  } },
-  { name: "city",       rules: { type: "smartdropdown", label: "City",            required: false,                 colWidth: 6  } },
-  { name: "dsoZoneId",  rules: { type: "smartdropdown", label: "Zone",            required: false,                 colWidth: 6  } },
-  { name: "address",    rules: { type: "text",          label: "Address",         required: false, maxLength: 255, colWidth: 12 } },
-  { name: "info",       rules: { type: "text",          label: "Additional Info", required: false, maxLength: 500, colWidth: 12 } },
-  { name: "isActive",   rules: { type: "toggle",        label: "Active",                                           colWidth: 6  } },
+  { name: "officeCode", rules: { type: "text", label: "Office Code", required: true, maxLength: 50, colWidth: 6 } },
+  { name: "officeName", rules: { type: "text", label: "Office Name", required: true, maxLength: 100, colWidth: 6 } },
+  { name: "email", rules: { type: "email", label: "Email", required: true, maxLength: 150, colWidth: 6 } },
+  { name: "mobileNum", rules: { type: "number", label: "Mobile Number", required: true, maxLength: 20, colWidth: 6 } },
+  { name: "postCode", rules: { type: "number", label: "Post Code", required: true, maxLength: 20, colWidth: 6 } },
+  { name: "country", rules: { type: "smartdropdown", label: "Country", required: true, colWidth: 6 } },
+  { name: "city", rules: { type: "smartdropdown", label: "City", required: true, colWidth: 6 } },
+  { name: "dsoZoneId", rules: { type: "smartdropdown", label: "Zone", required: true, colWidth: 6 } },
+  { name: "address", rules: { type: "textarea", label: "Address", required: true, maxLength: 255, colWidth: 6 } },
+  { name: "info", rules: { type: "textarea", label: "Additional Info", required: false, maxLength: 500, colWidth: 6 } },
+  { name: "isActive", rules: { type: "toggle", label: "Active", colWidth: 6 } },
 ];
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 interface Props {
-  show:      boolean;
-  onHide:    () => void;
+  show: boolean;
+  onHide: () => void;
   onSuccess: () => void;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
 const DSODentalOfficeCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }) => {
-  const { requireDSOMasterId }               = useCurrentUser();
+  const { requireDSOMasterId } = useCurrentUser();
   const { handleApiError, assertApiSuccess } = useApiErrorHandler();
 
   // ── dropdownHandlers — each key matches a "smartdropdown" field name ──────
@@ -53,23 +53,23 @@ const DSODentalOfficeCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }
     // Country — static JSON list
     country: {
       staticOptions: COUNTRIES,
-      placeholder:   "Select Country...",
+      placeholder: "Select Country...",
     },
 
     // City — static JSON list
     city: {
       staticOptions: CITIES,
-      placeholder:   "Select City...",
+      placeholder: "Select City...",
     },
 
     // Zone — paginated API call
     dsoZoneId: {
       paginatedFetch: async (params) => {
         const response = await DSOZoneService.getPaginatedList({
-          pageNumber:     params.pageNumber,
-          pageSize:       params.pageSize,
-          searchTerm:     params.searchTerm,
-          sortBy:         "zoneName",
+          pageNumber: params.pageNumber,
+          pageSize: params.pageSize,
+          searchTerm: params.searchTerm,
+          sortBy: "zoneName",
           sortDescending: false,
         } as any);
         return { data: response.data, total: response.total };
@@ -78,7 +78,7 @@ const DSODentalOfficeCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }
         value: row.id!,
         label: row.name ?? String(row.id),
       }),
-      pageSize:    10,
+      pageSize: 10,
       placeholder: "Select Zone...",
     },
   };
@@ -101,18 +101,18 @@ const DSODentalOfficeCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }
 
     // 2. Build payload
     const payload: Partial<DSODentalOffice> = {
-      officeCode:  formData.officeCode,
-      officeName:  formData.officeName,
-      email:       formData.email     ?? "",
-      mobileNum:   formData.mobileNum ?? "",
-      postCode:    formData.postCode  ?? "",
-      country:     formData.country   ?? "",
-      city:        formData.city      ?? "",
-      dsoZoneId:   formData.dsoZoneId ? Number(formData.dsoZoneId) : undefined,
-      address:     formData.address   ?? "",
-      info:        formData.info      ?? "",
+      officeCode: formData.officeCode,
+      officeName: formData.officeName,
+      email: formData.email ?? "",
+      mobileNum: formData.mobileNum ?? "",
+      postCode: formData.postCode ?? "",
+      country: formData.country ?? "",
+      city: formData.city ?? "",
+      dsoZoneId: formData.dsoZoneId ? Number(formData.dsoZoneId) : undefined,
+      address: formData.address ?? "",
+      info: formData.info ?? "",
       dsoMasterId: dsOMasterId,
-      isActive:    formData.isActive  ?? true,
+      isActive: formData.isActive ?? true,
     };
 
     // 3. Call API

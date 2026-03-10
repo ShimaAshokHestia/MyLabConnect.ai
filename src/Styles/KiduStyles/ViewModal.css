@@ -248,9 +248,9 @@
   cursor: pointer;
 }
 
-.form-switch .form-check-input:checked {
+/* .form-switch .form-check-input:checked {
   background-color: var(--theme-primary) !important;
-}
+} */
 
 .form-switch .form-check-input:focus {
   box-shadow: 0 0 0 0.2rem rgba(239, 13, 80, 0.15) !important;
@@ -527,7 +527,6 @@
 /* Read Only Input Fields */
 .kidu-view-readonly {
   /* background-color: var(--theme-bg-hover) !important; */
-    background-color: transparent !important;
   color: var(--theme-text-secondary) !important;
   cursor: default !important;
   border: 1px solid var(--theme-border) !important;
@@ -544,9 +543,10 @@
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  background-color: var(--theme-bg-hover);
+  /* background-color: var(--theme-bg-hover); */
+   background: transparent !important;
   border-radius: 8px;
-  border: 1px solid var(--theme-border);
+  /* border: 1px solid var(--theme-border); */
 }
 
 .kidu-view-toggle {
@@ -572,121 +572,6 @@
 [data-theme="dark"] .kidu-view-readonly {
   background-color: var(--theme-bg-elevated) !important;
   color: var(--theme-text-secondary) !important;
-}
-
-[data-theme="dark"] .kidu-view-toggle-wrapper {
-  background-color: var(--theme-bg-elevated);
-}
-
-
-/* ==================== HEADER LAYOUT WITH ACTIVE TOGGLE ==================== */
-.kidu-modal-header {
-  border-bottom: none !important;
-  padding: 32px 32px 20px 32px;
-  background-color: var(--theme-bg-paper);
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-}
-
-.kidu-modal-header-left {
-  display: flex;
-  flex-direction: column;
-}
-
-.kidu-modal-header-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-shrink: 0;
-}
-
-/* ==================== ACTIVE TOGGLE STYLES ==================== */
-.kidu-active-toggle-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.kidu-active-label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  white-space: nowrap;
-  color: var(--theme-text-secondary);
-}
-
-/* Modern toggle switch - Visual only */
-.kidu-toggle {
-  width: 44px;
-  height: 24px;
-  border-radius: 999px;
-  position: relative;
-  transition: background-color 0.22s ease;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 2px solid transparent;
-  display: flex;
-  align-items: center;
-  padding: 0 3px;
-}
-
-.kidu-toggle--readonly {
-  cursor: default !important;
-  pointer-events: none !important;
-}
-
-.kidu-toggle--on {
-  justify-content: flex-end;
-}
-
-.kidu-toggle-thumb {
-  width: 18px;
-  height: 18px;
-  background-color: #ffffff;
-  border-radius: 50%;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  transition: all 0.22s ease;
-}
-
-/* View Mode Toggle Wrapper */
-.kidu-view-toggle-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  background-color: var(--theme-bg-hover);
-  border-radius: 8px;
-  border: 1px solid var(--theme-border);
-}
-
-/* ==================== RESPONSIVE ADJUSTMENTS ==================== */
-@media (max-width: 768px) {
-  .kidu-modal-header {
-    padding: 24px 24px 16px 24px;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-
-  .kidu-modal-header-right {
-    width: 100%;
-    justify-content: flex-end;
-  }
-}
-
-@media (max-width: 576px) {
-  .kidu-modal-header {
-    padding: 20px 20px 12px 20px;
-  }
-
-  .kidu-active-label {
-    font-size: 0.75rem;
-  }
-}
-
-/* ==================== DARK THEME ADJUSTMENTS ==================== */
-[data-theme="dark"] .kidu-toggle {
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 [data-theme="dark"] .kidu-view-toggle-wrapper {

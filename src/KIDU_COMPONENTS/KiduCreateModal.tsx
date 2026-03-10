@@ -121,7 +121,9 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
     const errs: Record<string, string> = {};
     fields.forEach((f) => {
       if (f.rules.type === "rowbreak" || f.rules.type === "popup" || f.rules.type === "smartdropdown") return;
-      if (f.rules.type === "toggle" || f.rules.type === "checkbox") {
+      if (f.rules.type === "toggle") {
+        values[f.name] = true;   // default ACTIVE
+      } else if (f.rules.type === "checkbox") {
         values[f.name] = false;
       } else if (f.rules.type === "radio" && options[f.name]?.length) {
         const first = options[f.name][0];
@@ -600,7 +602,7 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
               role="switch"
               aria-checked={formData["isActive"] || formData["active"] || false}
               tabIndex={0}
-              onKeyDown={(e) => { 
+              onKeyDown={(e) => {
                 if (e.key === " " || e.key === "Enter") {
                   const activeFieldName = activeField?.name || "isActive";
                   handleChange({

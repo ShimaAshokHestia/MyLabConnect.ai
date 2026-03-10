@@ -25,7 +25,7 @@ export default class DSOIndicationService {
 
       // Column Filters
       name: params["name"] ?? "",
-     dsoProthesisTypeId: params["dsoProthesisTypeId"] ? Number(params["dsoProthesisTypeId"]) : undefined,
+      dsoProthesisTypeId: params["dsoProthesisTypeId"] ? Number(params["dsoProthesisTypeId"]) : undefined,
     };
 
     console.log("Paginated Request Payload:", payload);
@@ -61,9 +61,9 @@ export default class DSOIndicationService {
   static async create(data: Partial<DSOIndication>): Promise<any> {
 
     const payload = {
-      name: data.name,
+      ...data,           // ← CHANGED: spread everything like Restoration
       isActive: data.isActive ?? true,
-      isDeleted: false
+      isDeleted: false,
     };
 
     console.log("Create Payload:", payload);
@@ -81,9 +81,7 @@ export default class DSOIndicationService {
   static async update(id: number, data: Partial<DSOIndication>): Promise<any> {
 
     const payload = {
-      id,
-      name: data.name,
-      isActive: data.isActive ?? true
+      id, ...data       
     };
 
     console.log("Update Payload:", payload);

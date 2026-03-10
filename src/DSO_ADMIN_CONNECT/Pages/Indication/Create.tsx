@@ -13,6 +13,7 @@ import DSOProsthesisTypePopup from "../Prosthesis/ProsthesisTypePopup";
 
 import { useCurrentUser } from "../../../Services/AuthServices/CurrentUser.services";
 import { useApiErrorHandler } from "../../../Services/AuthServices/APIErrorHandler.services";
+import toast from "react-hot-toast";
 
 
 // ── Field definitions ─────────────────────────────────────────────────────────
@@ -73,6 +74,7 @@ const DSOIndicationCreateModal: React.FC<Props> = ({
     useState<DSOProsthesisType | null>(null);
 
   const [prosthesisOpen, setProsthesisOpen] = useState(false);
+  
 
 
   // ── Popup handlers ────────────────────────────────────────────────────────
@@ -93,45 +95,69 @@ const DSOIndicationCreateModal: React.FC<Props> = ({
   // ── Submit handler ────────────────────────────────────────────────────────
 
   const handleSubmit = async (formData: Record<string, any>) => {
+    console.log("Form Data received:", formData);
+    console.log("Selected Prosthesis:", selectedProsthesis);
 
-    //  Get DSOMasterId from session
-    let dsOMasterId: number;
-
-    try {
-      dsOMasterId = requireDSOMasterId();
-    } catch (err) {
-      await handleApiError(err, "session");
+    if (!selectedProsthesis?.id) {
+      console.error("No prosthesis selected");
+      toast.error("Please select a prosthesis type");
       return;
     }
 
-    //  Build payload
-    const payload: Partial<DSOIndication> = {
-      name: formData.name,
-      dsoProthesisTypeId: selectedProsthesis?.id,
-      dsoMasterId: dsOMasterId,
-      isActive: formData.isActive ?? true,
-    };
-
-    // 3Call API
-    let result: any;
-
     try {
-      result = await DSOIndicationService.create(payload);
-    } catch (err) {
+      //  Get DSOMasterId from session
+      let dsOMasterId: number;
+      try {
+        dsOMasterId = requireDSOMasterId();
+        console.log("DSO Master ID:", dsOMasterId);
+      } catch (err) {
+        console.error("Failed to get DSO Master ID:", err);
+        await handleApiError(err, "session");
+        return;
+      }
+
+      //  Build payload
+      const payload: Partial<DSOIndication> = {
+        name:               formData.name,
+        dsoProthesisTypeId: Number(selectedProsthesis.id),
+        dsoMasterId:        dsOMasterId,
+        isActive:           formData.isActive ?? true,
+      };
+
+      console.log("Submitting payload:", payload);
+
+      
+      const result = await DSOIndicationService.create(payload);
+      console.log("API Response:", result);
+
+      if (result && result.isSucess) {
+        await assertApiSuccess(result, "Failed to create Indication.");
+      } else {
+        console.error("Full error details:", result);
+        throw new Error(result?.customMessage || result?.error || "Failed to create Indication");
+      }
+
+    } catch (err: any) {
+      console.error("Error in handleSubmit:", err);
       await handleApiError(err, "network");
-      return;
+      throw err;
     }
-
-    //  Validate response
-    await assertApiSuccess(result, "Failed to create Indication.");
   };
 
 
-  // ── Reset on close ────────────────────────────────────────────────────────
+  
 
   const handleHide = () => {
     setSelectedProsthesis(null);
     onHide();
+  };
+
+  // ── Handle successful creation ────────────────────────────────────────────
+
+  const handleSuccess = () => {
+    console.log("Creation successful, calling onSuccess");
+    setSelectedProsthesis(null);
+    onSuccess();
   };
 
 
@@ -147,13 +173,14 @@ const DSOIndicationCreateModal: React.FC<Props> = ({
         popupHandlers={popupHandlers}
         extraValues={extraValues}
         successMessage="Indication created successfully!"
-        onSuccess={onSuccess}
+        onSuccess={handleSuccess}
       />
 
       <DSOProsthesisTypePopup
         show={prosthesisOpen}
         onClose={() => setProsthesisOpen(false)}
         onSelect={(prosthesis) => {
+          console.log("Selected prosthesis:", prosthesis);
           setSelectedProsthesis(prosthesis);
           setProsthesisOpen(false);
         }}

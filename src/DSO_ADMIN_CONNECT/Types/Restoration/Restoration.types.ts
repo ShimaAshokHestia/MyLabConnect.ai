@@ -8,6 +8,7 @@ export interface DSORestoration {
   // Foreign Key Relationships
   dsoProthesisTypeId?: number;
   dsoProthesisname?: string;
+  dsoMasterId?: number;
 
   // Status Fields
   isActive?: boolean;

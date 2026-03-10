@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaTrash, FaPlus } from "react-icons/fa";
-import toast from "react-hot-toast";                          
+import toast, { Toaster } from "react-hot-toast";  // ← CHANGED: import Toaster
 import "../Styles/KiduStyles/KiduTabbedFormModal.css";
 import KiduValidation, { KiduCharacterCounter } from "./KiduValidation";
 
@@ -13,7 +13,7 @@ export interface TabbedFormField {
   required?: boolean;
   placeholder?: string;
   options?: { value: string | number; label: string }[];
-  colWidth?: 3 | 4 | 6 | 8 | 10 | 12;
+  colWidth?: 3 | 4 | 5 | 6 | 8 | 10 | 12;
   maxLength?: number;
   minLength?: number;
   defaultValue?: any;
@@ -293,6 +293,41 @@ const KiduTabbedFormCreateModal: React.FC<KiduTabbedFormCreateModalProps> = ({
 
   return (
     <>
+      {/* ── Toaster for toast notifications ── */}
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#fff',
+            color: '#363636',
+            boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
+            borderRadius: '8px',
+            padding: '12px 16px',
+            fontSize: '14px',
+            fontWeight: '500',
+          },
+          success: {
+            icon: '✅',
+            style: {
+              borderLeft: `4px solid #10b981`,
+            },
+          },
+          error: {
+            icon: '❌',
+            style: {
+              borderLeft: `4px solid #ef4444`,
+            },
+          },
+          loading: {
+            icon: '⏳',
+            style: {
+              borderLeft: `4px solid ${themeColor}`,
+            },
+          },
+        }}
+      />
+
       <div className="ktf-overlay" onClick={handleClose}>
         <div className="ktf-modal-wrapper">
           <div className="ktf-modal" onClick={(e) => e.stopPropagation()}>

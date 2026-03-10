@@ -11,12 +11,12 @@ import DSODentalOfficePopup from "../Dental Office/DSODentalOfficePopup";
 // ── Header fields ─────────────────────────────────────────────────────────────
 const headerFields: TabbedFormField[] = [
   { name: "doctorCode", label: "Doctor Code", type: "text", required: true, placeholder: "Enter doctor code", colWidth: 3, maxLength: 200 },
-  { name: "firstName", label: "First Name", type: "text", required: true, placeholder: "Enter first name", colWidth: 3, maxLength: 200 },
-  { name: "lastName", label: "Last Name", type: "text", required: true, placeholder: "Enter last name", colWidth: 3, maxLength: 200 },
+  { name: "firstName", label: "First Name", type: "text", required: true, placeholder: "Enter first name", colWidth: 4, maxLength: 200 },
+  { name: "lastName", label: "Last Name", type: "text", required: true, placeholder: "Enter last name", colWidth: 4, maxLength: 200 },
   { name: "email", label: "Email", type: "email", required: false, placeholder: "Enter email address", colWidth: 4, maxLength: 100 },
   { name: "phoneNumber", label: "Phone Number", type: "number", required: false, placeholder: "Enter phone number", colWidth: 4, maxLength: 100 },
-  { name: "licenseNo", label: "License No", type: "text", required: true, placeholder: "Enter license number", colWidth: 4, maxLength: 200 },
-  { name: "info", label: "Specialty / Info", type: "text", required: false, placeholder: "Enter specialty or additional info", colWidth: 6, maxLength: 500 },
+  { name: "licenseNo", label: "License No", type: "text", required: true, placeholder: "Enter license number", colWidth: 3, maxLength: 200 },
+  { name: "info", label: "Specialty / Info", type: "text", required: false, placeholder: "Enter specialty or additional info", colWidth: 4, maxLength: 500 },
   { name: "address", label: "Address", type: "text", required: false, placeholder: "Enter address", colWidth: 6, maxLength: 500 },
 ];
 
@@ -58,7 +58,7 @@ const DSODoctorEditModal: React.FC<Props> = ({
           label: "Practice", 
           type: "popup",
           required: true,
-          placeholder: "Select a practice",
+          placeholder: "🔍 Select a practice",
           popupConfig: {
             component: DSODentalOfficePopup,
             props: {

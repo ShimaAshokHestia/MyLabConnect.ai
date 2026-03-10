@@ -180,16 +180,14 @@
 
 
 /* ══════════════════════════════════════════════════════════════════════════
-   HEADER ACTIVE TOGGLE
-   Shown on the right side of the header when field name === "active"
+   HEADER ACTIVE TOGGLE — MODERN STYLE (matching KiduTabbedFormCreateModal)
+   Shown on the right side of the header
 ══════════════════════════════════════════════════════════════════════════ */
 
-.kidu-modal-header-active {
+.kidu-modal-header-right {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-right: 4px;
-  /* breathing room from the edge */
+  gap: 12px;
   flex-shrink: 0;
 }
 
@@ -203,72 +201,43 @@
   color: var(--kidu-text-secondary);
 }
 
-/* The header toggle re-uses the global form-switch styles but we
-   override the accent colour to green to match the design spec */
-.kidu-header-toggle {
-  display: flex !important;
-  align-items: center !important;
-  padding-left: 0 !important;
-  margin: 0 !important;
-  min-height: unset !important;
-}
-
-.kidu-header-toggle .form-check-input {
-  /* Dimensions */
-  width: var(--kidu-toggle-width) !important;
-  height: var(--kidu-toggle-height) !important;
-  flex-shrink: 0 !important;
-  border-radius: 999px !important;
-
-  /* Thumb */
-  background-image: radial-gradient(circle at center,
-      #ffffff 0%,
-      #ffffff 45%,
-      transparent 46%,
-      transparent 100%) !important;
-  background-size: var(--kidu-toggle-thumb-size) var(--kidu-toggle-thumb-size) !important;
-  background-repeat: no-repeat !important;
-  background-position: 3px center !important;
-
-  /* OFF state */
-  background-color: #cbd5e1 !important;
-  border: 2px solid #cbd5e1 !important;
-
-  margin: 0 !important;
-  padding: 0 !important;
+/* Modern toggle switch matching KiduTabbedFormCreateModal */
+.kidu-toggle {
+  width: var(--kidu-toggle-width);
+  height: var(--kidu-toggle-height);
+  background-color: #cbd5e1;
+  border-radius: 999px;
+  position: relative;
   cursor: pointer;
-  appearance: none !important;
-  -webkit-appearance: none !important;
-  box-shadow: none !important;
-
-  transition:
-    background-color 0.22s ease,
-    border-color 0.22s ease,
-    background-position 0.22s ease,
-    box-shadow 0.22s ease !important;
+  transition: background-color 0.22s ease;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  padding: 0 3px;
 }
 
-/* ON — green, thumb moves right */
-.kidu-header-toggle .form-check-input:checked {
-  background-color: #22c55e !important;
-  border: 2px solid rgba(34, 197, 94, 0.55) !important;
-  background-position: calc(var(--kidu-toggle-width) - var(--kidu-toggle-thumb-size) - 3px) center !important;
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2) !important;
+.kidu-toggle--on {
+  background-color: var(--kidu-accent);
+  justify-content: flex-end;
 }
 
-.kidu-header-toggle .form-check-input:hover:not(:disabled):not(:checked) {
-  background-color: #94a3b8 !important;
-  border-color: #94a3b8 !important;
+.kidu-toggle-thumb {
+  width: var(--kidu-toggle-thumb-size);
+  height: var(--kidu-toggle-thumb-size);
+  background-color: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: all 0.22s ease;
 }
 
-.kidu-header-toggle .form-check-input:focus {
-  outline: none !important;
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25) !important;
+.kidu-toggle:hover {
+  opacity: 0.9;
 }
 
-/* Hide the duplicate label — we show .kidu-active-label instead */
-.kidu-header-toggle .form-check-label {
-  display: none !important;
+.kidu-toggle:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(var(--kidu-accent-rgb), 0.25);
 }
 
 
@@ -865,15 +834,12 @@
   box-shadow: 0 0 0 3px rgba(var(--kidu-accent-rgb), 0.25) !important;
 }
 
-[data-theme="dark"] .kidu-header-toggle .form-check-input {
+[data-theme="dark"] .kidu-toggle {
   background-color: #334155 !important;
-  border-color: #334155 !important;
 }
 
-[data-theme="dark"] .kidu-header-toggle .form-check-input:checked {
-  background-color: #22c55e !important;
-  border-color: rgba(34, 197, 94, 0.6) !important;
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25) !important;
+[data-theme="dark"] .kidu-toggle--on {
+  background-color: var(--kidu-accent) !important;
 }
 
 [data-theme="dark"] .kidu-input:focus,
@@ -959,7 +925,8 @@
 .kidu-select:focus-visible,
 .kidu-textarea:focus-visible,
 .kidu-btn-cancel:focus-visible,
-.kidu-btn-submit:focus-visible {
+.kidu-btn-submit:focus-visible,
+.kidu-toggle:focus-visible {
   outline: 2px solid var(--kidu-accent);
   outline-offset: 2px;
 }
@@ -984,6 +951,8 @@
   }
 
   .form-switch .form-check-input,
+  .kidu-toggle,
+  .kidu-toggle-thumb,
   .kidu-input,
   .kidu-select,
   .kidu-textarea,

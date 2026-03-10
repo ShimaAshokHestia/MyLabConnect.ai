@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import toast from "react-hot-toast";
+import Swal from "sweetalert2";
 import "../Styles/KiduStyles/KiduTabbedFormModal.css";
 
 // ==================== TYPES ====================
@@ -12,6 +14,8 @@ export interface ViewHeaderField {
   isToggle?: boolean;
   isTextarea?: boolean;
   formatter?: (value: any) => string;
+  // For popup fields, we might want to show display value
+  displayName?: string; // The field that contains the display value
 }
 
 export interface ViewTabConfig {
@@ -20,6 +24,9 @@ export interface ViewTabConfig {
   columns: {
     key: string;
     label: string;
+    // For popup fields in tables
+    displayKey?: string; // The field that contains the display value
+    formatter?: (value: any, row: any) => string;
   }[];
 }
 
@@ -69,13 +76,26 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
         const response = await onFetch(recordId);
 
         if (!response || !response.isSucess) {
-          throw new Error(response?.customMessage || response?.error || "Failed to load data");
+          const msg = response?.customMessage || response?.error || "Failed to load record.";
+          toast.error(msg, { duration: 5000 });
+          await Swal.fire({
+            icon: "error",
+            title: "Load Failed",
+            text: msg,
+            confirmButtonColor: themeColor,
+            confirmButtonText: "OK",
+          });
+          onHide();
+          return;
         }
 
         const data = response.value;
+        console.log("View modal data:", data); // Debug log
 
         // ── Map header fields ──────────────────────────────────────────────
         const formattedHeader: Record<string, any> = {};
+        
+        // First, map all the defined header fields
         headerFields.forEach((f) => {
           if (f.isToggle || f.isBoolean) {
             const raw = data[f.name];
@@ -89,17 +109,36 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
               ? new Date(dateVal).toISOString().split("T")[0]
               : "";
           } else {
-            formattedHeader[f.name] =
-              data[f.name] !== undefined && data[f.name] !== null ? data[f.name] : "";
+            // Check if there's a display field for popup values
+            if (f.displayName && data[f.displayName]) {
+              formattedHeader[f.name] = data[f.displayName];
+            } else {
+              formattedHeader[f.name] =
+                data[f.name] !== undefined && data[f.name] !== null ? data[f.name] : "";
+            }
           }
         });
+
+        // Explicitly set isActive from the data
+        if (data.isActive !== undefined) {
+          formattedHeader.isActive = data.isActive;
+        } else if (data.IsActive !== undefined) {
+          formattedHeader.isActive = data.IsActive;
+        } else if (data.active !== undefined) {
+          formattedHeader.isActive = data.active;
+        } else if (data.Active !== undefined) {
+          formattedHeader.isActive = data.Active;
+        } else {
+          formattedHeader.isActive = false;
+        }
+
+        console.log("Formatted header with isActive:", formattedHeader.isActive);
         setHeaderData(formattedHeader);
 
         // ── Map tab data ───────────────────────────────────────────────────
         if (mapTabData) {
           setTabData(mapTabData(data));
         } else {
-          // Default: try matching tab.key directly on the response object
           const mapped: Record<string, Record<string, any>[]> = {};
           tabs.forEach((tab) => {
             const rows = data[tab.key];
@@ -108,7 +147,15 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
           setTabData(mapped);
         }
       } catch (error: any) {
-        console.error("Failed to load data:", error);
+        const msg = error?.message ?? "An unexpected error occurred.";
+        toast.error(msg, { duration: 5000 });
+        await Swal.fire({
+          icon: "error",
+          title: "Load Failed",
+          text: msg,
+          confirmButtonColor: themeColor,
+          confirmButtonText: "OK",
+        });
         onHide();
       } finally {
         setLoading(false);
@@ -176,22 +223,51 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
             </svg>
           </button>
 
-          {/* ── Header ── */}
+          {/* ── Header with Active Status (VISUAL ONLY - NOT INTERACTIVE) ── */}
           <div className="ktf-header">
             <div className="ktf-header-left">
               <h2 className="ktf-title">{title}</h2>
               {subtitle && <span className="ktf-subtitle">{subtitle}</span>}
             </div>
-            {showBadge && (
-              <div className="ktf-header-right">
+            <div className="ktf-header-right" style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+              {showBadge && (
                 <span
                   className="ktf-view-badge"
                   style={{ backgroundColor: themeColor }}
                 >
                   {badgeText}
                 </span>
+              )}
+              {/* Active Status Display - PURELY VISUAL, NOT A TOGGLE */}
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <span className="ktf-active-label">Active</span>
+                <div
+                  style={{
+                    width: "40px",
+                    height: "20px",
+                    backgroundColor: headerData.isActive ? themeColor : "#e0e0e0",
+                    borderRadius: "20px",
+                    position: "relative",
+                    transition: "background-color 0.2s",
+                    boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1)"
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "16px",
+                      height: "16px",
+                      backgroundColor: "#fff",
+                      borderRadius: "50%",
+                      position: "absolute",
+                      top: "2px",
+                      left: headerData.isActive ? "22px" : "2px",
+                      transition: "left 0.2s",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.2)"
+                    }}
+                  />
+                </div>
               </div>
-            )}
+            </div>
           </div>
 
           {/* ── Loading ── */}
@@ -204,48 +280,74 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
             <>
               {/* ── Header fields (read-only) ── */}
               <div className="ktf-top-fields">
-                {headerFields.map((field) => (
-                  <div
-                    key={field.name}
-                    className="ktf-field-group"
-                    style={{
-                      flex: field.colWidth === 3  ? "0 0 25%"    :
-                            field.colWidth === 4  ? "0 0 33.33%" :
-                            field.colWidth === 12 ? "0 0 100%"   : "1 1 0",
-                    }}
-                  >
-                    <label className="ktf-label">{field.label}</label>
+                {headerFields.map((field) => {
+                  // Skip isActive field since it's already shown in header
+                  if (field.name === "isActive" || field.name === "IsActive" || field.name === "active") return null;
+                  
+                  return (
+                    <div
+                      key={field.name}
+                      className="ktf-field-group"
+                      style={{
+                        flex: field.colWidth === 3  ? "0 0 25%"    :
+                              field.colWidth === 4  ? "0 0 33.33%" :
+                              field.colWidth === 6  ? "0 0 50%"    :
+                              field.colWidth === 8  ? "0 0 66.67%" :
+                              field.colWidth === 10 ? "0 0 83.33%" :
+                              field.colWidth === 12 ? "0 0 100%"   : "1 1 0",
+                      }}
+                    >
+                      <label className="ktf-label">{field.label}</label>
 
-                    {field.isToggle ? (
-                      <div className="ktf-view-toggle-wrapper">
-                        <div
-                          className={`ktf-toggle ktf-toggle--readonly ${
-                            headerData[field.name] ? "ktf-toggle--on" : ""
-                          }`}
-                        >
-                          <div className="ktf-toggle-thumb" />
+                      {field.isToggle ? (
+                        <div className="ktf-view-toggle-wrapper">
+                          <div
+                            style={{
+                              width: "40px",
+                              height: "20px",
+                              backgroundColor: headerData[field.name] ? themeColor : "#e0e0e0",
+                              borderRadius: "20px",
+                              position: "relative",
+                              display: "inline-block",
+                              boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1)"
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: "16px",
+                                height: "16px",
+                                backgroundColor: "#fff",
+                                borderRadius: "50%",
+                                position: "absolute",
+                                top: "2px",
+                                left: headerData[field.name] ? "22px" : "2px",
+                                transition: "left 0.2s",
+                                boxShadow: "0 1px 3px rgba(0,0,0,0.2)"
+                              }}
+                            />
+                          </div>
+                          <span className="ktf-view-toggle-label" style={{ marginLeft: "8px" }}>
+                            {headerData[field.name] ? "Active" : "Inactive"}
+                          </span>
                         </div>
-                        <span className="ktf-view-toggle-label">
-                          {headerData[field.name] ? "Active" : "Inactive"}
-                        </span>
-                      </div>
-                    ) : field.isTextarea ? (
-                      <textarea
-                        className="ktf-input ktf-textarea ktf-view-readonly"
-                        value={formatValue(field, headerData[field.name])}
-                        readOnly
-                        rows={3}
-                      />
-                    ) : (
-                      <input
-                        type="text"
-                        className="ktf-input ktf-view-readonly"
-                        value={formatValue(field, headerData[field.name])}
-                        readOnly
-                      />
-                    )}
-                  </div>
-                ))}
+                      ) : field.isTextarea ? (
+                        <textarea
+                          className="ktf-input ktf-textarea ktf-view-readonly"
+                          value={formatValue(field, headerData[field.name])}
+                          readOnly
+                          rows={3}
+                        />
+                      ) : (
+                        <input
+                          type="text"
+                          className="ktf-input ktf-view-readonly"
+                          value={formatValue(field, headerData[field.name])}
+                          readOnly
+                        />
+                      )}
+                    </div>
+                  );
+                })}
               </div>
 
               {/* ── Tab Bar ── */}
@@ -279,16 +381,35 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
                       <tbody>
                         {currentRows.map((row, rowIdx) => (
                           <tr key={rowIdx} className="ktf-tr">
-                            {currentTab.columns.map((col) => (
-                              <td key={col.key} className="ktf-td">
-                                <input
-                                  type="text"
-                                  className="ktf-input ktf-input--sm ktf-view-readonly"
-                                  value={row[col.key] ?? "—"}
-                                  readOnly
-                                />
-                              </td>
-                            ))}
+                            {currentTab.columns.map((col) => {
+                              // Get the value to display
+                              let displayValue = "—";
+                              
+                              // If there's a displayKey, use that first
+                              if (col.displayKey && row[col.displayKey]) {
+                                displayValue = String(row[col.displayKey]);
+                              } 
+                              // Otherwise use the regular key
+                              else if (row[col.key] !== undefined && row[col.key] !== null && row[col.key] !== "") {
+                                displayValue = String(row[col.key]);
+                              }
+                              
+                              // Apply formatter if provided
+                              if (col.formatter) {
+                                displayValue = col.formatter(row[col.key], row);
+                              }
+                              
+                              return (
+                                <td key={col.key} className="ktf-td">
+                                  <input
+                                    type="text"
+                                    className="ktf-input ktf-input--sm ktf-view-readonly"
+                                    value={displayValue}
+                                    readOnly
+                                  />
+                                </td>
+                              );
+                            })}
                           </tr>
                         ))}
                       </tbody>

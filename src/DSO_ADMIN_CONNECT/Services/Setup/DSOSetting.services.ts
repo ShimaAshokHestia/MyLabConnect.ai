@@ -10,8 +10,8 @@ export default class DSOSettingService {
     // Map "Active"/"Inactive" select filter to showInactive boolean
     let showInactive: boolean | undefined = undefined;
     const statusFilter = params["isActive"];
-    if (statusFilter === "Active")   showInactive = false;
-    if (statusFilter === "Inactive") showInactive = true;
+    if (statusFilter === "Active")   showInactive = true;
+    if (statusFilter === "Inactive") showInactive = false;
 
     const payload = {
       pageNumber:     params.pageNumber,

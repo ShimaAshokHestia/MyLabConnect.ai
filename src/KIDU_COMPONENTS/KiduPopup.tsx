@@ -1,9 +1,9 @@
-// KiduPopup.tsx - Fixed to match POS project (client-side filtering)
 import React, { useState, useCallback, useEffect } from "react";
 import { Modal, Spinner } from "react-bootstrap";
 import HttpService from "../Services/Common/HttpService";
 import KiduServerTable from "./KiduServerTable";
 import type { CustomResponse } from "../Types/Common/ApiTypes";
+import type { TableRequestParams, TableResponse } from "./KiduServerTable";
 
 interface KiduPopupProps<T> {
   show: boolean;
@@ -19,8 +19,8 @@ interface KiduPopupProps<T> {
   }>;
   idKey?: string;
   rowsPerPage?: number;
-  searchKeys?: (keyof T)[]; // Keys to search in
-  showAddButton?: boolean; // Control whether to show add button in empty state
+  searchKeys?: (keyof T)[];
+  showAddButton?: boolean;
 }
 
 function KiduPopup<T extends Record<string, any>>({
@@ -34,22 +34,20 @@ function KiduPopup<T extends Record<string, any>>({
   idKey = "id",
   rowsPerPage = 10,
   searchKeys,
-  showAddButton = true // Default to true for backward compatibility
+  showAddButton = true,
 }: KiduPopupProps<T>) {
   const [showAddModal, setShowAddModal] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [allData, setAllData] = useState<T[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [refreshKey,   setRefreshKey]   = useState(0);
+  const [allData,      setAllData]      = useState<T[]>([]);
+  const [loading,      setLoading]      = useState(false);
 
   // Fetch ALL data once when modal opens
   useEffect(() => {
     if (!show) return;
-    
+
     setLoading(true);
     HttpService.callApi<CustomResponse<T[]>>(fetchEndpoint, "GET")
       .then((res) => {
-        console.log("✅ Fetched all data:", res);
-        
         if (Array.isArray(res)) {
           setAllData(res);
         } else if ((res.isSuccess || res.isSucess) && res.value) {
@@ -60,54 +58,40 @@ function KiduPopup<T extends Record<string, any>>({
             setAllData(Array.isArray(valueObj.data) ? valueObj.data : []);
           }
         } else {
-          console.warn("⚠️ Unexpected API format:", res);
           setAllData([]);
         }
       })
-      .catch((err) => {
-        console.error("❌ Error fetching popup data:", err);
-        setAllData([]);
-      })
+      .catch(() => setAllData([]))
       .finally(() => setLoading(false));
   }, [show, fetchEndpoint, refreshKey]);
 
-  // Client-side fetch function for KiduServerTable
-  const fetchData = useCallback(async (params: {
-    pageNumber: number;
-    pageSize: number;
-    searchTerm: string;
-  }) => {
-    // Filter data client-side
-    let filteredData = allData;
-    
-    if (params.searchTerm && params.searchTerm.trim()) {
-      const searchLower = params.searchTerm.toLowerCase();
-      
-      filteredData = allData.filter(item => {
-        // If searchKeys provided, search only in those fields
-        if (searchKeys && searchKeys.length > 0) {
-          return searchKeys.some(key => 
-            item[key] && String(item[key]).toLowerCase().includes(searchLower)
+  // ── fetchData typed as TableRequestParams to match KiduServerTable ────────
+  const fetchData = useCallback(
+    async (params: TableRequestParams): Promise<TableResponse<T>> => {
+      let filteredData = allData;
+
+      const search = params.searchTerm?.trim();
+      if (search) {
+        const lower = search.toLowerCase();
+        filteredData = allData.filter((item) => {
+          if (searchKeys && searchKeys.length > 0) {
+            return searchKeys.some(
+              (key) => item[key] && String(item[key]).toLowerCase().includes(lower)
+            );
+          }
+          return Object.values(item).some((val) =>
+            String(val).toLowerCase().includes(lower)
           );
-        }
-        
-        // Otherwise search in all fields
-        return Object.values(item).some(val => 
-          String(val).toLowerCase().includes(searchLower)
-        );
-      });
-    }
-    
-    // Client-side pagination
-    const startIndex = (params.pageNumber - 1) * params.pageSize;
-    const endIndex = startIndex + params.pageSize;
-    const paginatedData = filteredData.slice(startIndex, endIndex);
-    
-    return { 
-      data: paginatedData, 
-      total: filteredData.length 
-    };
-  }, [allData, searchKeys]);
+        });
+      }
+
+      const startIndex   = (params.pageNumber - 1) * params.pageSize;
+      const paginatedData = filteredData.slice(startIndex, startIndex + params.pageSize);
+
+      return { data: paginatedData, total: filteredData.length };
+    },
+    [allData, searchKeys]
+  );
 
   const handleRowClick = (item: T) => {
     onSelect?.(item);
@@ -116,69 +100,59 @@ function KiduPopup<T extends Record<string, any>>({
 
   const handleAddNew = (newItem: T) => {
     setShowAddModal(false);
-    // Add new item to data
-    setAllData(prev => [newItem, ...prev]);
-    // Trigger refresh to reload the table
-    setRefreshKey(prev => prev + 1);
+    setAllData((prev) => [newItem, ...prev]);
+    setRefreshKey((prev) => prev + 1);
   };
 
   const handleModalClose = () => {
     handleClose();
-    // Reset search when closing
-    setRefreshKey(prev => prev + 1);
+    setRefreshKey((prev) => prev + 1);
   };
 
   return (
     <>
-      <Modal 
-        show={show} 
-        onHide={handleModalClose} 
-        size="lg" 
-        centered 
+      <Modal
+        show={show}
+        onHide={handleModalClose}
+        size="lg"
+        centered
         className="head-font"
       >
-        <Modal.Header 
-          closeButton 
-          style={{ 
-            backgroundColor: "#f8f9fa",
-            borderBottom: "2px solid #173a6a"
-          }}
+        <Modal.Header
+          closeButton
+          style={{ backgroundColor: "#f8f9fa", borderBottom: "2px solid #173a6a" }}
         >
           <Modal.Title className="fs-5 fw-bold" style={{ color: "#173a6a" }}>
             {title}
           </Modal.Title>
         </Modal.Header>
 
-        <Modal.Body style={{ height: '350px', overflow: 'hidden', padding: 0 }}>
+        <Modal.Body style={{ height: "350px", overflow: "hidden", padding: 0 }}>
           {loading && allData.length === 0 ? (
             <div className="text-center py-5">
-              <Spinner animation="border" /> <span className="ms-2">Loading...</span>
+              <Spinner animation="border" />
+              <span className="ms-2">Loading...</span>
             </div>
           ) : (
-            <div key={refreshKey} style={{ height: '100%', overflow: 'auto', padding: '15px' }}>
+            <div key={refreshKey} style={{ height: "100%", overflow: "auto", padding: "15px" }}>
               <KiduServerTable
-                columns={columns.map(col => ({ 
-                  key: String(col.key), 
-                  label: col.label 
-                }))}
-                idKey={idKey}
+                columns={columns.map((col) => ({ key: String(col.key), label: col.label }))}
+                rowKey={idKey}
                 fetchData={fetchData}
                 showActions={false}
                 showSearch={true}
-                showTitle={false}
-                showKiduPopupButton={showAddButton && !!AddModalComponent} // Only show if both enabled
+                showAddButton={showAddButton && !!AddModalComponent}
                 addRoute={showAddButton && AddModalComponent ? "#" : undefined}
                 addButtonLabel={title.replace("Select ", "")}
                 onRowClick={handleRowClick}
                 onAddClick={() => setShowAddModal(true)}
-                rowsPerPage={rowsPerPage}
+                defaultRowsPerPage={rowsPerPage}
               />
             </div>
           )}
         </Modal.Body>
       </Modal>
 
-      {/* Add Modal */}
       {AddModalComponent && (
         <AddModalComponent
           show={showAddModal}

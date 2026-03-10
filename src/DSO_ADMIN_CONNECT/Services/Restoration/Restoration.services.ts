@@ -10,21 +10,21 @@ export default class DSORestorationTypeService {
     // Map "Active"/"Inactive" select filter to showInactive boolean
     let showInactive: boolean | undefined = undefined;
     const statusFilter = params["isActive"];
-    if (statusFilter === "Active")   showInactive = true;
+    if (statusFilter === "Active") showInactive = true;
     if (statusFilter === "Inactive") showInactive = false;
 
     const payload = {
-      pageNumber:     params.pageNumber,
-      pageSize:       params.pageSize,
-      searchTerm:     params.searchTerm      ?? "",
-      sortBy:         params.sortBy          ?? "",
-      sortDescending: params.sortDescending  ?? false,
-      showDeleted:    false,
+      pageNumber: params.pageNumber,
+      pageSize: params.pageSize,
+      searchTerm: params.searchTerm ?? "",
+      sortBy: params.sortBy ?? "",
+      sortDescending: params.sortDescending ?? false,
+      showDeleted: false,
       showInactive,
 
       // Column filters
-      id:                 params["id"]                 ? Number(params["id"]) : undefined,
-      name:               params["name"]               ?? "",
+      id: params["id"] ? Number(params["id"]) : undefined,
+      name: params["name"] ?? "",
       dsoProthesisTypeId: params["dsoProthesisTypeId"] ? Number(params["dsoProthesisTypeId"]) : undefined,
     };
 
@@ -37,8 +37,8 @@ export default class DSORestorationTypeService {
     const result = response?.value ?? response;
 
     return {
-      data:       result.data        ?? result.items ?? [],
-      total:      result.totalRecords ?? result.total ?? 0,
+      data: result.data ?? result.items ?? [],
+      total: result.totalRecords ?? result.total ?? 0,
       totalPages: result.totalPages,
     };
   }
@@ -53,7 +53,7 @@ export default class DSORestorationTypeService {
   static async create(data: Partial<DSORestoration>): Promise<any> {
     const payload = {
       ...data,
-      isActive:  data.isActive ?? true,
+      isActive: data.isActive ?? true,
       isDeleted: false,
     };
     return await HttpService.callApi<any>(

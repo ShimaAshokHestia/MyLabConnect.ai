@@ -10,35 +10,35 @@ import DSORestorationTypeService from "../../Services/Restoration/Restoration.se
 // ── Column definitions ────────────────────────────────────────────────────────
 
 const columns: KiduColumn[] = [
+  // {
+  //   key: "id",
+  //   label: "ID",
+  //   enableSorting: true,
+  //   enableFiltering: true,
+  //   filterType: "number",
+  //   width: 80,
+  // },
   {
-    key:             "id",
-    label:           "ID",
-    enableSorting:   true,
+    key: "name",
+    label: "Restoration Name",
+    enableSorting: true,
     enableFiltering: true,
-    filterType:      "number",
-    width:           80,
+    filterType: "text",
   },
   {
-    key:             "name",
-    label:           "Restoration Name",
-    enableSorting:   true,
-    enableFiltering: true,
-    filterType:      "text",
-  },
-  {
-    key:             "dsoProthesisname",
-    label:           "Prosthesis Type",
-    enableSorting:   true,
+    key: "dsoProthesisname",
+    label: "Prosthesis Type",
+    enableSorting: true,
     enableFiltering: false,
   },
   {
-    key:             "isActive",
-    label:           "Status",
-    type:            "badge",
-    enableSorting:   false,
+    key: "isActive",
+    label: "Status",
+    type: "badge",
+    enableSorting: false,
     enableFiltering: true,
-    filterType:      "select",
-    filterOptions:   ["Active", "Inactive"],
+    filterType: "select",
+    filterOptions: ["Active", "Inactive"],
     render: (value) => (
       <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>
         {value ? "Active" : "Inactive"}
@@ -51,11 +51,11 @@ const columns: KiduColumn[] = [
 
 const DSORestorationTypeList: React.FC = () => {
   const [showCreate, setShowCreate] = useState(false);
-  const [showEdit,   setShowEdit]   = useState(false);
-  const [showView,   setShowView]   = useState(false);
-  const [recordId,   setRecordId]   = useState<string | number>("");
+  const [showEdit, setShowEdit] = useState(false);
+  const [showView, setShowView] = useState(false);
+  const [recordId, setRecordId] = useState<string | number>("");
   const tableKeyRef = useRef(0);
-  const [tableKey,   setTableKey]   = useState(0);
+  const [tableKey, setTableKey] = useState(0);
 
   const refreshTable = () => {
     tableKeyRef.current += 1;
@@ -74,14 +74,14 @@ const DSORestorationTypeList: React.FC = () => {
 
   const handleDeleteClick = async (row: any) => {
     const result = await Swal.fire({
-      title:              "Are you sure?",
-      text:               "This restoration type will be permanently deleted.",
-      icon:               "warning",
-      showCancelButton:   true,
+      title: "Are you sure?",
+      text: "This restoration type will be permanently deleted.",
+      icon: "warning",
+      showCancelButton: true,
       confirmButtonColor: "#ef0d50",
-      cancelButtonColor:  "#6c757d",
-      confirmButtonText:  "Yes, delete it!",
-      cancelButtonText:   "Cancel",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
     });
 
     if (result.isConfirmed) {

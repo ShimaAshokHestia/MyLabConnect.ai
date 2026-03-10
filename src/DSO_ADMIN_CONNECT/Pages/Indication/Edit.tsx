@@ -1,0 +1,156 @@
+import React, { useState, useEffect } from "react";
+import KiduEditModal, { type Field } from "../../../KIDU_COMPONENTS/KiduEditModal";
+import type { DSOProsthesisType } from "../../Types/Prosthesis/Prosthesis.types";
+import type { DSOIndication } from "../../Types/Setup/DSOIndication.types";
+import DSOIndicationService from "../../Services/Setup/DSOIndication.services";
+import DSOProsthesisTypePopup from "../Prosthesis/ProsthesisTypePopup";
+import { useApiErrorHandler } from "../../../Services/AuthServices/APIErrorHandler.services";
+import { useCurrentUser } from "../../../Services/AuthServices/CurrentUser.services";
+import toast from "react-hot-toast";
+
+// ── Field definitions ─────────────────────────────────────────────────────────
+const fields: Field[] = [
+  { name: "name",               rules: { type: "text",   label: "Indication Name", required: true, minLength: 3, maxLength: 100, colWidth: 12 } },
+  { name: "dsoProthesisTypeId", rules: { type: "popup",  label: "Prosthesis Type", required: true, colWidth: 6 } },
+  { name: "isActive",           rules: { type: "toggle", label: "Active",          colWidth: 6 } },
+];
+
+// ── Props ─────────────────────────────────────────────────────────────────────
+interface Props {
+  show: boolean;
+  onHide: () => void;
+  onSuccess: () => void;
+  recordId: string | number;
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
+const DSOIndicationEditModal: React.FC<Props> = ({ show, onHide, onSuccess, recordId }) => {
+  const [selectedProsthesis, setSelectedProsthesis] = useState<DSOProsthesisType | null>(null);
+  const [prosthesisOpen, setProsthesisOpen]         = useState(false);
+  const [isSubmitting, setIsSubmitting]             = useState(false);
+
+  const { handleApiError, assertApiSuccess } = useApiErrorHandler();
+  const { requireDSOMasterId }               = useCurrentUser();
+
+  useEffect(() => {
+    if (!show) {
+      setSelectedProsthesis(null);
+    }
+  }, [show]);
+
+  // ── Fetch handler — pre-fills the popup pill ──────────────────────────────
+  const handleFetch = async (id: string | number) => {
+    try {
+      const response = await DSOIndicationService.getById(Number(id));
+      console.log("Fetch response:", response);
+
+      const data = response?.value ?? response?.data ?? response;
+
+      if (data?.dsoProthesisTypeId) {
+        setSelectedProsthesis({
+          id:   data.dsoProthesisTypeId,
+          name: data.dsoProthesisname || `Prosthesis #${data.dsoProthesisTypeId}`,
+        } as DSOProsthesisType);
+      }
+
+      return response;
+    } catch (error) {
+      console.error("Error in handleFetch:", error);
+      throw error;
+    }
+  };
+
+  // ── Update handler ────────────────────────────────────────────────────────
+  const handleUpdate = async (id: string | number, formData: Record<string, any>) => {
+    console.log("Update formData:", formData);
+    console.log("Selected Prosthesis:", selectedProsthesis);
+
+    if (!selectedProsthesis?.id) {
+      toast.error("Please select a prosthesis type");
+      throw new Error("No prosthesis selected");
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      let dsoMasterId: number;
+      try {
+        dsoMasterId = requireDSOMasterId();
+        console.log("DSO Master ID from auth:", dsoMasterId);
+      } catch (err) {
+        console.error("Failed to get DSO Master ID:", err);
+        await handleApiError(err, "session");
+        setIsSubmitting(false);
+        throw err;
+      }
+
+      const payload: Partial<DSOIndication> = {
+        id:                 Number(id),
+        name:               formData.name,
+        dsoProthesisTypeId: Number(selectedProsthesis.id),
+        isActive:           formData.isActive ?? true,
+        dsoMasterId:        dsoMasterId,
+      };
+
+      console.log("Update payload:", payload);
+
+      const result = await DSOIndicationService.update(Number(id), payload);
+      console.log("Update response:", result);
+
+      if (result && result.isSucess) {
+        await assertApiSuccess(result, "Failed to update Indication.");
+        return result;
+      } else {
+        console.error("Full error details:", result);
+        throw new Error(result?.customMessage || result?.error || "Failed to update Indication");
+      }
+    } catch (err: any) {
+      console.error("Error in handleUpdate:", err);
+      throw err;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // ── Popup handlers ────────────────────────────────────────────────────────
+  const popupHandlers = {
+    dsoProthesisTypeId: {
+      value:       selectedProsthesis?.name ?? "",
+      actualValue: selectedProsthesis?.id,
+      onOpen:      () => setProsthesisOpen(true),
+      onClear:     () => setSelectedProsthesis(null),
+    },
+  };
+
+  return (
+    <>
+      <KiduEditModal
+        show={show}
+        onHide={onHide}
+        title="Edit Indication"
+        subtitle="Update DSO Indication details"
+        fields={fields}
+        recordId={recordId}
+        onFetch={handleFetch}
+        onUpdate={handleUpdate}
+        popupHandlers={popupHandlers}
+        successMessage="Indication updated successfully!"
+        onSuccess={onSuccess}
+        submitButtonText="Update Indication"
+        themeColor="#ef0d50"
+      />
+
+      <DSOProsthesisTypePopup
+        show={prosthesisOpen}
+        onClose={() => setProsthesisOpen(false)}
+        onSelect={(prosthesis) => {
+          console.log("Selected prosthesis for edit:", prosthesis);
+          setSelectedProsthesis(prosthesis);
+          setProsthesisOpen(false);
+        }}
+      />
+    </>
+  );
+};
+
+export default DSOIndicationEditModal;

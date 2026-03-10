@@ -1,108 +1,89 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import KiduEditModal, { type Field } from "../../../../KIDU_COMPONENTS/KiduEditModal";
 import DSOTerritoryService from "../../../Services/Masters/DsoTerritory.services";
 import type { DSOTerritory } from "../../../Types/Masters/DsoTerritory.types";
-import type { DSOmaster } from "../../../../ADMIN/Types/Master/Master.types";
-import DSOmasterSelectPopup from "../../../../ADMIN/Pages/Master/PopUp";
+import { useCurrentUser } from "../../../../Services/AuthServices/CurrentUser.services";
+import { useApiErrorHandler } from "../../../../Services/AuthServices/APIErrorHandler.services";
 
 // ── Field definitions ─────────────────────────────────────────────────────────
-
+//
+// dsoMasterId is taken from the session token via requireDSOMasterId(),
+// so it is not shown as a form field.
+//
 const fields: Field[] = [
-    { name: "name", rules: { type: "text", label: "Territory Name", required: true, minLength: 3, maxLength: 100, colWidth: 6 } },
-    { name: "dsoMasterId", rules: { type: "popup", label: "DSO Master", required: true, colWidth: 6 } },
-    { name: "isActive", rules: { type: "toggle", label: "Active", colWidth: 6 } },
+  { name: "name",     rules: { type: "text",   label: "Territory Name", required: true, minLength: 3, maxLength: 100, colWidth: 6 } },
+  { name: "isActive", rules: { type: "toggle", label: "Active",         colWidth: 6 } },
 ];
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 interface Props {
-    show: boolean;
-    onHide: () => void;
-    onSuccess: () => void;
-    recordId: string | number;
+  show: boolean;
+  onHide: () => void;
+  onSuccess: () => void;
+  recordId: string | number;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
 const DSOTerritoryEditModal: React.FC<Props> = ({ show, onHide, onSuccess, recordId }) => {
-    const [selectedMaster, setSelectedMaster] = useState<DSOmaster | null>(null);
-    const [masterOpen, setMasterOpen] = useState(false);
+  const { requireDSOMasterId }               = useCurrentUser();
+  const { handleApiError, assertApiSuccess } = useApiErrorHandler();
 
-    // Reset selection when modal closes
-    useEffect(() => {
-        if (!show) {
-            setSelectedMaster(null);
-        }
-    }, [show]);
+  // ── Fetch handler ─────────────────────────────────────────────────────────
+  const handleFetch = async (id: string | number) => {
+    return await DSOTerritoryService.getById(Number(id));
+  };
 
-    // ── Fetch handler ─────────────────────────────────────────────────────────
-    const handleFetch = async (id: string | number) => {
-        const response = await DSOTerritoryService.getById(Number(id));
-        console.log("Fetch Response:", response);
+  // ── Update handler ────────────────────────────────────────────────────────
+  const handleUpdate = async (id: string | number, formData: Record<string, any>) => {
+    // 1. Get DSOMasterId from token
+    let dsOMasterId: number;
+    try {
+      dsOMasterId = requireDSOMasterId();
+    } catch (err) {
+      await handleApiError(err, "session");
+      return;
+    }
 
-        const data = response?.value || response;
-
-        // Pre-populate the DSO Master pill from fetched data
-        if (data?.dsoMasterId && data?.dsoName) {
-            setSelectedMaster({
-                id: data.dsoMasterId,
-                name: data.dsoName,
-            } as DSOmaster);
-        }
-
-        return response;
+    // 2. Build payload
+    const payload: Partial<DSOTerritory> = {
+      id:          Number(id),
+      name:        formData.name,
+      dsoMasterId: dsOMasterId,
+      isActive:    formData.isActive ?? true,
     };
 
-    // ── Update handler ────────────────────────────────────────────────────────
-    const handleUpdate = async (id: string | number, formData: Record<string, any>) => {
-        const payload: Partial<DSOTerritory> = {
-            id: Number(id),
-            name: formData.name,
-            dsoMasterId: Number(formData.dsoMasterId),
-            isActive: formData.isActive ?? true,
-        };
+    // 3. Call API
+    let result: any;
+    try {
+      result = await DSOTerritoryService.update(Number(id), payload);
+    } catch (err) {
+      await handleApiError(err, "network");
+      return;
+    }
 
-        await DSOTerritoryService.update(Number(id), payload);
-        return { isSucess: true, value: payload };
-    };
+    // 4. Assert success
+    await assertApiSuccess(result, "Failed to update Territory.");
 
-    // ── Popup handlers ────────────────────────────────────────────────────────
-    const popupHandlers = {
-        dsoMasterId: {
-            value: selectedMaster?.name ?? "",
-            actualValue: selectedMaster?.id,
-            onOpen: () => setMasterOpen(true),
-            onClear: () => setSelectedMaster(null),
-        },
-    };
+    return result;
+  };
 
-    return (
-        <>
-            <KiduEditModal
-                show={show}
-                onHide={onHide}
-                title="Edit Territory"
-                subtitle="Update DSO Territory details"
-                fields={fields}
-                recordId={recordId}
-                onFetch={handleFetch}
-                onUpdate={handleUpdate}
-                popupHandlers={popupHandlers}
-                successMessage="Territory updated successfully!"
-                onSuccess={onSuccess}
-                submitButtonText="Update Territory"
-            />
-
-            <DSOmasterSelectPopup
-                show={masterOpen}
-                onClose={() => setMasterOpen(false)}
-                onSelect={(master) => {
-                    setSelectedMaster(master);
-                    setMasterOpen(false);
-                }}
-            />
-        </>
-    );
+  return (
+    <KiduEditModal
+      show={show}
+      onHide={onHide}
+      title="Edit Territory"
+      subtitle="Update DSO Territory details"
+      fields={fields}
+      recordId={recordId}
+      onFetch={handleFetch}
+      onUpdate={handleUpdate}
+      successMessage="Territory updated successfully!"
+      onSuccess={onSuccess}
+      submitButtonText="Update Territory"
+    />
+  );
 };
 
 export default DSOTerritoryEditModal;

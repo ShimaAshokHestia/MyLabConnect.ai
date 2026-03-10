@@ -17,12 +17,12 @@ const columns: KiduColumn[] = [
         enableFiltering: true,
         filterType: "text",
     },
-    {
-        key: "dsoName",
-        label: "DSO Master",
-        enableSorting: true,
-        enableFiltering: false, // ID-based, not filterable by name
-    },
+    // {
+    //     key: "dsoName",
+    //     label: "DSO Master",
+    //     enableSorting: true,
+    //     enableFiltering: false, // ID-based, not filterable by name
+    // },
     {
         key: "createdAt",
         label: "Created At",

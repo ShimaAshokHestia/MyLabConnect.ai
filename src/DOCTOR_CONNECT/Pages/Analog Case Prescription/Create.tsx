@@ -3,6 +3,10 @@ import { Row, Col, Modal, Button } from 'react-bootstrap';
 import '../../../Styles/Pages/Prescription.css';
 import KiduValidation from '../../../KIDU_COMPONENTS/KiduValidation';
 import KiduDropdown from '../../../KIDU_COMPONENTS/KiduDropdown';
+import type { RestorationFormData } from '../../../KIDU_COMPONENTS/Case/RestorationFormPanel';
+import RestorationModal from '../../../KIDU_COMPONENTS/Case/RestorationModal';
+
+// ── Restoration modal & its exported type ──────────────────────
 
 // ─────────────────────────────────────────────
 // Types
@@ -41,11 +45,24 @@ interface AdditionalServiceErrors {
   serviceName?: string;
 }
 
-const FILE_TYPE_OPTIONS = ['IOS scan', 'CBCT/CT Scan', 'Photograph', 'Others'];
+/** A persisted restoration entry shown in the Restoration Details card */
+interface RestorationEntry {
+  id: string;
+  selectedTeeth: number[];
+  prosthesis: string | null;
+  restoration: string | null;
+  indication: string | null;
+  material: string;
+  shadeGuide: string;
+  shadeComments: string;
+  generalComments: string;
+}
 
 // ─────────────────────────────────────────────
-// Helpers
+// Constants
 // ─────────────────────────────────────────────
+
+const FILE_TYPE_OPTIONS = ['IOS scan', 'CBCT/CT Scan', 'Photograph', 'Others'];
 
 const INITIAL_FORM: FormState = {
   orderTo: null, orderFrom: null, shipTo: '',
@@ -56,38 +73,58 @@ const INITIAL_FORM: FormState = {
 
 const INITIAL_SERVICE: AdditionalService = { serviceName: null, generalComments: '' };
 
+// ─────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────
+
 const UploadIcon = () => (
   <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-    <polyline points="16 16 12 12 8 16" /><line x1="12" y1="12" x2="12" y2="21" />
+    <polyline points="16 16 12 12 8 16" />
+    <line x1="12" y1="12" x2="12" y2="21" />
     <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3" />
   </svg>
 );
+
+const restorationLabel = (r: RestorationEntry): string =>
+  [r.prosthesis, r.restoration, r.indication].filter(Boolean).join(' · ');
 
 // ─────────────────────────────────────────────
 // Component
 // ─────────────────────────────────────────────
 
 const AddNewCase: React.FC = () => {
+
+  // ── Main form ──────────────────────────────
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [errors, setErrors] = useState<FormErrors>({});
+
+  // ── File upload ────────────────────────────
   const [files, setFiles] = useState<File[]>([]);
   const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // ── Additional Services modal ──────────────
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [service, setService] = useState<AdditionalService>(INITIAL_SERVICE);
   const [serviceErrors, setServiceErrors] = useState<AdditionalServiceErrors>({});
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // ── Validation ────────────────────────────────
+  // ── Restoration modal ──────────────────────
+  const [showRestorationModal, setShowRestorationModal] = useState(false);
+  const [restorations, setRestorations] = useState<RestorationEntry[]>([]);
+
+  // ─────────────────────────────────────────────
+  // Validation
+  // ─────────────────────────────────────────────
 
   const validateField = useCallback((name: keyof FormErrors, value: any): string => {
     const rules: Record<keyof FormErrors, any> = {
-      orderTo:    { type: 'select',  required: true, label: 'Order To' },
-      orderFrom:  { type: 'select',  required: true, label: 'Order From' },
-      patientId:  { type: 'text',    required: true, label: 'Patient ID', minLength: 2 },
-      firstName:  { type: 'text',    required: true, label: 'First Name', minLength: 2 },
-      lastName:   { type: 'text',    required: true, label: 'Last Name',  minLength: 2 },
-      dueDate:    { type: 'date',    required: true, label: 'Due Date' },
-      caseNotes:  { type: 'textarea',required: true, label: 'Case Notes', minLength: 5 },
+      orderTo:   { type: 'select',   required: true, label: 'Order To' },
+      orderFrom: { type: 'select',   required: true, label: 'Order From' },
+      patientId: { type: 'text',     required: true, label: 'Patient ID',  minLength: 2 },
+      firstName: { type: 'text',     required: true, label: 'First Name',  minLength: 2 },
+      lastName:  { type: 'text',     required: true, label: 'Last Name',   minLength: 2 },
+      dueDate:   { type: 'date',     required: true, label: 'Due Date' },
+      caseNotes: { type: 'textarea', required: true, label: 'Case Notes',  minLength: 5 },
     };
     const result = KiduValidation.validate(value, rules[name]);
     return result.isValid ? '' : result.message ?? '';
@@ -107,9 +144,13 @@ const AddNewCase: React.FC = () => {
     return Object.values(newErrors).every(e => !e);
   };
 
-  // ── Form handlers ─────────────────────────────
+  // ─────────────────────────────────────────────
+  // Form handlers
+  // ─────────────────────────────────────────────
 
-  const handleText = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleText = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = e.target;
     setForm(p => ({ ...p, [name]: value }));
     if (errors[name as keyof FormErrors])
@@ -119,15 +160,25 @@ const AddNewCase: React.FC = () => {
   const handleCheck = (name: 'remake' | 'rush') =>
     setForm(p => ({ ...p, [name]: !p[name] }));
 
-  const handleDropdownChange = (name: 'orderTo' | 'orderFrom', val: string | number | null) => {
-    setForm(p => ({ ...p, [name]: val }));
-    // Simulate ship-to resolve from orderFrom
-    if (name === 'orderFrom' && val)
-      setForm(p => ({ ...p, orderFrom: val, shipTo: 'Cotgrave, 21 West Furlong, Nottingham, Nottinghamshire, NG12 3NL' }));
+  const handleDropdownChange = (
+    name: 'orderTo' | 'orderFrom',
+    val: string | number | null,
+  ) => {
+    if (name === 'orderFrom' && val) {
+      setForm(p => ({
+        ...p,
+        orderFrom: val,
+        shipTo: 'Cotgrave, 21 West Furlong, Nottingham, Nottinghamshire, NG12 3NL',
+      }));
+    } else {
+      setForm(p => ({ ...p, [name]: val }));
+    }
     if (errors[name]) setErrors(p => ({ ...p, [name]: validateField(name, val) }));
   };
 
-  // ── Files ─────────────────────────────────────
+  // ─────────────────────────────────────────────
+  // File handlers
+  // ─────────────────────────────────────────────
 
   const addFiles = (incoming: FileList | null) => {
     if (!incoming) return;
@@ -137,46 +188,93 @@ const AddNewCase: React.FC = () => {
   const removeFile = (idx: number) => setFiles(p => p.filter((_, i) => i !== idx));
 
   const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault(); setDragOver(false);
+    e.preventDefault();
+    setDragOver(false);
     addFiles(e.dataTransfer.files);
   };
 
-  // ── Submit / Reset ────────────────────────────
+  // ─────────────────────────────────────────────
+  // Submit / Draft / Reset
+  // ─────────────────────────────────────────────
 
   const handleSubmit = () => {
     if (!validateAll()) return;
-    console.log('Submit', { ...form, files });
-    // API call goes here
+    console.log('Submit payload:', { ...form, files, restorations });
+    // TODO: API call
   };
 
   const handleDraft = () => {
-    console.log('Draft', { ...form, files });
+    console.log('Draft payload:', { ...form, files, restorations });
   };
 
   const handleReset = () => {
     setForm(INITIAL_FORM);
     setErrors({});
     setFiles([]);
+    setRestorations([]);
   };
 
-  // ── Additional Services modal ─────────────────
+  // ─────────────────────────────────────────────
+  // Additional Services modal handlers
+  // ─────────────────────────────────────────────
 
-  const handleServiceSave = () => {
-    const err = KiduValidation.validate(service.serviceName, { type: 'select', required: true, label: 'Service Name' });
-    if (!err.isValid) { setServiceErrors({ serviceName: err.message }); return; }
-    console.log('Additional service saved:', service);
+  const handleServiceModalClose = () => {
     setShowServiceModal(false);
     setService(INITIAL_SERVICE);
     setServiceErrors({});
   };
 
-  // ── Render ────────────────────────────────────
+  const handleServiceSave = () => {
+    const err = KiduValidation.validate(service.serviceName, {
+      type: 'select',
+      required: true,
+      label: 'Service Name',
+    });
+    if (!err.isValid) {
+      setServiceErrors({ serviceName: err.message });
+      return;
+    }
+    console.log('Additional service saved:', service);
+    handleServiceModalClose();
+  };
+
+  // ─────────────────────────────────────────────
+  // Restoration modal handlers
+  // ─────────────────────────────────────────────
+
+  /** Receives the completed restoration data from RestorationModal and adds it to the list */
+  const handleRestorationSave = useCallback(
+    (data: RestorationFormData & { selectedTeeth: number[] }) => {
+      setRestorations(prev => [
+        ...prev,
+        {
+          id: `rest-${Date.now()}`,
+          selectedTeeth: data.selectedTeeth,
+          prosthesis: data.prosthesis,
+          restoration: data.restoration,
+          indication: data.indication,
+          material: data.material,
+          shadeGuide: data.shadeGuide,
+          shadeComments: data.shadeComments,
+          generalComments: data.generalComments,
+        },
+      ]);
+    },
+    [],
+  );
+
+  const handleRemoveRestoration = (id: string) =>
+    setRestorations(prev => prev.filter(r => r.id !== id));
+
+  // ─────────────────────────────────────────────
+  // Render
+  // ─────────────────────────────────────────────
 
   return (
     <div className="anc-page">
       <div className="anc-body">
 
-        {/* ── Header card ── */}
+        {/* ── Page header ── */}
         <div className="anc-header">
           <span className="anc-page-title">Add New Case</span>
           <div className="anc-header-right">
@@ -198,7 +296,7 @@ const AddNewCase: React.FC = () => {
         {/* ── Order info card ── */}
         <div className="anc-card">
           <Row className="g-3">
-            {/* Order To */}
+
             <Col xs={12} md={4}>
               <label className="anc-label">Order To <span className="anc-required">*</span></label>
               <KiduDropdown
@@ -210,7 +308,6 @@ const AddNewCase: React.FC = () => {
               />
             </Col>
 
-            {/* Order From */}
             <Col xs={12} md={4}>
               <label className="anc-label">Order From <span className="anc-required">*</span></label>
               <KiduDropdown
@@ -222,7 +319,6 @@ const AddNewCase: React.FC = () => {
               />
             </Col>
 
-            {/* Ship To */}
             <Col xs={12} md={4}>
               <label className="anc-label">Ship To</label>
               <input
@@ -233,7 +329,6 @@ const AddNewCase: React.FC = () => {
               />
             </Col>
 
-            {/* Patient ID */}
             <Col xs={12} sm={6} md={3}>
               <label className="anc-label">Patient ID <span className="anc-required">*</span></label>
               <input
@@ -242,12 +337,13 @@ const AddNewCase: React.FC = () => {
                 placeholder="Enter Patient ID"
                 value={form.patientId}
                 onChange={handleText}
-                onBlur={e => setErrors(p => ({ ...p, patientId: validateField('patientId', e.target.value) }))}
+                onBlur={e =>
+                  setErrors(p => ({ ...p, patientId: validateField('patientId', e.target.value) }))
+                }
               />
               {errors.patientId && <div className="anc-error">{errors.patientId}</div>}
             </Col>
 
-            {/* First Name */}
             <Col xs={12} sm={6} md={3}>
               <label className="anc-label">First Name <span className="anc-required">*</span></label>
               <input
@@ -256,12 +352,13 @@ const AddNewCase: React.FC = () => {
                 placeholder="Enter First Name"
                 value={form.firstName}
                 onChange={handleText}
-                onBlur={e => setErrors(p => ({ ...p, firstName: validateField('firstName', e.target.value) }))}
+                onBlur={e =>
+                  setErrors(p => ({ ...p, firstName: validateField('firstName', e.target.value) }))
+                }
               />
               {errors.firstName && <div className="anc-error">{errors.firstName}</div>}
             </Col>
 
-            {/* Last Name */}
             <Col xs={12} sm={6} md={3}>
               <label className="anc-label">Last Name <span className="anc-required">*</span></label>
               <input
@@ -270,12 +367,13 @@ const AddNewCase: React.FC = () => {
                 placeholder="Enter Last Name"
                 value={form.lastName}
                 onChange={handleText}
-                onBlur={e => setErrors(p => ({ ...p, lastName: validateField('lastName', e.target.value) }))}
+                onBlur={e =>
+                  setErrors(p => ({ ...p, lastName: validateField('lastName', e.target.value) }))
+                }
               />
               {errors.lastName && <div className="anc-error">{errors.lastName}</div>}
             </Col>
 
-            {/* Due Date */}
             <Col xs={12} sm={6} md={3}>
               <label className="anc-label">Due Date <span className="anc-required">*</span></label>
               <input
@@ -284,32 +382,123 @@ const AddNewCase: React.FC = () => {
                 name="dueDate"
                 value={form.dueDate}
                 onChange={handleText}
-                onBlur={e => setErrors(p => ({ ...p, dueDate: validateField('dueDate', e.target.value) }))}
+                onBlur={e =>
+                  setErrors(p => ({ ...p, dueDate: validateField('dueDate', e.target.value) }))
+                }
               />
               {errors.dueDate && <div className="anc-error">{errors.dueDate}</div>}
             </Col>
+
           </Row>
         </div>
 
         {/* ── Restoration Details card ── */}
         <div className="anc-card">
           <div className="anc-card-header">
-            <span className="anc-card-title">Restoration Details</span>
+            <span className="anc-card-title">
+              Restoration Details
+              {restorations.length > 0 && (
+                <span className="anc-card-count">{restorations.length}</span>
+              )}
+            </span>
             <div className="anc-card-actions">
-              <button className="anc-btn anc-btn-primary" type="button">Add Restoration</button>
-              <button className="anc-btn anc-btn-outline" type="button" onClick={() => setShowServiceModal(true)}>
+              {/* ✅ Opens the RestorationModal */}
+              <button
+                className="anc-btn anc-btn-primary"
+                type="button"
+                onClick={() => setShowRestorationModal(true)}
+              >
+                <svg
+                  width="12"
+                  height="12"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  viewBox="0 0 24 24"
+                  style={{ marginRight: 5, verticalAlign: 'middle' }}
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 8v8M8 12h8" />
+                </svg>
+                Add Restoration
+              </button>
+              <button
+                className="anc-btn anc-btn-outline"
+                type="button"
+                onClick={() => setShowServiceModal(true)}
+              >
                 Additional Services
               </button>
             </div>
           </div>
-          {/* Restoration rows rendered here dynamically — placeholder */}
+
+          {/* ── Saved restorations list ── */}
+          {restorations.length === 0 ? (
+            
           <div style={{ minHeight: 28, color: 'var(--theme-text-disabled)', fontSize: '0.75rem', textAlign: 'center', padding: '8px 0' }}>
             No restorations added yet. Click "Add Restoration" to begin.
           </div>
+          ) : (
+            <div className="anc-restoration-list">
+              {restorations.map((r, idx) => (
+                <div key={r.id} className="anc-restoration-row">
+
+                  {/* Row number */}
+                  <span className="anc-rest-index">{idx + 1}</span>
+
+                  {/* Tooth badges */}
+                  <div className="anc-rest-teeth">
+                    {r.selectedTeeth.length > 0 ? (
+                      r.selectedTeeth.map(t => (
+                        <span key={t} className="anc-rest-tooth-badge">{t}</span>
+                      ))
+                    ) : (
+                      <span className="anc-rest-no-teeth">No teeth</span>
+                    )}
+                  </div>
+
+                  {/* Prosthesis · Restoration · Indication */}
+                  <div className="anc-rest-summary">
+                    <span className="anc-rest-summary-main">{restorationLabel(r)}</span>
+                    {r.material && (
+                      <span className="anc-rest-summary-sub">
+                        {r.material}
+                        {r.shadeGuide && r.shadeGuide !== 'Default'
+                          ? ` · ${r.shadeGuide}`
+                          : ''}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Remove */}
+                  <button
+                    className="anc-rest-remove"
+                    type="button"
+                    onClick={() => handleRemoveRestoration(r.id)}
+                    aria-label={`Remove restoration ${idx + 1}`}
+                    title="Remove restoration"
+                  >
+                    <svg
+                      width="13"
+                      height="13"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M18 6 6 18M6 6l12 12" />
+                    </svg>
+                  </button>
+
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* ── Document + Case Notes ── */}
         <div className="anc-split">
+
           {/* Document Attachment */}
           <div className="anc-card">
             <div className="anc-card-header">
@@ -330,7 +519,6 @@ const AddNewCase: React.FC = () => {
               </div>
             </div>
 
-            {/* Drop zone */}
             <div
               className={`anc-dropzone${dragOver ? ' dragover' : ''}`}
               onClick={() => fileInputRef.current?.click()}
@@ -359,7 +547,14 @@ const AddNewCase: React.FC = () => {
                 {files.map((f, i) => (
                   <div key={i} className="anc-file-chip">
                     <span className="anc-file-chip-name">{f.name}</span>
-                    <button className="anc-file-chip-remove" onClick={() => removeFile(i)} aria-label="Remove file">×</button>
+                    <button
+                      className="anc-file-chip-remove"
+                      type="button"
+                      onClick={() => removeFile(i)}
+                      aria-label="Remove file"
+                    >
+                      ×
+                    </button>
                   </div>
                 ))}
               </div>
@@ -368,7 +563,11 @@ const AddNewCase: React.FC = () => {
             <div className="anc-file-note">Note: Max 2GB file upload allowed</div>
 
             <div style={{ marginTop: 10, display: 'flex', justifyContent: 'flex-end' }}>
-              <button className="anc-btn anc-btn-outline" onClick={() => fileInputRef.current?.click()}>
+              <button
+                className="anc-btn anc-btn-outline"
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+              >
                 Upload Files
               </button>
             </div>
@@ -377,7 +576,9 @@ const AddNewCase: React.FC = () => {
           {/* Case Notes */}
           <div className="anc-card">
             <div className="anc-card-header">
-              <span className="anc-card-title">Case Notes <span className="anc-required">*</span></span>
+              <span className="anc-card-title">
+                Case Notes <span className="anc-required">*</span>
+              </span>
             </div>
             <textarea
               className={`anc-textarea${errors.caseNotes ? ' is-invalid' : ''}`}
@@ -385,26 +586,43 @@ const AddNewCase: React.FC = () => {
               placeholder="Enter case notes..."
               value={form.caseNotes}
               onChange={handleText}
-              onBlur={e => setErrors(p => ({ ...p, caseNotes: validateField('caseNotes', e.target.value) }))}
+              onBlur={e =>
+                setErrors(p => ({ ...p, caseNotes: validateField('caseNotes', e.target.value) }))
+              }
               style={{ height: 'calc(100% - 50px)', minHeight: 130 }}
             />
             {errors.caseNotes && <div className="anc-error">{errors.caseNotes}</div>}
           </div>
-        </div>
 
+        </div>
       </div>
 
       {/* ── Sticky footer ── */}
       <div className="anc-footer">
-        <button className="anc-btn anc-btn-reset" onClick={handleReset}>Reset</button>
-        <button className="anc-btn anc-btn-draft" onClick={handleDraft}>Draft</button>
-        <button className="anc-btn anc-btn-submit" onClick={handleSubmit}>Submit</button>
+        <button className="anc-btn anc-btn-reset"   type="button" onClick={handleReset}>Reset</button>
+        <button className="anc-btn anc-btn-draft"   type="button" onClick={handleDraft}>Draft</button>
+        <button className="anc-btn anc-btn-submit"  type="button" onClick={handleSubmit}>Submit</button>
       </div>
 
-      {/* ── Additional Services Modal ── */}
+      {/* ════════════════════════════════════════════
+          Restoration Modal
+          show/onHide/onSave wired to local state.
+          onSave receives completed data and appends
+          a new RestorationEntry to the list.
+      ════════════════════════════════════════════ */}
+      <RestorationModal
+        show={showRestorationModal}
+        onHide={() => setShowRestorationModal(false)}
+        onSave={handleRestorationSave}
+        scheme="Affordable Private"
+      />
+
+      {/* ════════════════════════════════════════════
+          Additional Services Modal
+      ════════════════════════════════════════════ */}
       <Modal
         show={showServiceModal}
-        onHide={() => { setShowServiceModal(false); setService(INITIAL_SERVICE); setServiceErrors({}); }}
+        onHide={handleServiceModalClose}
         centered
         size="sm"
         dialogClassName="anc-modal"
@@ -447,7 +665,7 @@ const AddNewCase: React.FC = () => {
           <Button
             variant="light"
             className="anc-btn anc-btn-outline"
-            onClick={() => { setShowServiceModal(false); setService(INITIAL_SERVICE); setServiceErrors({}); }}
+            onClick={handleServiceModalClose}
           >
             Cancel
           </Button>
@@ -460,6 +678,7 @@ const AddNewCase: React.FC = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
     </div>
   );
 };

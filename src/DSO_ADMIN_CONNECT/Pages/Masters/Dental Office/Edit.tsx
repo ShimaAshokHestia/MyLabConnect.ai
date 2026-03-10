@@ -1,103 +1,93 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import KiduEditModal, { type Field } from "../../../../KIDU_COMPONENTS/KiduEditModal";
-import type { DSOmaster } from "../../../../ADMIN/Types/Master/Master.types";
-import DSOmasterSelectPopup from "../../../../ADMIN/Pages/Master/PopUp";
-import DSODentalOfficeService from "../../../Services/Masters/DsoDentalOffice.services";
 import type { DSODentalOffice } from "../../../Types/Masters/DsoDentalOffice.types";
+import DSODentalOfficeService from "../../../Services/Masters/DsoDentalOffice.services";
+import { useCurrentUser } from "../../../../Services/AuthServices/CurrentUser.services";
+import { useApiErrorHandler } from "../../../../Services/AuthServices/APIErrorHandler.services";
 
-interface Props {
-    show: boolean;
-    onHide: () => void;
-    onSuccess: () => void;
-    recordId: number;
-}
-
+// ── Field definitions ─────────────────────────────────────────────────────────
+//
+// dsoMasterId is taken from the session token via requireDSOMasterId(),
+// so it is not shown as a form field.
+//
 const fields: Field[] = [
-    { name: "officeCode", rules: { type: "text", label: "Office Code", required: true, minLength: 3, maxLength: 50, colWidth: 6 } },
-    { name: "officeName", rules: { type: "text", label: "Office Name", required: true, minLength: 3, maxLength: 100, colWidth: 6 } },
-    { name: "dsoMasterId", rules: { type: "popup", label: "DSO Master", required: true, colWidth: 6 } },
-    { name: "info", rules: { type: "textarea", label: "Info", required: false, minLength: 5, maxLength: 500, colWidth: 12 } },
-    { name: "isActive", rules: { type: "toggle", label: "Active", colWidth: 6 } },
+  { name: "officeCode", rules: { type: "text",     label: "Office Code", required: true,  minLength: 3, maxLength: 50,  colWidth: 6  } },
+  { name: "officeName", rules: { type: "text",     label: "Office Name", required: true,  minLength: 3, maxLength: 100, colWidth: 6  } },
+  { name: "info",       rules: { type: "textarea", label: "Info",        required: false, minLength: 5, maxLength: 500, colWidth: 12 } },
+  { name: "isActive",   rules: { type: "toggle",   label: "Active",                                                     colWidth: 6  } },
 ];
 
+// ── Props ─────────────────────────────────────────────────────────────────────
+
+interface Props {
+  show: boolean;
+  onHide: () => void;
+  onSuccess: () => void;
+  recordId: number;
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
+
 const DSODentalOfficeEditModal: React.FC<Props> = ({ show, onHide, onSuccess, recordId }) => {
-    const [selectedMaster, setSelectedMaster] = useState<DSOmaster | null>(null);
-    const [masterOpen, setMasterOpen] = useState(false);
+  const { requireDSOMasterId }               = useCurrentUser();
+  const { handleApiError, assertApiSuccess } = useApiErrorHandler();
 
-    useEffect(() => {
-        if (!show) {
-            setSelectedMaster(null);
-        }
-    }, [show]);
+  // ── Fetch handler ─────────────────────────────────────────────────────────
+  const handleFetch = async (id: string | number) => {
+    return await DSODentalOfficeService.getById(Number(id));
+  };
 
-    const handleFetch = async (id: string | number) => {
-        const response = await DSODentalOfficeService.getById(Number(id));
-        console.log("Fetch Response:", response);
-        
-        const data = response?.value || response;
-        
-        // Set the selected master from the fetched data
-        if (data?.dsoMasterId && data?.dsoName) {
-            setSelectedMaster({
-                id: data.dsoMasterId,
-                name: data.dsoName,
-                description: "",
-                isActive: true
-            } as DSOmaster);
-        }
-        
-        return response;
+  // ── Update handler ────────────────────────────────────────────────────────
+  const handleUpdate = async (id: string | number, formData: Record<string, any>) => {
+    // 1. Get DSOMasterId from token
+    let dsOMasterId: number;
+    try {
+      dsOMasterId = requireDSOMasterId();
+    } catch (err) {
+      await handleApiError(err, "session");
+      return;
+    }
+
+    // 2. Build payload
+    const payload: Partial<DSODentalOffice> = {
+      id:          Number(id),
+      officeCode:  formData.officeCode,
+      officeName:  formData.officeName,
+      info:        formData.info,
+      dsoMasterId: dsOMasterId,
+      isActive:    formData.isActive ?? true,
     };
 
-    const handleUpdate = async (id: string | number, formData: Record<string, any>) => {
-        const payload: Partial<DSODentalOffice> = {
-            id: Number(id),
-            officeCode: formData.officeCode,
-            officeName: formData.officeName,
-            info: formData.info,
-            dsoMasterId: Number(formData.dsoMasterId),
-            isActive: formData.isActive ?? true,
-        };
-        await DSODentalOfficeService.update(Number(id), payload);
-        return { isSucess: true, value: payload };
-    };
+    // 3. Call API
+    let result: any;
+    try {
+      result = await DSODentalOfficeService.update(Number(id), payload);
+    } catch (err) {
+      await handleApiError(err, "network");
+      return;
+    }
 
-    const popupHandlers = {
-        dsoMasterId: {
-            value: selectedMaster?.name ?? "",
-            actualValue: selectedMaster?.id,
-            onOpen: () => setMasterOpen(true),
-            onClear: () => setSelectedMaster(null),
-        },
-    };
+    // 4. Assert success
+    await assertApiSuccess(result, "Failed to update Dental Office.");
 
-    return (
-        <>
-            <KiduEditModal
-                show={show}
-                onHide={onHide}
-                title="Edit DSO Dental Office"
-                subtitle="Update dental office details"
-                fields={fields}
-                recordId={recordId}
-                onFetch={handleFetch}
-                onUpdate={handleUpdate}
-                popupHandlers={popupHandlers}
-                successMessage="Dental office updated successfully!"
-                onSuccess={onSuccess}
-                submitButtonText="Update Office"
-            />
+    return result;
+  };
 
-            <DSOmasterSelectPopup
-                show={masterOpen}
-                onClose={() => setMasterOpen(false)}
-                onSelect={(master) => {
-                    setSelectedMaster(master);
-                    setMasterOpen(false);
-                }}
-            />
-        </>
-    );
+  return (
+    <KiduEditModal
+      show={show}
+      onHide={onHide}
+      title="Edit DSO Dental Office"
+      subtitle="Update dental office details"
+      fields={fields}
+      recordId={recordId}
+      onFetch={handleFetch}
+      onUpdate={handleUpdate}
+      successMessage="Dental office updated successfully!"
+      onSuccess={onSuccess}
+      submitButtonText="Update Office"
+    />
+  );
 };
 
 export default DSODentalOfficeEditModal;

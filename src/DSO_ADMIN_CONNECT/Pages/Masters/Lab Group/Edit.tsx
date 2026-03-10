@@ -5,18 +5,9 @@ import KiduEditModal, {
 import LabGroupService from "../../../Services/Masters/Labgroup.services";
 
 const fields: Field[] = [
-  {
-    name: "code",
-    rules: { type: "text", label: "Code", required: true,minLength:3, maxLength: 50, colWidth: 6 },
-  },
-  {
-    name: "name",
-    rules: { type: "text", label: "Lab Group Name", required: true,minLength:3, maxLength: 100, colWidth: 6 },
-  },
-  {
-    name: "isActive",
-    rules: { type: "toggle", label: "Active", colWidth: 6 },
-  },
+  { name: "code", rules: { type: "text", label: "Code", required: true,minLength:3, maxLength: 50, colWidth: 6 }, },
+  { name: "name", rules: { type: "text", label: "Lab Group Name", required: true,minLength:3, maxLength: 100, colWidth: 6 }, },
+  { name: "isActive", rules: { type: "toggle", label: "Active", colWidth: 6 }, },
 ];
 
 interface Props {

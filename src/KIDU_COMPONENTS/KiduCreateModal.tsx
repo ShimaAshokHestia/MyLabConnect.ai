@@ -111,8 +111,9 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
   size = "lg",
   centered = true,
 }) => {
+  // Find the active toggle field if it exists
   const activeField = fields.find(
-    (f) => f.name.toLowerCase() === "active" && f.rules.type === "toggle"
+    (f) => f.name.toLowerCase() === "isactive" || (f.name.toLowerCase() === "active" && f.rules.type === "toggle")
   );
 
   const buildInitial = () => {
@@ -450,16 +451,8 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
         );
 
       case "toggle":
-        return (
-          <Form.Check
-            type="switch"
-            id={name}
-            name={name}
-            label={rules.label}
-            checked={!!formData[name]}
-            onChange={handleChange}
-          />
-        );
+        // Skip rendering toggle fields here - they're handled in the header
+        return null;
 
       case "date":
         return (
@@ -516,7 +509,8 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
       return <div key={`rowbreak-${index}`} className="w-100" />;
     }
 
-    if (name.toLowerCase() === "active" && rules.type === "toggle") {
+    // Skip rendering toggle fields in the body - they're shown in header
+    if (rules.type === "toggle") {
       return null;
     }
 
@@ -587,24 +581,43 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
             {subtitle && <p className="kidu-modal-subtitle">{subtitle}</p>}
           </div>
 
-          {activeField && (
-            <div className="kidu-modal-header-active">
-              <span
-                className="kidu-active-label"
-                style={{ color: formData["active"] ? "#22c55e" : "#6b7280" }}
-              >
-                {activeField.rules.label}
-              </span>
-              <Form.Check
-                type="switch"
-                id="header-active-toggle"
-                name="active"
-                checked={!!formData["active"]}
-                onChange={handleChange}
-                className="kidu-header-toggle"
-              />
+          {/* Active Toggle in Header - Matching KiduTabbedFormCreateModal style */}
+          <div className="kidu-modal-header-right" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <span className="kidu-active-label">Active</span>
+            <div
+              className={`kidu-toggle ${formData["isActive"] || formData["active"] ? "kidu-toggle--on" : ""}`}
+              onClick={() => {
+                const activeFieldName = activeField?.name || "isActive";
+                handleChange({
+                  target: {
+                    name: activeFieldName,
+                    value: !(formData[activeFieldName] || formData["isActive"] || formData["active"]),
+                    type: "switch",
+                    checked: !(formData[activeFieldName] || formData["isActive"] || formData["active"])
+                  }
+                } as any);
+              }}
+              role="switch"
+              aria-checked={formData["isActive"] || formData["active"] || false}
+              tabIndex={0}
+              onKeyDown={(e) => { 
+                if (e.key === " " || e.key === "Enter") {
+                  const activeFieldName = activeField?.name || "isActive";
+                  handleChange({
+                    target: {
+                      name: activeFieldName,
+                      value: !(formData[activeFieldName] || formData["isActive"] || formData["active"]),
+                      type: "switch",
+                      checked: !(formData[activeFieldName] || formData["isActive"] || formData["active"])
+                    }
+                  } as any);
+                }
+              }}
+              style={{ cursor: "pointer" }}
+            >
+              <div className="kidu-toggle-thumb" />
             </div>
-          )}
+          </div>
         </Modal.Header>
 
         <Modal.Body className="kidu-modal-body">

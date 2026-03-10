@@ -10,11 +10,8 @@ interface Props {
 
 const fields: ViewField[] = [
   { name: "name",        label: "Zone Name",    colWidth: 12 },
-  { name: "dsoName",     label: "DSO Master",   colWidth: 6 },
-  { name: "dsoMasterId", label: "DSO Master ID", colWidth: 6 },
   { name: "isActive",    label: "Status",       colWidth: 6, isToggle: true },
-  { name: "createdAt",   label: "Created At",   colWidth: 6, isDate: true },
-  { name: "updatedAt",   label: "Updated At",   colWidth: 6, isDate: true },
+
 ];
 
 const DSOZoneViewModal: React.FC<Props> = ({ show, onHide, recordId }) => {

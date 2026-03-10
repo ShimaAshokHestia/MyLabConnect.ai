@@ -69,7 +69,6 @@ export const dsoAdminMenuItems: MenuItem[] = [
             { title: 'Practice', url: '/dsoadmin-connect/masters/practice-list', icon: Building2 },
             { title: 'Doctor', url: '/dsoadmin-connect/masters/doctor-list', icon: UserCog },
             { title: 'Lab', url: '/dsoadmin-connect/masters/lab-list', icon: Microscope },
-
             { title: 'Zone', url: '/dsoadmin-connect/setup/zone-list', icon: MapPin },
             { title: 'Territory', url: '/dsoadmin-connect/masters/territory-list', icon: MapMinus }
             // { title: 'Dental Office', url: '/dsoadmin-connect/masters/dentalOffice-list', icon: Syringe },
@@ -82,17 +81,15 @@ export const dsoAdminMenuItems: MenuItem[] = [
         title: 'Product Setup',
         icon: Users,
         children: [
-
-
             { title: 'Scheme', url: '/dsoadmin-connect/schema-list', icon: RefreshCw, },
             { title: 'Prosthesis', url: '/dsoadmin-connect/prosthesis', icon: Sparkles, },
             { title: 'Restoration', url: '/dsoadmin-connect/Restoration', icon: RefreshCw, },
-            { title: 'Indicaion', url: '/dsoadmin-connect/indication-list', icon: Eye, },
+            { title: 'Indication', url: '/dsoadmin-connect/indication-list', icon: Eye, },
             { title: 'Material Name', url: '/dsoadmin-connect/materialName-list', icon: Layers, },
             { title: 'Shade Guide', url: '/dsoadmin-connect/shadeGuide-list', icon: Palette, },
             { title: 'Shade', url: '/dsoadmin-connect/shade-list', icon: Droplet, },
             { title: 'Product Group', url: '/dsoadmin-connect/masters/productGroup-list', icon: Package },
-            { title: 'Products', url: '/dsoadmin-connect/masters/productGroup-list', icon: FaProductHunt },
+            { title: 'Products', url: '/dsoadmin-connect/masters/product-list', icon: FaProductHunt },
         ],
     },
 
@@ -100,7 +97,6 @@ export const dsoAdminMenuItems: MenuItem[] = [
         title: 'Invoice & Payment',
         icon: Users,
         children: [
-
             { title: 'Invoices', url: '/dsoadmin-connect/invoices-list', icon: Receipt, },
             { title: 'Proforma Invoice', url: '/dsoadmin-connect/proformaInvoice-list', icon: FileSpreadsheet, },
             { title: 'Case Flow SLA', url: '/dsoadmin-connect/caseFlowSLA-list', icon: Gauge, },
@@ -117,7 +113,7 @@ export const dsoAdminMenuItems: MenuItem[] = [
             { title: 'Lab Products Rate', url: '/dsoadmin-connect/setup/lab-products-rate', icon: DollarSign },
 
             // { title: 'Region', url: '/dsoadmin-connect/setup/region-list', icon: Building2 },
-            // { title: 'Setting', url: '/dsoadmin-connect/setup/setting-list', icon: Settings },
+             { title: 'Setting', url: '/dsoadmin-connect/setup/setting-list', icon: Settings },
         ],
     },
     {

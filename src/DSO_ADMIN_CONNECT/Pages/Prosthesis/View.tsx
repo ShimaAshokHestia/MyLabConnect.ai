@@ -12,7 +12,6 @@ interface Props {
 const fields: ViewField[] = [
   { name: "id",         label: "ID",                 colWidth: 6 },
   { name: "name",       label: "Prosthesis Type",    colWidth: 6 },
-  { name: "dsoName",    label: "DSO Master",         colWidth: 6 },
   { name: "isActive",   label: "Status",             colWidth: 6, isToggle: true },
 ];
 

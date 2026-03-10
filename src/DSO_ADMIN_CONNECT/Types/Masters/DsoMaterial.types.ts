@@ -8,7 +8,7 @@ export interface DSOMaterial {
   // Restoration Type Relationship
   dsoRestorationTypeId?: number;
   restorationTypeName?: string;
-  
+  dsoMasterId?: number;
   // Audit Fields
   createdAt?: string;
   updatedAt?: string | null;

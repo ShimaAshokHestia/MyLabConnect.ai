@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Form, Row, Col, Modal, Badge } from "react-bootstrap";
+import { Form, Row, Col, Modal } from "react-bootstrap";
 import toast, { Toaster } from "react-hot-toast";
 import "../Styles/KiduStyles/ViewModal.css";
 
@@ -70,6 +70,7 @@ const KiduViewModal: React.FC<ViewModalProps> = ({
         }
 
         const fetchedData = response.value;
+        console.log("View modal fetched data:", fetchedData); // Debug log
 
         // Format data for display
         const formattedData: Record<string, any> = {};
@@ -98,6 +99,18 @@ const KiduViewModal: React.FC<ViewModalProps> = ({
           }
         });
 
+        // Explicitly set isActive from the data
+        if (fetchedData.isActive !== undefined) {
+          formattedData.isActive = fetchedData.isActive;
+        } else if (fetchedData.IsActive !== undefined) {
+          formattedData.isActive = fetchedData.IsActive;
+        } else if (fetchedData.active !== undefined) {
+          formattedData.isActive = fetchedData.active;
+        } else if (fetchedData.Active !== undefined) {
+          formattedData.isActive = fetchedData.Active;
+        }
+
+        console.log("Formatted data with isActive:", formattedData.isActive); // Debug log
         setData(formattedData);
 
       } catch (error: any) {
@@ -172,6 +185,11 @@ const KiduViewModal: React.FC<ViewModalProps> = ({
     const { name, label, colWidth = 6 } = field;
     const value = data[name];
 
+    // Skip isActive field since it's already shown in header
+    if (name === "isActive" || name === "IsActive" || name === "active") {
+      return null;
+    }
+
     return (
       <Col md={colWidth} className="mb-3" key={name}>
         <Form.Label className="kidu-form-label">
@@ -181,14 +199,14 @@ const KiduViewModal: React.FC<ViewModalProps> = ({
         {/* Toggle/Switch Field */}
         {field.isToggle ? (
           <div className="kidu-view-toggle-wrapper">
-            <Form.Check
-              type="switch"
-              id={`view-${name}`}
-              checked={!!value}
-              disabled
-              readOnly
-              className="kidu-view-toggle"
-            />
+            <div
+              className={`kidu-toggle kidu-toggle--readonly ${value ? "kidu-toggle--on" : ""}`}
+              style={{
+                backgroundColor: value ? themeColor : "#e0e0e0"
+              }}
+            >
+              <div className="kidu-toggle-thumb" />
+            </div>
             <span className="kidu-view-toggle-label">
               {value ? "Active" : "Inactive"}
             </span>
@@ -262,27 +280,38 @@ const KiduViewModal: React.FC<ViewModalProps> = ({
         </button>
 
         <Modal.Header className="kidu-modal-header">
-          <div className="d-flex align-items-center gap-2">
-            <div>
-              <div className="d-flex align-items-center gap-2">
-                <Modal.Title className="kidu-modal-title">
-                  {title}
-                </Modal.Title>
-                {showBadge && (
-                  <Badge
-                    bg="danger"
-                    className="kidu-view-badge"
-                    style={{ backgroundColor: themeColor }}
-                  >
-                    {badgeText}
-                  </Badge>
-                )}
+          <div className="kidu-modal-header-left">
+            <Modal.Title className="kidu-modal-title">
+              {title}
+            </Modal.Title>
+            {subtitle && (
+              <p className="kidu-modal-subtitle">
+                {subtitle}
+              </p>
+            )}
+          </div>
+
+          {/* Header Right Section with Badge and Active Toggle */}
+          <div className="kidu-modal-header-right">
+            {showBadge && (
+              <span
+                className="kidu-view-badge"
+                style={{ backgroundColor: themeColor }}
+              >
+                {badgeText}
+              </span>
+            )}
+            {/* Active Toggle - Read Only Visual */}
+            <div className="kidu-active-toggle-wrapper">
+              <span className="kidu-active-label">Active</span>
+              <div
+                className={`kidu-toggle kidu-toggle--readonly ${data.isActive ? "kidu-toggle--on" : ""}`}
+                style={{
+                  backgroundColor: data.isActive ? themeColor : "#e0e0e0"
+                }}
+              >
+                <div className="kidu-toggle-thumb" />
               </div>
-              {subtitle && (
-                <p className="kidu-modal-subtitle">
-                  {subtitle}
-                </p>
-              )}
             </div>
           </div>
         </Modal.Header>

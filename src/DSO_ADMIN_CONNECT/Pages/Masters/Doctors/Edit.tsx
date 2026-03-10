@@ -214,9 +214,6 @@ const DSODoctorEditModal: React.FC<Props> = ({
 
     // 4. Assert success
     await assertApiSuccess(result, "Failed to update DSO Doctor.");
-
-    // 5. Notify parent
-    onSuccess();
   };
 
   // ── Loading overlay ───────────────────────────────────────────────────────
@@ -265,6 +262,8 @@ const DSODoctorEditModal: React.FC<Props> = ({
       initialHeaderData={initialHeaderData}
       initialTabData={initialTabData}
       themeColor="#ef0d50"
+      successMessage="DSO Doctor updated successfully!"
+      onSuccess={onSuccess}
     />
   );
 };

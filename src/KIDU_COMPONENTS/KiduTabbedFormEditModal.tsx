@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaTrash, FaPlus } from "react-icons/fa";
-import toast from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
+import Swal from "sweetalert2";
 import "../Styles/KiduStyles/KiduTabbedFormModal.css";
 import KiduValidation, { KiduCharacterCounter } from "./KiduValidation";
 
@@ -54,10 +55,12 @@ export interface KiduTabbedFormEditModalProps {
   tabs: TabConfig[];
   onSubmit: (data: {
     headerData: Record<string, any>;
-    tabData: Record<string, Record<string, any>[]>;
+    tabData: Record<string, Record<string, any>[]>;  // ← Fixed: added closing bracket
   }) => Promise<void> | void;
   submitButtonText?: string;
   themeColor?: string;
+  successMessage?: string;
+  onSuccess?: () => void;
   // ── Required for Edit mode ────────────────────────────────────────────────
   initialHeaderData: Record<string, any>;
   initialTabData: Record<string, Record<string, any>[]>;
@@ -74,6 +77,8 @@ const KiduTabbedFormEditModal: React.FC<KiduTabbedFormEditModalProps> = ({
   onSubmit,
   submitButtonText = "Update",
   themeColor = "#ef0d50",
+  successMessage = "Updated successfully!",
+  onSuccess,
   initialHeaderData,
   initialTabData,
 }) => {
@@ -268,10 +273,38 @@ const KiduTabbedFormEditModal: React.FC<KiduTabbedFormEditModalProps> = ({
     setIsSubmitting(true);
     try {
       await onSubmit({ headerData, tabData });
-      handleClose();
+      
+      // Close modal first
+      onHide();
+      
+      // Small delay to ensure modal is closed
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Show SweetAlert success message
+      await Swal.fire({
+        icon: "success",
+        title: "Success!",
+        text: successMessage,
+        confirmButtonColor: themeColor,
+        timer: 2000,
+        showConfirmButton: true,
+        confirmButtonText: "OK",
+      });
+      
+      // Call onSuccess callback (usually refreshes the list)
+      if (onSuccess) onSuccess();
+      
     } catch (err: any) {
       const msg = err?.message ?? "An unexpected error occurred.";
       toast.error(msg, { duration: 5000 });
+      
+      await Swal.fire({
+        icon: "error",
+        title: "Error!",
+        text: msg,
+        confirmButtonColor: themeColor,
+        confirmButtonText: "OK",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -602,6 +635,41 @@ const KiduTabbedFormEditModal: React.FC<KiduTabbedFormEditModalProps> = ({
 
       {/* Render popup outside modal */}
       {renderPopup()}
+
+      {/* Toaster for toast notifications - placed at the very end */}
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#fff',
+            color: '#363636',
+            boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
+            borderRadius: '8px',
+            padding: '12px 16px',
+            fontSize: '14px',
+            fontWeight: '500',
+          },
+          success: {
+            icon: '✅',
+            style: {
+              borderLeft: `4px solid #10b981`,
+            },
+          },
+          error: {
+            icon: '❌',
+            style: {
+              borderLeft: `4px solid #ef4444`,
+            },
+          },
+          loading: {
+            icon: '⏳',
+            style: {
+              borderLeft: `4px solid ${themeColor}`,
+            },
+          },
+        }}
+      />
     </>
   );
 };

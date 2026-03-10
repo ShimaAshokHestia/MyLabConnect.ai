@@ -28,8 +28,6 @@ interface Props {
   dsoMasterId?: number;
 }
 
-
-
 // ── Component ─────────────────────────────────────────────────────────────────
 const DSODoctorCreateModal: React.FC<Props> = ({ 
   show, 
@@ -67,7 +65,6 @@ const DSODoctorCreateModal: React.FC<Props> = ({
         },
       ],
     },
-    // You can add more tabs here if needed (e.g., specialties)
   ];
 
   // ── Submit handler ────────────────────────────────────────────────────────
@@ -124,11 +121,8 @@ const DSODoctorCreateModal: React.FC<Props> = ({
       return;
     }
 
-    // 4. Assert success
+    // 4. Assert success - this will throw if not successful
     await assertApiSuccess(result, "Failed to create DSO Doctor.");
-
-    // 5. Notify parent
-    onSuccess();
   };
 
   return (
@@ -141,6 +135,8 @@ const DSODoctorCreateModal: React.FC<Props> = ({
       onSubmit={handleSubmit}
       submitButtonText="Create Doctor"
       themeColor="#ef0d50"
+      successMessage="DSO Doctor created successfully!"
+      onSuccess={onSuccess}
     />
   );
 };

@@ -6,17 +6,17 @@ import KiduTabbedFormViewModal, {
 import DSODoctorService from "../../../Services/Masters/DsoDoctor.services";
 
 // ── Header fields ─────────────────────────────────────────────────────────────
+// Matching the create/edit page field structure
 const headerFields: ViewHeaderField[] = [
-  { name: "doctorCode", label: "Doctor Code", colWidth: 4 },
-  { name: "licenseNo", label: "License No", colWidth: 4 },
+  { name: "doctorCode", label: "Doctor Code", colWidth: 3 },
   { name: "firstName", label: "First Name", colWidth: 4 },
   { name: "lastName", label: "Last Name", colWidth: 4 },
-  { name: "fullName", label: "Full Name", colWidth: 4 },
   { name: "email", label: "Email", colWidth: 4 },
   { name: "phoneNumber", label: "Phone Number", colWidth: 4 },
-  { name: "address", label: "Address", colWidth: 6, isTextarea: true },
-  { name: "info", label: "Specialty / Info", colWidth: 6, isTextarea: true },
-  { name: "isActive", label: "Status", colWidth: 12, isToggle: true },
+  { name: "licenseNo", label: "License No", colWidth: 3 },
+  { name: "info", label: "Specialty / Info", colWidth: 4 },
+  { name: "address", label: "Address", colWidth: 6 },
+  // isActive is handled in the header toggle, so we don't need it here
 ];
 
 // ── Tab definitions ───────────────────────────────────────────────────────────
@@ -73,6 +73,8 @@ const DSODoctorViewModal: React.FC<Props> = ({ show, onHide, recordId }) => {
           practices: practices,
         };
       }}
+      // Add a custom formatter or ensure isActive is passed correctly
+      // The view modal already handles isActive through the header toggle
     />
   );
 };

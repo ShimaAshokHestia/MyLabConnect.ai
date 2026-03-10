@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaTrash, FaPlus } from "react-icons/fa";
-import toast, { Toaster } from "react-hot-toast";  // ← CHANGED: import Toaster
+import toast, { Toaster } from "react-hot-toast";  // ← IMPORT Toaster
+import Swal from "sweetalert2";  // ← ADD Swal import
 import "../Styles/KiduStyles/KiduTabbedFormModal.css";
 import KiduValidation, { KiduCharacterCounter } from "./KiduValidation";
 
@@ -13,7 +14,7 @@ export interface TabbedFormField {
   required?: boolean;
   placeholder?: string;
   options?: { value: string | number; label: string }[];
-  colWidth?: 3 | 4 | 5 | 6 | 8 | 10 | 12;
+  colWidth?: 3 | 4 | 6 | 8 | 10 | 12;
   maxLength?: number;
   minLength?: number;
   defaultValue?: any;
@@ -58,6 +59,8 @@ export interface KiduTabbedFormCreateModalProps {
   }) => Promise<void> | void;
   submitButtonText?: string;
   themeColor?: string;
+  successMessage?: string;  // ← ADD successMessage prop
+  onSuccess?: () => void;    // ← ADD onSuccess prop
 }
 
 // ==================== COMPONENT ====================
@@ -71,6 +74,8 @@ const KiduTabbedFormCreateModal: React.FC<KiduTabbedFormCreateModalProps> = ({
   onSubmit,
   submitButtonText = "Save",
   themeColor = "#ef0d50",
+  successMessage = "Created successfully!",  // ← ADD default success message
+  onSuccess,
 }) => {
 
   // ── Popup state management ────────────────────────────────────────────────
@@ -252,10 +257,38 @@ const KiduTabbedFormCreateModal: React.FC<KiduTabbedFormCreateModalProps> = ({
     setIsSubmitting(true);
     try {
       await onSubmit({ headerData, tabData });
-      handleClose();
+      
+      // Close modal first
+      onHide();
+      
+      // Small delay to ensure modal is closed
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Show SweetAlert success message
+      await Swal.fire({
+        icon: "success",
+        title: "Success!",
+        text: successMessage,
+        confirmButtonColor: themeColor,
+        timer: 2000,
+        showConfirmButton: true,
+        confirmButtonText: "OK",
+      });
+      
+      // Call onSuccess callback (usually refreshes the list)
+      if (onSuccess) onSuccess();
+      
     } catch (err: any) {                                                    
       const msg = err?.message ?? "An unexpected error occurred.";
-      toast.error(msg, { duration: 5000 });                                 
+      toast.error(msg, { duration: 5000 });
+      
+      await Swal.fire({
+        icon: "error",
+        title: "Error!",
+        text: msg,
+        confirmButtonColor: themeColor,
+        confirmButtonText: "OK",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -293,41 +326,6 @@ const KiduTabbedFormCreateModal: React.FC<KiduTabbedFormCreateModalProps> = ({
 
   return (
     <>
-      {/* ── Toaster for toast notifications ── */}
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 4000,
-          style: {
-            background: '#fff',
-            color: '#363636',
-            boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
-            borderRadius: '8px',
-            padding: '12px 16px',
-            fontSize: '14px',
-            fontWeight: '500',
-          },
-          success: {
-            icon: '✅',
-            style: {
-              borderLeft: `4px solid #10b981`,
-            },
-          },
-          error: {
-            icon: '❌',
-            style: {
-              borderLeft: `4px solid #ef4444`,
-            },
-          },
-          loading: {
-            icon: '⏳',
-            style: {
-              borderLeft: `4px solid ${themeColor}`,
-            },
-          },
-        }}
-      />
-
       <div className="ktf-overlay" onClick={handleClose}>
         <div className="ktf-modal-wrapper">
           <div className="ktf-modal" onClick={(e) => e.stopPropagation()}>
@@ -623,6 +621,41 @@ const KiduTabbedFormCreateModal: React.FC<KiduTabbedFormCreateModalProps> = ({
 
       {/* Render popup outside modal */}
       {renderPopup()}
+
+      {/* Toaster for toast notifications - placed at the very end */}
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#fff',
+            color: '#363636',
+            boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
+            borderRadius: '8px',
+            padding: '12px 16px',
+            fontSize: '14px',
+            fontWeight: '500',
+          },
+          success: {
+            icon: '✅',
+            style: {
+              borderLeft: `4px solid #10b981`,
+            },
+          },
+          error: {
+            icon: '❌',
+            style: {
+              borderLeft: `4px solid #ef4444`,
+            },
+          },
+          loading: {
+            icon: '⏳',
+            style: {
+              borderLeft: `4px solid ${themeColor}`,
+            },
+          },
+        }}
+      />
     </>
   );
 };

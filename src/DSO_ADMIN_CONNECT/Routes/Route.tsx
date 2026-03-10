@@ -67,7 +67,7 @@ export const dsoadminConnectRoutes = (
     <Route path="Restoration" element={<DSORestorationTypeList />} />
     <Route path="schema-list" element={<DSOSchemaList />} />
     <Route path="indication-list" element={<DSOIndicationList/>} />
-    <Route path="materialName-list" element={<div><h5>Material Name</h5></div>} />
+    <Route path="materialName-list" element={<DSOMaterialList/>} />
     <Route path="shadeGuide-list" element={<div><h5>Shade Guide</h5></div>} />
     <Route path="shade-list" element={<div><h5>Shade</h5></div>} />
 

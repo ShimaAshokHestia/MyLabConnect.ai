@@ -113,7 +113,7 @@ export const dsoAdminMenuItems: MenuItem[] = [
             { title: 'Lab Products Rate', url: '/dsoadmin-connect/setup/lab-products-rate', icon: DollarSign },
 
             // { title: 'Region', url: '/dsoadmin-connect/setup/region-list', icon: Building2 },
-            // { title: 'Setting', url: '/dsoadmin-connect/setup/setting-list', icon: Settings },
+             { title: 'Setting', url: '/dsoadmin-connect/setup/setting-list', icon: Settings },
         ],
     },
     {

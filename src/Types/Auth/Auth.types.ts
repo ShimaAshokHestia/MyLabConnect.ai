@@ -80,6 +80,8 @@ export interface AuthUser {
   dsoName?: string;
   labMasterId?: number | null;
   labName?: string;
+  // ── Doctor-specific: resolved from JWT claim "dsoDoctorId" ──────
+  dsoDoctorId?: number | null;
 }
 
 // ─── Auth states returned by backend ─────────────────────────────

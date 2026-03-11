@@ -82,17 +82,16 @@ function buildUserFromToken(token: string): AuthUser | null {
 
   if (!id || !isValidUserTypeName(userTypeName)) return null;
 
-  const dsoMasterIdRaw = claim(p, 'dsoMasterId');
-  const labMasterIdRaw = claim(p, 'labMasterId');
-
-  // ── FIX: email claim is always extracted via claim() which already handles
-  //         the Array(2) edge-case — val[0] is returned safely as a string.
-  const userEmail = claim(p, 'email');
+  const dsoMasterIdRaw  = claim(p, 'dsoMasterId');
+  const labMasterIdRaw  = claim(p, 'labMasterId');
+  // ── Read dsoDoctorId directly from JWT claim ─────────────────────
+  const dsoDoctorIdRaw  = claim(p, 'dsoDoctorId');
+  const userEmail       = claim(p, 'email');
 
   return {
     id,
     userName:          claim(p, 'username'),
-    userEmail,                              // always string, never array
+    userEmail,
     phoneNumber:       claim(p, 'phone'),
     address:           '',
     islocked:          claim(p, 'isLocked') === 'True',
@@ -108,16 +107,16 @@ function buildUserFromToken(token: string): AuthUser | null {
     isDeleted:         false,
     isActive:          true,
     isDefaultPassword: false,
-    dsoMasterId:       dsoMasterIdRaw ? parseInt(dsoMasterIdRaw, 10) : null,
+    dsoMasterId:       dsoMasterIdRaw  ? parseInt(dsoMasterIdRaw,  10) : null,
     dsoName:           claim(p, 'dsoName'),
-    labMasterId:       labMasterIdRaw ? parseInt(labMasterIdRaw, 10) : null,
+    labMasterId:       labMasterIdRaw  ? parseInt(labMasterIdRaw,  10) : null,
     labName:           claim(p, 'labName'),
+    // ── dsoDoctorId: "79" in your JWT screenshot ────────────────────
+    dsoDoctorId:       dsoDoctorIdRaw  ? parseInt(dsoDoctorIdRaw,  10) : null,
   };
 }
 
 // ─── Sanitise a stored AuthUser ───────────────────────────────────
-// Old cached users might have userEmail as an array (before this fix).
-// This ensures the user loaded from storage is always safe.
 function sanitiseUser(user: AuthUser | null): AuthUser | null {
   if (!user) return null;
   const email = user.userEmail;
@@ -167,7 +166,6 @@ class AuthService {
         KiduSecureStorage.getItem<string>(KEYS.EXPIRES_AT),
         KiduSecureStorage.getItem<string>(KEYS.PORTAL),
       ]);
-      // ── FIX: sanitise stored user to fix any stale Array email ──
       _cache = { token, tempToken, user: sanitiseUser(user), userType, expiresAt, portal };
     } catch {
       _cache = { token: null, tempToken: null, user: null, userType: null, expiresAt: null, portal: null };

@@ -5,11 +5,7 @@ import { DoctorLayout } from '../Layout/DoctorLayout';
 import AddNewCase from '../Pages/Analog Case Prescription/Create';
 import DoctorIndexPage from '../Layout/IndexPage';
 import CasePickupList from '../Pages/Pickup/List';
-
-// ── Add page imports here as you build them ───────────────────────
-// import ActiveCasesList   from '../Pages/Cases/Active/List';
-// import CompletedCaseList from '../Pages/Cases/Completed/List';
-// import CaseCreate        from '../Pages/Cases/Create';
+import MyCases from '../Pages/Analog Case Prescription/MyCases';
 
 export const doctorConnectRoutes = (
   <Route path="/" element={<DoctorLayout />}>
@@ -17,18 +13,18 @@ export const doctorConnectRoutes = (
     {/* Home / Dashboard */}
     <Route index element={<DoctorIndexPage />} />
 
-     <Route path="add-new-case" element={<AddNewCase/>} />CasePickupList
-      <Route path="add-new-pickup" element={<CasePickupList/>} />
+    <Route path="add-new-case" element={<AddNewCase/>} />
+    <Route path="add-new-pickup" element={<CasePickupList/>} />
 
     {/* Analytics */}
     <Route path="analytics" element={<div><h5>Analytics</h5></div>} />
 
     {/* Cases */}
-    <Route path="cases/active"    element={<div><h5>Active Cases</h5></div>} />
-    <Route path="cases/progress"  element={<div><h5>In Progress</h5></div>} />
-    <Route path="cases/completed" element={<div><h5>Completed Cases</h5></div>} />
+    <Route path="cases/active"    element={<MyCases />} />
+    <Route path="cases/progress"  element={<MyCases />} />
+    <Route path="cases/completed" element={<MyCases />} />
     <Route path="cases/create"    element={<div><h5>New Case</h5></div>} />
-    <Route path="cases"           element={<div><h5>Cases</h5></div>} />
+    <Route path="cases"           element={<MyCases />} />
 
     {/* Reports */}
     <Route path="reports/case-summary"    element={<div><h5>Case Summary</h5></div>} />

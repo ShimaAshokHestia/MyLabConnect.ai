@@ -1,9 +1,6 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// FILE: src/DOCTOR_CONNECT/Service/Prescription/Prescription.services.ts
-// ─────────────────────────────────────────────────────────────────────────────
+// src/DOCTOR_CONNECT/Service/Prescription/Prescription.services.ts
 
 import { API_ENDPOINTS } from "../../../CONSTANTS/API_ENDPOINTS";
-import AuthService from "../../../Services/AuthServices/Auth.services";
 import HttpService from "../../../Services/Common/HttpService";
 import type { DentalOfficeItem } from "../../Pages/Analog Case Prescription/DentalOfficePopup";
 
@@ -25,94 +22,11 @@ async function getArray<T>(url: string): Promise<T[]> {
   }
 }
 
-// ── Safe POST paginated → always returns array ────────────────────────────────
-async function postPaginated<T>(url: string, body: object): Promise<T[]> {
-  try {
-    const res = await HttpService.callApi<any>(url, "POST", body, false);
-    if (!res?.isSucess) return [];
-    if (Array.isArray(res.value?.data)) return res.value.data as T[];
-    if (Array.isArray(res.value)) return res.value as T[];
-    return [];
-  } catch {
-    return [];
-  }
-}
-
-// ── Normalize a raw API row: handle both camelCase and PascalCase ─────────────
-function normalizeDoctor(r: any): { id: number; email: string } {
-  // email field can be a string or array (duplicate JWT claims edge-case)
-  let email = r.email ?? r.Email ?? r.userEmail ?? r.UserEmail ?? "";
-  if (Array.isArray(email)) email = email[0] ?? "";
-  return {
-    id: r.id ?? r.Id ?? 0,
-    email: String(email),
-  };
-}
-
-// ── Safely extract userEmail from AuthUser (guards against Array) ─────────────
-function getSafeUserEmail(user: any): string | null {
-  let email = user?.userEmail ?? user?.email ?? null;
-  if (Array.isArray(email)) email = email[0] ?? null;
-  if (!email || typeof email !== "string") return null;
-  return email.toLowerCase().trim();
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 const PrescriptionService = {
 
-  // ── STEP 1: Resolve the logged-in doctor's DSODoctor entity ID ───────────
-  async getMyDoctorId(): Promise<number | null> {
-    const user = AuthService.getUser();
-
-    const userEmail   = getSafeUserEmail(user);
-    const dsoMasterId = user?.dsoMasterId ?? null;
-
-    if (!userEmail || !dsoMasterId) {
-      console.warn(
-        "[PrescriptionService] Missing userEmail or dsoMasterId on session user.",
-        "userEmail:", userEmail,
-        "dsoMasterId:", dsoMasterId,
-        "raw user:", user
-      );
-      return null;
-    }
-
-    // Fetch ALL doctors for this DSO in one call
-    const rows = await postPaginated<any>(
-      API_ENDPOINTS.DSO_DOCTOR.UPDATE_PAGINATION,
-      {
-        pageNumber:  1,
-        pageSize:    200,
-        dSOMasterId: dsoMasterId,
-        getAll:      true,
-        showDeleted: false,
-      }
-    );
-
-    console.log("[PrescriptionService] Raw doctor rows (first 3):", rows.slice(0, 3));
-    console.log("[PrescriptionService] Looking for email:", userEmail);
-
-    // Match by email
-    const match = rows.find((r: any) => {
-      const { email } = normalizeDoctor(r);
-      return email.toLowerCase().trim() === userEmail;
-    });
-
-    if (!match) {
-      console.warn(
-        "[PrescriptionService] Could not match doctor.",
-        "userEmail:", userEmail,
-        "emails in rows:", rows.map((r: any) => normalizeDoctor(r).email)
-      );
-      return null;
-    }
-
-    const doctorId = normalizeDoctor(match).id;
-    console.log("[PrescriptionService] Matched doctorId:", doctorId);
-    return doctorId;
-  },
-
-  // ── STEP 2: Get only the offices this doctor is mapped to ────────────────
+  // ── Get only the offices this doctor is mapped to ────────────────────────
+  // doctorId is now passed in directly — read from JWT via AuthService.getUser().dsoDoctorId
   async getMyOffices(doctorId: number): Promise<DentalOfficeItem[]> {
     try {
       const res = await HttpService.callApi<any>(
@@ -129,13 +43,9 @@ const PrescriptionService = {
 
       console.log("[PrescriptionService] getMyOffices raw response value:", res.value);
 
-      // ── Try every possible key the C# serializer might produce ────────────
-      // GetDetailByIdAsync returns DSODoctorCreateUpdateDTO
-      // with property: ICollection<DSODoctorDentalOfficeCreateUpdateDTO> DsoDentalDoctors
-      // camelCase JSON → "dsoDentalDoctors"
       const mappings: any[] =
-        res.value.dsoDentalDoctors   ??   // ← camelCase from C# DsoDentalDoctors
-        res.value.DsoDentalDoctors   ??   // ← PascalCase fallback
+        res.value.dsoDentalDoctors   ??
+        res.value.DsoDentalDoctors   ??
         res.value.dsaDentalDoctors   ??
         res.value.DsaDentalDoctors   ??
         res.value.officeMappings     ??
@@ -143,31 +53,24 @@ const PrescriptionService = {
         res.value.dentalOfficeMappings ??
         [];
 
-      console.log("[PrescriptionService] getMyOffices raw mappings:", mappings);
-
-      // Filter out soft-deleted mappings
       const activeMappings = mappings.filter(
         (m: any) => !(m.isDeleted ?? m.IsDeleted ?? false)
       );
-
-      console.log("[PrescriptionService] getMyOffices active mappings:", activeMappings);
 
       if (activeMappings.length === 0) {
         console.warn("[PrescriptionService] No active office mappings for doctorId", doctorId);
         return [];
       }
 
-      // Fetch each office's details in parallel
       const officeResults = await Promise.all(
         activeMappings.map((m: any) => {
           const officeId =
-            m.dSODentalOfficeId ??
-            m.DSODentalOfficeId ??
-            m.dentalOfficeId    ??
-            m.DentalOfficeId    ??
+            m.dsoDentalOfficeId  ??
+            m.dSODentalOfficeId  ??
+            m.DSODentalOfficeId  ??
+            m.dentalOfficeId     ??
+            m.DentalOfficeId     ??
             null;
-
-          console.log("[PrescriptionService] Fetching officeId:", officeId, "from mapping:", m);
 
           if (!officeId) return Promise.resolve(null);
 
@@ -176,10 +79,7 @@ const PrescriptionService = {
             "GET",
             null,
             false
-          ).then((r: any) => {
-            console.log("[PrescriptionService] Office response for id", officeId, ":", r?.value);
-            return r?.isSucess && r.value ? r.value : null;
-          });
+          ).then((r: any) => r?.isSucess && r.value ? r.value : null);
         })
       );
 

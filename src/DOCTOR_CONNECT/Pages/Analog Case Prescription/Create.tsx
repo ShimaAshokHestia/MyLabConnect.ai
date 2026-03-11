@@ -1,9 +1,8 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// FILE: src/DOCTOR_CONNECT/Pages/Analog Case Prescription/AddNewCase.tsx
-// ─────────────────────────────────────────────────────────────────────────────
+// src/DOCTOR_CONNECT/Pages/Analog Case Prescription/AddNewCase.tsx
 
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { Row, Col, Modal, Button } from "react-bootstrap";
+import Swal from "sweetalert2";
 import type { DentalOfficeItem } from "./DentalOfficePopup";
 import PrescriptionService from "../../Service/Prescription/Prescription.services";
 import AuthService from "../../../Services/AuthServices/Auth.services";
@@ -64,12 +63,6 @@ interface RestorationEntry {
   generalComments: string;
 }
 
-interface AdditionalService {
-  serviceId: number | null;
-  serviceName: string;
-  generalComments: string;
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
 // ─────────────────────────────────────────────────────────────────────────────
@@ -117,23 +110,23 @@ const restorationLabel = (r: RestorationEntry): string =>
 
 const AddNewCase: React.FC = () => {
   // ── Form state ──────────────────────────────────────────────────────────────
-  const [form, setForm]           = useState<FormState>(INITIAL_FORM);
-  const [errors, setErrors]       = useState<FormErrors>({});
+  const [form, setForm]             = useState<FormState>(INITIAL_FORM);
+  const [errors, setErrors]         = useState<FormErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   // ── Popup visibility ────────────────────────────────────────────────────────
-  const [showLabPopup, setShowLabPopup]       = useState(false);
-  const [showOfficePopup, setShowOfficePopup] = useState(false);
+  const [showLabPopup, setShowLabPopup]                 = useState(false);
+  const [showOfficePopup, setShowOfficePopup]           = useState(false);
   const [showRestorationModal, setShowRestorationModal] = useState(false);
 
-  // ── Doctor's offices (loaded once on mount) ─────────────────────────────────
-  const [myOffices, setMyOffices]       = useState<DentalOfficeItem[]>([]);
+  // ── Doctor's offices ────────────────────────────────────────────────────────
+  const [myOffices, setMyOffices]           = useState<DentalOfficeItem[]>([]);
   const [officesLoading, setOfficesLoading] = useState(false);
-  const [officesError, setOfficesError]   = useState<string | null>(null);
+  const [officesError, setOfficesError]     = useState<string | null>(null);
 
   // ── File upload ─────────────────────────────────────────────────────────────
-  const [files, setFiles]     = useState<File[]>([]);
+  const [files, setFiles]       = useState<File[]>([]);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef            = useRef<HTMLInputElement>(null);
 
@@ -147,27 +140,27 @@ const AddNewCase: React.FC = () => {
   const [restorations, setRestorations] = useState<RestorationEntry[]>([]);
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // On mount: resolve the doctor and load their offices
+  // On mount: read doctor identity directly from JWT — NO extra API call needed
   // ─────────────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     const bootstrap = async () => {
       setOfficesLoading(true);
       setOfficesError(null);
+
       try {
-        // 1. Find the DSODoctor entity ID that matches this user's email
-        const doctorId = await PrescriptionService.getMyDoctorId();
+        const user = AuthService.getUser();
+
+        // dsoDoctorId is embedded in the JWT as claim "dsoDoctorId" (e.g. "79")
+        const doctorId    = user?.dsoDoctorId ?? null;
+        const dsoMasterId = user?.dsoMasterId ?? null;
 
         if (!doctorId) {
           setOfficesError(
-            "Could not find your doctor profile. Please contact your administrator."
+            "Could not find your doctor profile in session. Please log out and log in again."
           );
           return;
         }
-
-        // 2. Store doctorId + dsoMasterId in form state
-        const user        = AuthService.getUser();
-        const dsoMasterId = user?.dsoMasterId ?? null;
 
         setForm((prev) => ({
           ...prev,
@@ -175,7 +168,6 @@ const AddNewCase: React.FC = () => {
           dsoMasterId,
         }));
 
-        // 3. Load offices mapped to this doctor
         const offices = await PrescriptionService.getMyOffices(doctorId);
         setMyOffices(offices);
 
@@ -365,27 +357,29 @@ const AddNewCase: React.FC = () => {
   // ─────────────────────────────────────────────────────────────────────────────
 
   const buildPayload = (): CaseRegistrationCreateDTO | null => {
-    if (!form.orderToId || !form.orderFromId || !form.dsoMasterId) return null;
+    if (!form.orderToId || !form.orderFromId || !form.dsoMasterId || !form.dsoDoctorId) {
+      return null;
+    }
 
     return {
-      caseNo:            "",
-      shipTo:            form.shipTo,
-      patientFirstName:  form.firstName,
-      patientLastName:   form.lastName,
-      patientId:         form.patientId,
+      caseNo:             "",
+      shipTo:             form.shipTo,
+      patientFirstName:   form.firstName,
+      patientLastName:    form.lastName,
+      patientId:          form.patientId,
       caseStatusMasterId: 1,
-      dueDate:           form.dueDate || undefined,
-      caseNotes:         form.caseNotes,
-      dSOMasterId:       form.dsoMasterId,
-      dSODentalOfficeId: form.orderFromId,
-      dSODoctorId:       form.dsoDoctorId ?? 0,
-      dSOSchemaId:       form.dsoSchemaId ?? 0,
-      labMasterId:       form.orderToId,
-      isActive:          true,
-      products:          [],
-      documents:         [],
+      dueDate:            form.dueDate || undefined,
+      caseNotes:          form.caseNotes,
+      dSOMasterId:        form.dsoMasterId,
+      dSODentalOfficeId:  form.orderFromId,
+      dSODoctorId:        form.dsoDoctorId,
+      dSOSchemaId:        form.dsoSchemaId ?? 0,
+      labMasterId:        form.orderToId,
+      isActive:           true,
+      products:           [],
+      documents:          [],
       additionalServices: [],
-      pickUps:           [],
+      pickUps:            [],
     };
   };
 
@@ -395,7 +389,11 @@ const AddNewCase: React.FC = () => {
 
     const payload = buildPayload();
     if (!payload) {
-      setSubmitError("Missing required context. Please re-select Order To and Order From.");
+      setSubmitError(
+        !form.dsoDoctorId
+          ? "Doctor profile not found in session. Please log out and log in again."
+          : "Missing required context. Please re-select Order To and Order From."
+      );
       return;
     }
 
@@ -403,7 +401,21 @@ const AddNewCase: React.FC = () => {
     try {
       const result = await CaseService.create(payload);
       if (result?.isSucess) {
-        alert(`Case created successfully! Case No: ${result.value?.caseNo ?? ""}`);
+        // ── SweetAlert2 success — replaces browser alert() ──────────────────
+        await Swal.fire({
+          icon:              "success",
+          title:             "Case Created Successfully!",
+          html:              `Case No: <strong>${result.value?.caseNo ?? ""}</strong>`,
+          confirmButtonText: "OK",
+          confirmButtonColor: "#ef0d50",
+          timer:             4000,
+          timerProgressBar:  true,
+          customClass: {
+            popup:         "swal-popup",
+            title:         "swal-title",
+            confirmButton: "swal-confirm-btn",
+          },
+        });
         handleReset();
       } else {
         setSubmitError(result?.customMessage ?? result?.error ?? "Failed to create case.");
@@ -706,7 +718,6 @@ const AddNewCase: React.FC = () => {
               )}
             </span>
             <div className="anc-card-actions">
-              {/* ── Add Restoration button — now active ── */}
               <button
                 className="anc-btn anc-btn-primary"
                 type="button"
@@ -714,7 +725,6 @@ const AddNewCase: React.FC = () => {
               >
                 Add Restoration
               </button>
-
               <button
                 className="anc-btn anc-btn-outline"
                 type="button"
@@ -887,14 +897,12 @@ const AddNewCase: React.FC = () => {
           Popups & Modals
       ════════════════════════════════════════════════════════════════════════ */}
 
-      {/* Order To — Lab selector (via lookup endpoint) */}
       <LabMasterPopup
         show={showLabPopup}
         onClose={() => setShowLabPopup(false)}
         onSelect={handleLabSelect}
       />
 
-      {/* Order From — Dental Office selector (doctor's own offices pre-loaded) */}
       <DentalOfficePopup
         show={showOfficePopup}
         onClose={() => setShowOfficePopup(false)}
@@ -903,7 +911,6 @@ const AddNewCase: React.FC = () => {
         loading={officesLoading}
       />
 
-      {/* Restoration Modal */}
       <RestorationModal
         show={showRestorationModal}
         onHide={() => setShowRestorationModal(false)}
@@ -960,6 +967,23 @@ const AddNewCase: React.FC = () => {
         @keyframes spin {
           from { transform: rotate(0deg); }
           to   { transform: rotate(360deg); }
+        }
+        /* ── SweetAlert2 theme overrides ─────────────────────────────── */
+        .swal-popup {
+          border-radius: 14px !important;
+          font-family: inherit !important;
+          padding: 2rem 1.5rem !important;
+        }
+        .swal-title {
+          font-size: 1.2rem !important;
+          font-weight: 600 !important;
+          color: #1a1a2e !important;
+        }
+        .swal-confirm-btn {
+          border-radius: 8px !important;
+          font-weight: 600 !important;
+          padding: 0.5rem 2rem !important;
+          font-size: 0.9rem !important;
         }
       `}</style>
     </div>

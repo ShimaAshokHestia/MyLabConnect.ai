@@ -314,13 +314,13 @@ export const API_ENDPOINTS = {
     DELETE: (id: number) => `${API_BASE_URL}/Customer/${id}`,
   },
   //-------PICKUP-------//
-  CasePickUp: {
+  CASEPICKUP: {
     GET_ALL: `${API_BASE_URL}/CasePickUp`,
     CREATE: `${API_BASE_URL}/CasePickUp`,
     GET_BY_ID: (id: number) => `${API_BASE_URL}/CasePickUp/${id}`,
     UPDATE: (id: number) => `${API_BASE_URL}/CasePickUp/${id}`,
     DELETE: (id: number) => `${API_BASE_URL}/CasePickUp/${id}`,
-      GET_PAGINATED: `${API_BASE_URL}/CasePickUp/getall-paginated`,
+    GET_PAGINATED: `${API_BASE_URL}/CasePickUp/getall-paginated`,
   },
 };
 

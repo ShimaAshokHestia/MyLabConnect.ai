@@ -37,7 +37,7 @@ const CasePickupEdit: React.FC<Props> = ({ show, onHide, onSuccess, recordId }) 
 
     return {
       id:                        data.id ?? id,
-      labName:                   data.labName,
+    //   labName:                   data.labName ?? "",
       pickUpDate:                data.pickUpDate,
       pickUpEarliestTime:        data.pickUpEarliestTime,
       pickUpLateTime:            data.pickUpLateTime,

@@ -135,7 +135,7 @@ const CasePickupCreate: React.FC<Props> = ({ show, onHide, onSuccess }) => {
       mapPickupAddress={mapPickupAddress}
       fetchAddressDetails={fetchAddressDetails}
       // Cases (fetched via endpoint)
-      casesSelectEndpoint={API_ENDPOINTS.LOOKUP.GET("practice")}  // replace with actual cases endpoint
+      casesSelectEndpoint={API_ENDPOINTS.LOOKUP.GET("cases")}  // replace with actual cases endpoint
       caseColumns={caseColumns}
       caseIdKey="id"
       caseLabelKey="patientName"

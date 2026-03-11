@@ -52,7 +52,32 @@ const DSODoctorCreateModal: React.FC<Props> = ({
           label: "Practice", 
           type: "popup",
           required: true,
-          placeholder: "🔍 Select a practice",
+          placeholder: "Select a practice",
+          popupConfig: {
+            component: DSODentalOfficePopup,
+            props: {
+              dsoMasterId: externalDsoMasterId,
+              showAddButton: true
+            },
+            mapValue: (selected: any) => ({
+              value: String(selected.id),
+              display: `${selected.officeCode} - ${selected.officeName}`
+            })
+          }
+        },
+      ],
+    },
+     {
+      key: "lab",
+      label: "Lab",
+      addButtonLabel: "Add Lab",
+      columns: [
+        { 
+          key: "labId", 
+          label: "Lab", 
+          type: "popup",
+          required: true,
+          placeholder: "Select a Lab",
           popupConfig: {
             component: DSODentalOfficePopup,
             props: {

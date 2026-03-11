@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { FaTrash, FaPlus } from "react-icons/fa";
-import toast, { Toaster } from "react-hot-toast";  // ← IMPORT Toaster
-import Swal from "sweetalert2";  // ← ADD Swal import
+import toast, { Toaster } from "react-hot-toast";
+import Swal from "sweetalert2";
 import "../Styles/KiduStyles/KiduTabbedFormModal.css";
 import KiduValidation, { KiduCharacterCounter } from "./KiduValidation";
+import KiduSelectPopup from "./KiduSelectPopup";
 
 // ==================== TYPES ====================
 
@@ -20,9 +21,20 @@ export interface TabbedFormField {
   defaultValue?: any;
   // Popup configuration
   popupConfig?: {
-    component: React.ComponentType<any>;
-    props?: Record<string, any>;
-    mapValue?: (selected: any) => { value: any; display: string };
+    fetchEndpoint?: string;
+    data?: any[];
+    loading?: boolean;
+    columns: { key: string; label: string; filterType?: "text" | "select"; filterOptions?: string[]; render?: (value: any, row: any) => React.ReactNode }[];
+    searchKeys?: string[];
+    idKey?: string;
+    labelKey?: string;
+    AddModalComponent?: React.ComponentType<{
+      show: boolean;
+      handleClose: () => void;
+      onAdded: (selected: any) => void;
+    }>;
+    showAddButton?: boolean;
+    addButtonLabel?: string;
   };
 }
 
@@ -40,9 +52,20 @@ export interface TabConfig {
     defaultValue?: any;
     // Popup configuration for tab columns
     popupConfig?: {
-      component: React.ComponentType<any>;
-      props?: Record<string, any>;
-      mapValue?: (selected: any) => { value: any; display: string };
+      fetchEndpoint?: string;
+      data?: any[];
+      loading?: boolean;
+      columns: { key: string; label: string; filterType?: "text" | "select"; filterOptions?: string[]; render?: (value: any, row: any) => React.ReactNode }[];
+      searchKeys?: string[];
+      idKey?: string;
+      labelKey?: string;
+      AddModalComponent?: React.ComponentType<{
+        show: boolean;
+        handleClose: () => void;
+        onAdded: (selected: any) => void;
+      }>;
+      showAddButton?: boolean;
+      addButtonLabel?: string;
     };
   }[];
 }
@@ -59,8 +82,8 @@ export interface KiduTabbedFormCreateModalProps {
   }) => Promise<void> | void;
   submitButtonText?: string;
   themeColor?: string;
-  successMessage?: string;  // ← ADD successMessage prop
-  onSuccess?: () => void;    // ← ADD onSuccess prop
+  successMessage?: string;
+  onSuccess?: () => void;
 }
 
 // ==================== COMPONENT ====================
@@ -74,7 +97,7 @@ const KiduTabbedFormCreateModal: React.FC<KiduTabbedFormCreateModalProps> = ({
   onSubmit,
   submitButtonText = "Save",
   themeColor = "#ef0d50",
-  successMessage = "Created successfully!",  // ← ADD default success message
+  successMessage = "Created successfully!",
   onSuccess,
 }) => {
 
@@ -191,19 +214,22 @@ const KiduTabbedFormCreateModal: React.FC<KiduTabbedFormCreateModalProps> = ({
     if (!popupState.field || !popupState.config) return;
 
     const { field, config } = popupState;
-    const mappedValue = config.mapValue ? config.mapValue(selected) : { value: selected.id, display: selected.name };
+    
+    // Use the selected item
+    const value = selected.id;
+    const display = selected.name || selected.serviceName || selected[config.labelKey || "name"] || String(selected.id);
 
     if (field.isHeader) {
       // Handle header field popup
-      handleHeaderChange(field.colKey, mappedValue.value);
+      handleHeaderChange(field.colKey, value);
       if (field.colKey + "Display") {
-        handleHeaderChange(field.colKey + "Display", mappedValue.display);
+        handleHeaderChange(field.colKey + "Display", display);
       }
     } else if (field.tabKey && field.rowIndex !== undefined) {
       // Handle tab row popup
-      handleRowChange(field.tabKey, field.rowIndex, field.colKey, mappedValue.value);
+      handleRowChange(field.tabKey, field.rowIndex, field.colKey, value);
       if (field.colKey + "Display") {
-        handleRowChange(field.tabKey, field.rowIndex, field.colKey + "Display", mappedValue.display);
+        handleRowChange(field.tabKey, field.rowIndex, field.colKey + "Display", display);
       }
     }
 
@@ -309,17 +335,36 @@ const KiduTabbedFormCreateModal: React.FC<KiduTabbedFormCreateModalProps> = ({
 
   // ── Render popup if open ─────────────────────────────────────────────────
   const renderPopup = () => {
-    if (!popupState.show || !popupState.config || !popupState.config.component) return null;
+    if (!popupState.show || !popupState.field || !popupState.config) return null;
 
-    const PopupComponent = popupState.config.component;
-    const popupProps = {
-      show: popupState.show,
-      onClose: closePopup,
-      onSelect: handlePopupSelect,
-      ...(popupState.config.props || {})
-    };
-
-    return <PopupComponent {...popupProps} />;
+    const { field, config } = popupState;
+    
+    return (
+      <KiduSelectPopup<any>
+        show={popupState.show}
+        onClose={closePopup}
+        title={`Select ${field.colKey.replace(/([A-Z])/g, ' $1').trim()}`}
+        subtitle="Search and select an item"
+        fetchEndpoint={config.fetchEndpoint}
+        data={config.data}
+        loading={config.loading}
+        columns={config.columns || [
+          { key: "id", label: "ID" },
+          { key: "name", label: "Name" }
+        ]}
+        onSelect={handlePopupSelect}
+        idKey={config.idKey || "id"}
+        labelKey={config.labelKey || "name"}
+        searchKeys={config.searchKeys}
+        rowsPerPage={10}
+        rowsPerPageOptions={[5, 10, 20, 50]}
+        themeColor={themeColor}
+        multiSelect={false}
+        showAddButton={!!config.AddModalComponent}
+        AddModalComponent={config.AddModalComponent}
+        addButtonLabel={config.addButtonLabel || "Add New"}
+      />
+    );
   };
 
   // ==================== RENDER ====================
@@ -436,7 +481,7 @@ const KiduTabbedFormCreateModal: React.FC<KiduTabbedFormCreateModalProps> = ({
                       <span className="ktf-select-arrow">▾</span>
                     </div>
                   ) : field.type === "popup" ? (
-                    <div className="ktf-popup-field">
+                    <div className="ktf-popup-field" style={{ position: "relative" }}>
                       <input
                         type="text"
                         className={`ktf-input ${errors[field.name] ? "ktf-input--error" : ""}`}
@@ -444,8 +489,33 @@ const KiduTabbedFormCreateModal: React.FC<KiduTabbedFormCreateModalProps> = ({
                         value={headerData[field.name + "Display"] || headerData[field.name] || ""}
                         onClick={() => openPopup({ colKey: field.name, isHeader: true }, field.popupConfig)}
                         readOnly
-                        style={{ cursor: "pointer", backgroundColor: "#f9f9f9" }}
+                        style={{ 
+                          cursor: "pointer", 
+                          backgroundColor: "#f9f9f9",
+                          paddingRight: "35px"
+                        }}
                       />
+                      {/* Search icon with line design */}
+                      <svg
+                        className="ktf-search-icon"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        style={{
+                          position: "absolute",
+                          right: "10px",
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                          color: "#999",
+                          pointerEvents: "none",
+                          zIndex: 1
+                        }}
+                      >
+                        <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                        <line x1="11" y1="11" x2="14" y2="14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                      </svg>
                     </div>
                   ) : field.type === "textarea" ? (
                     <textarea
@@ -548,7 +618,7 @@ const KiduTabbedFormCreateModal: React.FC<KiduTabbedFormCreateModalProps> = ({
                                 <span className="ktf-select-arrow">▾</span>
                               </div>
                             ) : col.type === "popup" ? (
-                              <div className="ktf-popup-field ktf-popup-field--sm">
+                              <div className="ktf-popup-field ktf-popup-field--sm" style={{ position: "relative" }}>
                                 <input
                                   type="text"
                                   className="ktf-input ktf-input--sm"
@@ -559,8 +629,33 @@ const KiduTabbedFormCreateModal: React.FC<KiduTabbedFormCreateModalProps> = ({
                                     col.popupConfig
                                   )}
                                   readOnly
-                                  style={{ cursor: "pointer", backgroundColor: "#f9f9f9" }}
+                                  style={{ 
+                                    cursor: "pointer", 
+                                    backgroundColor: "#f9f9f9",
+                                    paddingRight: "30px"
+                                  }}
                                 />
+                                {/* Search icon with line design - small version */}
+                                <svg
+                                  className="ktf-search-icon ktf-search-icon--sm"
+                                  width="14"
+                                  height="14"
+                                  viewBox="0 0 14 14"
+                                  fill="none"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  style={{
+                                    position: "absolute",
+                                    right: "8px",
+                                    top: "50%",
+                                    transform: "translateY(-50%)",
+                                    color: "#999",
+                                    pointerEvents: "none",
+                                    zIndex: 1
+                                  }}
+                                >
+                                  <circle cx="6" cy="6" r="4" stroke="currentColor" strokeWidth="1.2" fill="none"/>
+                                  <line x1="9.5" y1="9.5" x2="12" y2="12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                                </svg>
                               </div>
                             ) : (
                               <input
@@ -619,7 +714,7 @@ const KiduTabbedFormCreateModal: React.FC<KiduTabbedFormCreateModalProps> = ({
         </div>
       </div>
 
-      {/* Render popup outside modal */}
+      {/* Render popup using KiduSelectPopup */}
       {renderPopup()}
 
       {/* Toaster for toast notifications - placed at the very end */}

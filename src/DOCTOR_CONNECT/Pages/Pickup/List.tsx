@@ -13,7 +13,7 @@ import KiduServerTableList from "../../../KIDU_COMPONENTS/KiduServerTableList";
 
 const columns: KiduColumn[] = [
   {
-    key: "labName",
+    key: "labMasterName",
     label: "Lab",
     enableSorting: true,
     enableFiltering: true,

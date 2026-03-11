@@ -4,7 +4,7 @@ export interface CasePickup {
   // Core Fields
   id?: number;
   labMasterId?: number;
-  labName?: string;
+  labMasterName?: string;
   pickUpDate?: string;
   pickUpEarliestTime?: string;
   pickUpLateTime?: string;

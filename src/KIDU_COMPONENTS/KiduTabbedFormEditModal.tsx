@@ -55,7 +55,7 @@ export interface KiduTabbedFormEditModalProps {
   tabs: TabConfig[];
   onSubmit: (data: {
     headerData: Record<string, any>;
-    tabData: Record<string, Record<string, any>[]>;  // ← Fixed: added closing bracket
+    tabData: Record<string, Record<string, any>[]>;
   }) => Promise<void> | void;
   submitButtonText?: string;
   themeColor?: string;
@@ -93,6 +93,9 @@ const KiduTabbedFormEditModal: React.FC<KiduTabbedFormEditModalProps> = ({
     field: null,
     config: null
   });
+
+  // ── Change detection state ────────────────────────────────────────────────
+  const [hasChanges, setHasChanges] = useState(false);
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   const buildEmptyRow = (tab: TabConfig): Record<string, any> => {
@@ -152,6 +155,13 @@ const KiduTabbedFormEditModal: React.FC<KiduTabbedFormEditModalProps> = ({
     setTabData(buildTabFromInitial());
   }, [initialTabData]);
 
+  // ── Detect changes ────────────────────────────────────────────────────────
+  useEffect(() => {
+    const headerChanged = JSON.stringify(headerData) !== JSON.stringify(initialHeaderData);
+    const tabChanged = JSON.stringify(tabData) !== JSON.stringify(initialTabData);
+    setHasChanges(headerChanged || tabChanged);
+  }, [headerData, tabData, initialHeaderData, initialTabData]);
+
   // ── Reset when modal closes ───────────────────────────────────────────────
   useEffect(() => {
     if (!show) {
@@ -159,6 +169,7 @@ const KiduTabbedFormEditModal: React.FC<KiduTabbedFormEditModalProps> = ({
       setErrors({});
       setIsSubmitting(false);
       setPopupState({ show: false, field: null, config: null });
+      setHasChanges(false);
     }
   }, [show]);
 
@@ -270,6 +281,7 @@ const KiduTabbedFormEditModal: React.FC<KiduTabbedFormEditModalProps> = ({
       toast.error("Please fix the validation errors before submitting.");
       return;
     }
+    
     setIsSubmitting(true);
     try {
       await onSubmit({ headerData, tabData });
@@ -618,7 +630,7 @@ const KiduTabbedFormEditModal: React.FC<KiduTabbedFormEditModalProps> = ({
                 type="button"
                 className="ktf-save-btn"
                 onClick={handleSubmit}
-                disabled={isSubmitting}
+                disabled={isSubmitting || !hasChanges}
                 style={{ backgroundColor: themeColor }}
               >
                 {isSubmitting ? (

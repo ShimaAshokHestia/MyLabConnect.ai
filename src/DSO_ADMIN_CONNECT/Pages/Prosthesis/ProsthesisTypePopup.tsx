@@ -19,7 +19,7 @@ const DSOProsthesisTypePopup: React.FC<Props> = ({
   show,
   onClose,
   onSelect,
-  showAddButton = true,
+  showAddButton = false,
 }) => {
   return (
     <KiduSelectPopup<DSOProsthesisType>

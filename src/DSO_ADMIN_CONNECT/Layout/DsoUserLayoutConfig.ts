@@ -38,7 +38,7 @@ import {
 import type { MenuItem } from '../../Types/KiduTypes/Sidebar.types';
 import type { UserProfile, NotificationItem, NavbarAction } from '../../Types/KiduTypes/Navbar.types';
 import AuthService from '../../Services/AuthServices/Auth.services';
-import { FaProductHunt } from 'react-icons/fa';
+import { FaProductHunt,FaPlug } from 'react-icons/fa';
 
 
 // ─── Menu Items ───────────────────────────────────────────────────
@@ -86,10 +86,11 @@ export const dsoAdminMenuItems: MenuItem[] = [
             { title: 'Restoration', url: '/dsoadmin-connect/Restoration', icon: RefreshCw, },
             { title: 'Indication', url: '/dsoadmin-connect/indication-list', icon: Eye, },
             { title: 'Material Name', url: '/dsoadmin-connect/materialName-list', icon: Layers, },
-           // { title: 'Shade Guide', url: '/dsoadmin-connect/shadeGuide-list', icon: Palette, },
+            // { title: 'Shade Guide', url: '/dsoadmin-connect/shadeGuide-list', icon: Palette, },
             { title: 'Shade', url: '/dsoadmin-connect/shade-list', icon: Droplet, },
             { title: 'Product Group', url: '/dsoadmin-connect/masters/productGroup-list', icon: Package },
             { title: 'Products', url: '/dsoadmin-connect/masters/product-list', icon: FaProductHunt },
+            { title: 'Additional Service', url: '/dsoadmin-connect/masters/additionalService-list', icon: FaPlug },
         ],
     },
 
@@ -113,7 +114,7 @@ export const dsoAdminMenuItems: MenuItem[] = [
             { title: 'Lab Products Rate', url: '/dsoadmin-connect/setup/lab-products-rate', icon: DollarSign },
 
             // { title: 'Region', url: '/dsoadmin-connect/setup/region-list', icon: Building2 },
-             { title: 'Setting', url: '/dsoadmin-connect/setup/setting-list', icon: Settings },
+            { title: 'Setting', url: '/dsoadmin-connect/setup/setting-list', icon: Settings },
         ],
     },
     {

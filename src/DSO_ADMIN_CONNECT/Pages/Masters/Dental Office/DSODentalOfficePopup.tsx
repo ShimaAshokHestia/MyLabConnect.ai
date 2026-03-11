@@ -18,7 +18,7 @@ const DSODentalOfficePopup: React.FC<Props> = ({
     show,
     onClose,
     onSelect,
-    showAddButton = true,
+    showAddButton = false,
     dsoMasterId
 }) => {
     // Build endpoint with optional filter

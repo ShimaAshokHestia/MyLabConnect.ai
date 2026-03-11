@@ -30,6 +30,7 @@ import DSOShadeList from '../Pages/Shade/List';
 import CaseFlowSLA from '../Pages/CaseFlowSLA/CaseFlowSLA';
 import DSOIndicationList from '../Pages/Indication/List';
 import DSOProductList from '../Pages/Masters/Product/List';
+import DSOAdditionalServiceList from '../Pages/Masters/Additional Service/List';
 
 export const dsoadminConnectRoutes = (
   <Route path="/" element={<DsoUserLayout />}>
@@ -53,6 +54,7 @@ export const dsoadminConnectRoutes = (
     <Route path="masters/dentalOffice-list" element={<DSODentalOfficeList />} />
     <Route path="masters/material-list" element={<DSOMaterialList />} />
     <Route path="masters/territory-list" element={<DSOTerritoryList />} />
+    <Route path="masters/additionalService-list" element={<DSOAdditionalServiceList />} />
 
     {/* Setup */}
     <Route path="setup/practice-manager" element={<div><h5>Practice Manager Login</h5></div>} />

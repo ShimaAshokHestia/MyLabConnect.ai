@@ -1,35 +1,14 @@
 import type { AuditTrails } from "../../../Types/Auditlog.types";
 
-export interface DSODentalDoctor {
-  id?: number;
-  createdAt?: string;
-  updatedAt?: string | null;
-  isDeleted?: boolean;
-  isActive?: boolean;
-  dsoDoctorId?: number;
-  dsoDentalOfficeId?: number;
-  dsoMasterId?: number;
-}
-
-export interface DSODoctor {
+export interface DSOAdditionalService {
   // Core Identity Fields
   id?: number;
-  firstName?: string;
-  lastName?: string;
-  fullName?: string;
-  email?: string;
-  phoneNumber?: string;
-  address?: string;
-  licenseNo?: string;
-  doctorCode?: string;
-  info?: string;
+  serviceName?: string;
+  serviceNotes?: string;
   
   // DSO Master Relationship
   dsoMasterId?: number;
   dsoName?: string;
-  
-  // Related Entities
-  dsoDentalDoctors?: DSODentalDoctor[];
   
   // Status Fields
   isActive?: boolean;
@@ -47,7 +26,6 @@ export interface DSODoctor {
   sortDescending?: boolean;
   showDeleted?: boolean;
   showInactive?: boolean;
-  getAll?: boolean;
   
   // Optional Audit Trail
   auditlog?: AuditTrails[];

@@ -1,11 +1,11 @@
 import { API_ENDPOINTS } from "../../../CONSTANTS/API_ENDPOINTS";
 import type { TableRequestParams, TableResponse } from "../../../KIDU_COMPONENTS/KiduServerTable";
 import HttpService from "../../../Services/Common/HttpService";
-import type { DSODoctor } from "../../Types/Masters/DsoDoctor.types";
+import type { DSOAdditionalService } from "../../Types/Masters/DsoAdditionalService.types";
 
-export default class DSODoctorService {
+export default class DSOAdditionalServiceService {
 
-  static async getPaginatedList(params: TableRequestParams): Promise<TableResponse<DSODoctor>> {
+  static async getPaginatedList(params: TableRequestParams): Promise<TableResponse<DSOAdditionalService>> {
     
     // Map "Active"/"Inactive" select filter to showInactive boolean
     let showInactive: boolean | undefined = undefined;
@@ -23,21 +23,16 @@ export default class DSODoctorService {
       showInactive: showInactive,
 
       // Column filters
-      firstName: params["firstName"] ?? "",
-      lastName: params["lastName"] ?? "",
-      fullName: params["fullName"] ?? "",
-      email: params["email"] ?? "",
-      phoneNumber: params["phoneNumber"] ?? "",
-      licenseNo: params["licenseNo"] ?? "",
-      doctorCode: params["doctorCode"] ?? "",
+      serviceName: params["serviceName"] ?? "",
+      serviceNotes: params["serviceNotes"] ?? "",
       dsoMasterId: params["dsoMasterId"] ? Number(params["dsoMasterId"]) : undefined,
     };
 
-    console.log("DSODoctor pagination payload:", payload);
+    console.log("DSOAdditionalService pagination payload:", payload);
 
     try {
       const response = await HttpService.callApi<any>(
-        API_ENDPOINTS.DSO_DOCTOR.UPDATE_PAGINATION,
+        API_ENDPOINTS.DSO_ADDITIONAL_SERVICE.UPDATE_PAGINATION,
         "POST",
         payload
       );
@@ -60,7 +55,7 @@ export default class DSODoctorService {
   static async getById(id: number): Promise<any> {
     try {
       const response = await HttpService.callApi<any>(
-        API_ENDPOINTS.DSO_DOCTOR.GET_BY_ID(id), 
+        API_ENDPOINTS.DSO_ADDITIONAL_SERVICE.GET_BY_ID(id), 
         "GET"
       );
       console.log("GetById Response:", response);
@@ -71,33 +66,21 @@ export default class DSODoctorService {
     }
   }
 
-  static async create(data: Partial<DSODoctor>): Promise<any> {
+  static async create(data: Partial<DSOAdditionalService>): Promise<any> {
     try {
-      // Generate fullName if not provided
-      const fullName = data.fullName || 
-        (data.firstName && data.lastName ? `${data.firstName} ${data.lastName}`.trim() : "");
-      
       const payload = {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        fullName: fullName,
-        email: data.email ?? "",
-        phoneNumber: data.phoneNumber ?? "",
-        address: data.address ?? "",
-        licenseNo: data.licenseNo,
-        doctorCode: data.doctorCode,
-        info: data.info ?? "",
+        serviceName: data.serviceName,
+        serviceNotes: data.serviceNotes ?? "",
         dsoMasterId: Number(data.dsoMasterId),
-        dsoDentalDoctors: data.dsoDentalDoctors || [], // Array of practice assignments
         isActive: data.isActive ?? true,
         isDeleted: false,
       };
       
       console.log("Create Payload:", payload);
-      console.log("Create Endpoint:", API_ENDPOINTS.DSO_DOCTOR.CREATE);
+      console.log("Create Endpoint:", API_ENDPOINTS.DSO_ADDITIONAL_SERVICE.CREATE);
       
       const response = await HttpService.callApi<any>(
-        API_ENDPOINTS.DSO_DOCTOR.CREATE, 
+        API_ENDPOINTS.DSO_ADDITIONAL_SERVICE.CREATE, 
         "POST", 
         payload
       );
@@ -110,32 +93,20 @@ export default class DSODoctorService {
     }
   }
 
-  static async update(id: number, data: Partial<DSODoctor>): Promise<any> {
+  static async update(id: number, data: Partial<DSOAdditionalService>): Promise<any> {
     try {
-      // Generate fullName if not provided
-      const fullName = data.fullName || 
-        (data.firstName && data.lastName ? `${data.firstName} ${data.lastName}`.trim() : "");
-      
       const payload = {
         id,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        fullName: fullName,
-        email: data.email ?? "",
-        phoneNumber: data.phoneNumber ?? "",
-        address: data.address ?? "",
-        licenseNo: data.licenseNo,
-        doctorCode: data.doctorCode,
-        info: data.info ?? "",
+        serviceName: data.serviceName,
+        serviceNotes: data.serviceNotes ?? "",
         dsoMasterId: Number(data.dsoMasterId),
-        dsoDentalDoctors: data.dsoDentalDoctors || [],
         isActive: data.isActive ?? true,
       };
       
       console.log("Update Payload:", payload);
       
       const response = await HttpService.callApi<any>(
-        API_ENDPOINTS.DSO_DOCTOR.UPDATE(id), 
+        API_ENDPOINTS.DSO_ADDITIONAL_SERVICE.UPDATE(id), 
         "PUT", 
         payload
       );
@@ -151,20 +122,20 @@ export default class DSODoctorService {
   static async delete(id: number): Promise<void> {
     try {
       await HttpService.callApi<void>(
-        API_ENDPOINTS.DSO_DOCTOR.DELETE(id), 
+        API_ENDPOINTS.DSO_ADDITIONAL_SERVICE.DELETE(id), 
         "DELETE"
       );
-      console.log(`Deleted DSO Doctor with id ${id}`);
+      console.log(`Deleted DSO Additional Service with id ${id}`);
     } catch (error) {
       console.error("Error in delete:", error);
       throw error;
     }
   }
 
-  static async getAll(): Promise<DSODoctor[]> {
+  static async getAll(): Promise<DSOAdditionalService[]> {
     try {
       const response = await HttpService.callApi<any>(
-        API_ENDPOINTS.DSO_DOCTOR.GET_ALL, 
+        API_ENDPOINTS.DSO_ADDITIONAL_SERVICE.GET_ALL, 
         "GET"
       );
       console.log("GetAll Response:", response);
@@ -173,23 +144,6 @@ export default class DSODoctorService {
       return Array.isArray(result) ? result : [];
     } catch (error) {
       console.error("Error in getAll:", error);
-      throw error;
-    }
-  }
-
-  // Additional method for getting doctors by practice/office
-  static async getByDentalOfficeId(officeId: number): Promise<DSODoctor[]> {
-    try {
-      const response = await HttpService.callApi<any>(
-        `${API_ENDPOINTS.DSO_DOCTOR.GET_ALL}?dsoDentalOfficeId=${officeId}`, 
-        "GET"
-      );
-      console.log(`Get Doctors for Office ${officeId}:`, response);
-      
-      const result = response?.value ?? response?.data ?? response;
-      return Array.isArray(result) ? result : [];
-    } catch (error) {
-      console.error("Error in getByDentalOfficeId:", error);
       throw error;
     }
   }

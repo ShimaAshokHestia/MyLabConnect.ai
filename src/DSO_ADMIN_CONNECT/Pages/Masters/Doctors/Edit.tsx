@@ -7,8 +7,10 @@ import DSODoctorService from "../../../Services/Masters/DsoDoctor.services";
 import { useCurrentUser } from "../../../../Services/AuthServices/CurrentUser.services";
 import { useApiErrorHandler } from "../../../../Services/AuthServices/APIErrorHandler.services";
 import DSODentalOfficePopup from "../Dental Office/DSODentalOfficePopup";
+import toast from "react-hot-toast";
 
 // ── Header fields ─────────────────────────────────────────────────────────────
+// Matching the create page exactly
 const headerFields: TabbedFormField[] = [
   { name: "doctorCode", label: "Doctor Code", type: "text", required: true, placeholder: "Enter doctor code", colWidth: 3, maxLength: 200 },
   { name: "firstName", label: "First Name", type: "text", required: true, placeholder: "Enter first name", colWidth: 4, maxLength: 200 },
@@ -18,6 +20,7 @@ const headerFields: TabbedFormField[] = [
   { name: "licenseNo", label: "License No", type: "text", required: true, placeholder: "Enter license number", colWidth: 3, maxLength: 200 },
   { name: "info", label: "Specialty / Info", type: "text", required: false, placeholder: "Enter specialty or additional info", colWidth: 4, maxLength: 500 },
   { name: "address", label: "Address", type: "text", required: false, placeholder: "Enter address", colWidth: 6, maxLength: 500 },
+  // isActive is handled by the header toggle, not as a field
 ];
 
 // ── Props ─────────────────────────────────────────────────────────────────────
@@ -47,6 +50,7 @@ const DSODoctorEditModal: React.FC<Props> = ({
   const { handleApiError, assertApiSuccess } = useApiErrorHandler();
 
   // ── Tab definitions with popup for practice selection ─────────────────────
+  // Matching the create page exactly - same columns structure
   const baseTabs: TabConfig[] = [
     {
       key: "practices",
@@ -71,6 +75,20 @@ const DSODoctorEditModal: React.FC<Props> = ({
             })
           }
         },
+        // Note: The create page doesn't have isPrimary and isActive toggles in the tab
+        // If you want them, uncomment these lines:
+        // {
+        //   key: "isPrimary",
+        //   label: "Primary",
+        //   type: "toggle",
+        //   defaultValue: false
+        // },
+        // {
+        //   key: "isActive",
+        //   label: "Active",
+        //   type: "toggle",
+        //   defaultValue: true
+        // }
       ],
     },
   ];
@@ -92,7 +110,7 @@ const DSODoctorEditModal: React.FC<Props> = ({
         const data = response.value;
         console.log("Doctor data:", data);
 
-        // Set header data
+        // Set header data - matching create page structure
         setInitialHeaderData({
           doctorCode: data.doctorCode ?? "",
           firstName: data.firstName ?? "",
@@ -105,19 +123,20 @@ const DSODoctorEditModal: React.FC<Props> = ({
           isActive: data.isActive ?? true,
         });
 
-        // Map practices data
+        // Map practices data - matching create page expectations
         let practiceRows: Record<string, any>[] = [];
         
         if (Array.isArray(data.dsoDentalDoctors) && data.dsoDentalDoctors.length > 0) {
           practiceRows = data.dsoDentalDoctors.map((p: any) => {
-            // Find the matching dental office to get display details
             const practiceId = p.dSODentalOfficeId ? String(p.dSODentalOfficeId) : "";
             
             return { 
               practiceId: practiceId,
+              // Important: This should match what the popup expects (fieldName + "Display")
               practiceIdDisplay: p.dentalOfficeName || p.officeName || `Practice #${practiceId}`,
-              isPrimary: p.isPrimary ?? false,
-              isActive: p.isActive ?? true,
+              // If your create page expects these fields, include them:
+              // isPrimary: p.isPrimary ?? false,
+              // isActive: p.isActive ?? true,
               id: p.id ?? 0
             };
           });
@@ -126,8 +145,8 @@ const DSODoctorEditModal: React.FC<Props> = ({
           practiceRows = [{ 
             practiceId: "",
             practiceIdDisplay: "",
-            isPrimary: false,
-            isActive: true,
+            // isPrimary: false,
+            // isActive: true,
             id: 0
           }];
         }
@@ -163,26 +182,41 @@ const DSODoctorEditModal: React.FC<Props> = ({
     
     const { headerData, tabData } = data;
 
+    console.log("Header Data:", headerData);
+    console.log("Tab Data:", tabData);
+
+    // Validate at least one practice is selected - matching create page
+    const practiceRows = tabData.practices ?? [];
+    const validPractices = practiceRows.filter(
+      (row) => row.practiceId && String(row.practiceId).trim() !== ""
+    );
+
+    if (validPractices.length === 0) {
+      toast.error("Please add at least one practice");
+      throw new Error("No practices added");
+    }
+
     // 1. Get DSOMasterId from token or props
     let dsoMasterId: number;
     try {
       dsoMasterId = externalDsoMasterId || requireDSOMasterId();
+      console.log("DSO Master ID:", dsoMasterId);
     } catch (err) {
+      console.error("Failed to get DSO Master ID:", err);
       await handleApiError(err, "session");
       return;
     }
 
-    // 2. Build payload - filter out empty rows and map toggle values
-    const practices = (tabData.practices ?? [])
-      .filter((row) => row.practiceId && String(row.practiceId).trim() !== "")
-      .map((row) => ({
-        id: row.id ?? 0,
-        dSODentalOfficeId: Number(row.practiceId),
-        dSODoctorId: recordId,
-        isPrimary: row.isPrimary ?? false,
-        isActive: row.isActive ?? true,
-        isDeleted: false,
-      }));
+    // 2. Build payload - matching create page structure exactly
+    const practices = validPractices.map((row) => ({
+      id: row.id ?? 0, // Keep existing ID for updates
+      dSODentalOfficeId: Number(row.practiceId),
+      dSODoctorId: recordId,
+      // If your create page expects these fields, include them:
+      // isPrimary: row.isPrimary ?? false,
+      // isActive: row.isActive ?? true,
+      isDeleted: false,
+    }));
 
     const payload = {
       id: recordId,
@@ -195,7 +229,7 @@ const DSODoctorEditModal: React.FC<Props> = ({
       licenseNo: headerData.licenseNo ?? "",
       info: headerData.info ?? "",
       address: headerData.address ?? "",
-      isActive: headerData.isActive ?? true,
+      isActive: headerData.isActive ?? true, // This comes from the header toggle
       isDeleted: false,
       dsoMasterId: dsoMasterId,
       dsoDentalDoctors: practices,
@@ -207,13 +241,20 @@ const DSODoctorEditModal: React.FC<Props> = ({
     let result: any;
     try {
       result = await DSODoctorService.update(recordId, payload);
+      console.log("API Response:", result);
     } catch (err) {
+      console.error("Error in API call:", err);
       await handleApiError(err, "network");
       return;
     }
 
     // 4. Assert success
-    await assertApiSuccess(result, "Failed to update DSO Doctor.");
+    if (result && result.isSucess) {
+      await assertApiSuccess(result, "Failed to update DSO Doctor.");
+    } else {
+      console.error("Full error details:", result);
+      throw new Error(result?.customMessage || result?.error || "Failed to update doctor");
+    }
   };
 
   // ── Loading overlay ───────────────────────────────────────────────────────

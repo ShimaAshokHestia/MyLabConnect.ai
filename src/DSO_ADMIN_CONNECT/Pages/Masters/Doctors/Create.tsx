@@ -7,6 +7,7 @@ import DSODoctorService from "../../../Services/Masters/DsoDoctor.services";
 import { useCurrentUser } from "../../../../Services/AuthServices/CurrentUser.services";
 import { useApiErrorHandler } from "../../../../Services/AuthServices/APIErrorHandler.services";
 import DSODentalOfficePopup from "../Dental Office/DSODentalOfficePopup";
+import toast from "react-hot-toast";
 
 // ── Header fields ─────────────────────────────────────────────────────────────
 const headerFields: TabbedFormField[] = [
@@ -18,6 +19,7 @@ const headerFields: TabbedFormField[] = [
   { name: "licenseNo", label: "License No", type: "text", required: true, placeholder: "Enter license number", colWidth: 3, maxLength: 200 },
   { name: "info", label: "Specialty / Info", type: "text", required: false, placeholder: "Enter specialty or additional info", colWidth: 4, maxLength: 500 },
   { name: "address", label: "Address", type: "text", required: false, placeholder: "Enter address", colWidth: 6, maxLength: 500 },
+  // isActive is handled by the header toggle, not as a field
 ];
 
 // ── Props ─────────────────────────────────────────────────────────────────────
@@ -74,26 +76,40 @@ const DSODoctorCreateModal: React.FC<Props> = ({
   }) => {
     const { headerData, tabData } = data;
 
+    console.log("Header Data:", headerData);
+    console.log("Tab Data:", tabData);
+
+    // Validate at least one practice is selected
+    const practiceRows = tabData.practices ?? [];
+    const validPractices = practiceRows.filter(
+      (row) => row.practiceId && String(row.practiceId).trim() !== ""
+    );
+
+    if (validPractices.length === 0) {
+      toast.error("Please add at least one practice");
+      throw new Error("No practices added");
+    }
+
     // 1. Get DSOMasterId from token or props
     let dsoMasterId: number;
     try {
       dsoMasterId = externalDsoMasterId || requireDSOMasterId();
+      console.log("DSO Master ID:", dsoMasterId);
     } catch (err) {
+      console.error("Failed to get DSO Master ID:", err);
       await handleApiError(err, "session");
       return;
     }
 
     // 2. Build payload - filter out empty rows and map toggle values
-    const practices = (tabData.practices ?? [])
-      .filter((row) => row.practiceId && String(row.practiceId).trim() !== "")
-      .map((row) => ({
-        id: 0,
-        dSODentalOfficeId: Number(row.practiceId),
-        dSODoctorId: 0,
-        isPrimary: row.isPrimary ?? false,
-        isActive: row.isActive ?? true,
-        isDeleted: false,
-      }));
+    const practices = validPractices.map((row) => ({
+      id: 0,
+      dSODentalOfficeId: Number(row.practiceId),
+      dSODoctorId: 0,
+      isPrimary: row.isPrimary ?? false,
+      isActive: row.isActive ?? true,
+      isDeleted: false,
+    }));
 
     const payload = {
       id: 0,
@@ -106,23 +122,32 @@ const DSODoctorCreateModal: React.FC<Props> = ({
       licenseNo: headerData.licenseNo ?? "",
       info: headerData.info ?? "",
       address: headerData.address ?? "",
-      isActive: headerData.isActive ?? true,
+      isActive: headerData.isActive ?? true, // This comes from the header toggle
       isDeleted: false,
       dsoMasterId: dsoMasterId,
       dsoDentalDoctors: practices,
     };
 
+    console.log("Submitting payload:", payload);
+
     // 3. Call API
     let result: any;
     try {
       result = await DSODoctorService.create(payload);
+      console.log("API Response:", result);
     } catch (err) {
+      console.error("Error in API call:", err);
       await handleApiError(err, "network");
       return;
     }
 
     // 4. Assert success - this will throw if not successful
-    await assertApiSuccess(result, "Failed to create DSO Doctor.");
+    if (result && result.isSucess) {
+      await assertApiSuccess(result, "Failed to create DSO Doctor.");
+    } else {
+      console.error("Full error details:", result);
+      throw new Error(result?.customMessage || result?.error || "Failed to create doctor");
+    }
   };
 
   return (

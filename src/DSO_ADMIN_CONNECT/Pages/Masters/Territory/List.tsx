@@ -23,13 +23,13 @@ const columns: KiduColumn[] = [
     //     enableSorting: true,
     //     enableFiltering: false, // ID-based, not filterable by name
     // },
-    {
-        key: "createdAt",
-        label: "Created At",
-        type: "date",
-        enableSorting: true,
-        enableFiltering: false,
-    },
+    // {
+    //     key: "createdAt",
+    //     label: "Created At",
+    //     type: "date",
+    //     enableSorting: true,
+    //     enableFiltering: false,
+    // },
     {
         key: "isActive",
         label: "Status",

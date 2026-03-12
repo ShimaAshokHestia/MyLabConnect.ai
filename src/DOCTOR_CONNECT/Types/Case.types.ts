@@ -1,11 +1,4 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// FILE: src/DOCTOR_CONNECT/Types/Case.types.ts
-//
-// Path matches the screenshot: src/DOCTOR_CONNECT/Types/
-// (alongside any other DOCTOR_CONNECT-specific types)
-// ─────────────────────────────────────────────────────────────────────────────
-
-// ── Child create/update DTOs ──────────────────────────────────────────────────
+// src/DOCTOR_CONNECT/Types/Case.types.ts
 
 export interface CaseProductDetailCreateUpdateDTO {
   id?: number;
@@ -45,8 +38,7 @@ export interface CasePickUpCreateUpdateDTO {
   isDeleted: boolean;
 }
 
-// ── Flat list DTO ─────────────────────────────────────────────────────────────
-
+// ── Flat list DTO — field names match backend JSON exactly ────────────────────
 export interface CaseRegistrationDTO {
   id: number;
   caseNo: string;
@@ -58,21 +50,26 @@ export interface CaseRegistrationDTO {
   caseStatusName: string;
   dueDate?: string;
   caseNotes: string;
+
   dSOMasterId: number;
   dSOName: string;
+
   dSODentalOfficeId: number;
   officeName: string;
+
   dSODoctorId: number;
-  doctorName: string;
-  dSOSchemaId: number;
+  doctorName: string;    // ← backend returns "doctorName" (NOT "dSODoctorName")
+
   labMasterId: number;
+  labName: string;       // ← backend returns "labName"
+
+  dSOSchemaId?: number;
+
   isActive: boolean;
   isDeleted: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
-
-// ── Detail DTO (view/edit) ────────────────────────────────────────────────────
 
 export interface CaseRegistrationDetailDTO extends CaseRegistrationDTO {
   products: CaseProductDetailDTO[];
@@ -137,8 +134,6 @@ export interface CaseStatusHistoryDTO {
   createdAt?: string;
 }
 
-// ── Create DTO ────────────────────────────────────────────────────────────────
-
 export interface CaseRegistrationCreateDTO {
   caseNo?: string;
   shipTo: string;
@@ -149,9 +144,9 @@ export interface CaseRegistrationCreateDTO {
   dueDate?: string;
   caseNotes: string;
   dSOMasterId: number;
+  dSOSchemaId: number;
   dSODentalOfficeId: number;
   dSODoctorId: number;
-  dSOSchemaId: number;
   labMasterId: number;
   isActive: boolean;
   products: CaseProductDetailCreateUpdateDTO[];
@@ -160,14 +155,10 @@ export interface CaseRegistrationCreateDTO {
   pickUps: CasePickUpCreateUpdateDTO[];
 }
 
-// ── Update DTO ────────────────────────────────────────────────────────────────
-
 export interface CaseRegistrationUpdateDTO extends CaseRegistrationCreateDTO {
   id: number;
   isDeleted: boolean;
 }
-
-// ── Status change DTO ─────────────────────────────────────────────────────────
 
 export interface CaseStatusChangeDTO {
   caseRegistrationMasterId: number;

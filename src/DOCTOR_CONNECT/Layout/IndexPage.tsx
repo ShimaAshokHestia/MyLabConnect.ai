@@ -1,58 +1,58 @@
-/* ============================================================
-   pages/DoctorIndexPage.tsx
-   Index page for DOCTOR login.
+// src/DOCTOR_CONNECT/Pages/DoctorIndexPage.tsx
+//
+// Doctor dashboard — shows only cases created by the logged-in doctor.
+// Scoped via dSODoctorId (read from JWT, no extra API call).
 
-   Tabs visible: Scan Rejected | Case on Hold | In Transit |
-                 In Production | Submitted | Recent
-   Card mode: doctor → Chat + Status + Help buttons
-              Rush cases get pulsing border + RUSH tag
-   ============================================================ */
-
-import React, { useEffect, useState } from 'react';
-import type { DashboardPageData } from '../../Types/IndexPage.types';
-import { fetchDashboardData } from '../../Configs/Dummydata';
-import CaseDashboard from '../../KIDU_COMPONENTS/KiduCaseDashboard';
-
+import React from "react";
+import CaseDashboard from "../../KIDU_COMPONENTS/KiduCaseDashboard";
+import AuthService from "../../Services/AuthServices/Auth.services";
+import { useDashboardCases } from "../Types/UseDashBoard.types";
 
 const DoctorIndexPage: React.FC = () => {
-  const [data, setData] = useState<DashboardPageData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const user = AuthService.getUser();
 
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-
-    // ── Replace fetchDashboardData('doctor') with your real API call:
-    // fetch('/api/v1/dashboard?role=doctor')
-    //   .then(res => res.json())
-    //   .then(setData)
-    //   .catch(...)
-    fetchDashboardData('doctor')
-      .then(setData)
-      .catch(() => setError('Failed to load dashboard. Please try again.'))
-      .finally(() => setLoading(false));
-  }, []);
+  const { data, loading, error, refresh } = useDashboardCases({
+    role:        "doctor",
+    dSODoctorId: user?.dsoDoctorId ?? null,
+    // also pass dSOMasterId so the API can use the most selective index
+    dSOMasterId: user?.dsoMasterId ?? null,
+  });
 
   if (error) {
     return (
-      <div style={{ padding: 40, textAlign: 'center', color: '#ef4444', fontFamily: 'Outfit,sans-serif' }}>
-        {error}
+      <div
+        style={{
+          padding: 40,
+          textAlign: "center",
+          color: "#ef4444",
+          fontFamily: "Outfit, sans-serif",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 12,
+        }}
+      >
+        <span>{error}</span>
+        <button
+          onClick={refresh}
+          style={{
+            padding: "8px 20px",
+            borderRadius: 8,
+            border: "1.5px solid #ef4444",
+            background: "transparent",
+            color: "#ef4444",
+            cursor: "pointer",
+            fontWeight: 600,
+            fontSize: "0.85rem",
+          }}
+        >
+          Retry
+        </button>
       </div>
     );
   }
 
-  return (
-    <CaseDashboard
-      role="doctor"
-      data={data ?? {
-        role: 'doctor',
-        tabCounts: { rejected: 0, hold: 0, transit: 0, production: 0, submitted: 0, recent: 0 },
-        cases: { rejected: [], hold: [], transit: [], production: [], submitted: [], recent: [] },
-      }}
-      loading={loading}
-    />
-  );
+  return <CaseDashboard role="doctor" data={data} loading={loading} />;
 };
 
 export default DoctorIndexPage;

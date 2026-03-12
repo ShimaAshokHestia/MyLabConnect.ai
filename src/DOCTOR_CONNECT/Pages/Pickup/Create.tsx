@@ -1,119 +1,94 @@
-// src/Pages/CasePickup/Create.tsx
+// src/DOCTOR_CONNECT/Pages/CasePickup/Create.tsx
 
 import React, { useEffect, useState } from "react";
 import type { LabLookupItem } from "../../../Types/Auth/Lookup.types";
 import LookupService from "../../../Services/Common/Lookup.services";
-import type {
-  PickupAddressDetails,
-  PickupCreateFormData,
-} from "../../../KIDU_COMPONENTS/PickUp/PickupScheduleModal";
-import CasePickupService, {
-  type CaseLookupItem,
-  type DoctorPracticeItem,
-} from "../../Service/Pickup/Pickup.services";
+import CasePickupService from "../../Service/Pickup/Pickup.services";
+import type { CaseLookupItem, DoctorPracticeItem } from "../../Service/Pickup/Pickup.services";
 import PickupScheduleModal from "../../../KIDU_COMPONENTS/PickUp/PickupScheduleModal";
+import type { PickupCreateFormData } from "../../../KIDU_COMPONENTS/PickUp/PickupScheduleModal";
 import { useCurrentUser } from "../../../Services/AuthServices/CurrentUser.services";
 
-// ─── Props ────────────────────────────────────────────────────────────────────
-
 interface Props {
-  show:      boolean;
-  onHide:    () => void;
+  show: boolean;
+  onHide: () => void;
   onSuccess: () => void;
 }
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 const CasePickupCreate: React.FC<Props> = ({ show, onHide, onSuccess }) => {
   const { dsoDoctorId } = useCurrentUser();
 
-  const [labs,      setLabs]      = useState<LabLookupItem[]>([]);
+  const [labs, setLabs]           = useState<LabLookupItem[]>([]);
+  const [cases, setCases]         = useState<CaseLookupItem[]>([]);
   const [practices, setPractices] = useState<DoctorPracticeItem[]>([]);
-  const [cases,     setCases]     = useState<CaseLookupItem[]>([]);
+  const [loadingPractices, setLoadingPractices] = useState(false);
 
-  // ── Fetch all three lists when the modal opens ───────────────────────────
+  // ── Same pattern as AddNewCase.tsx bootstrap ──────────────────────────────
+  // Pre-load labs + doctor's offices + doctor's cases when modal opens.
+  // Practices are loaded via getPracticesByDoctor (doctor-filtered, MODE 1)
+  // and passed as `practicesData` prop — exactly like DentalOfficePopup receives
+  // `offices` from AddNewCase.
   useEffect(() => {
     if (!show || !dsoDoctorId) return;
 
-    Promise.all([
-      LookupService.getLabs(),
-      CasePickupService.getPracticesByDoctor(dsoDoctorId),
-      CasePickupService.getCasesByDoctor(dsoDoctorId),
-    ]).then(([labList, practiceList, caseList]) => {
-      setLabs(labList);
-      setPractices(practiceList);
-      setCases(caseList);
-    });
+    const loadData = async () => {
+      setLoadingPractices(true);
+      try {
+        const [labList, practiceList, caseList] = await Promise.all([
+          LookupService.getLabs(),
+          CasePickupService.getPracticesByDoctor(dsoDoctorId),
+          CasePickupService.getCasesByDoctor(dsoDoctorId),
+        ]);
+        setLabs(labList);
+        setPractices(practiceList);
+        setCases(caseList);
+      } finally {
+        setLoadingPractices(false);
+      }
+    };
+
+    loadData();
   }, [show, dsoDoctorId]);
 
-  // ── Paginated address fetch — client-side over the doctor's practices ─────
-  const fetchPickupAddresses = async (p: {
-    pageNumber: number;
-    pageSize:   number;
-    searchTerm: string;
-  }) => {
-    const term     = p.searchTerm.toLowerCase();
-    const filtered = term
-      ? practices.filter(
-          (pr) =>
-            pr.officeName?.toLowerCase().includes(term) ||
-            pr.officeCode?.toLowerCase().includes(term) ||
-            pr.city?.toLowerCase().includes(term)
-        )
-      : practices;
-    const start = (p.pageNumber - 1) * p.pageSize;
-    return { data: filtered.slice(start, start + p.pageSize), total: filtered.length };
-  };
-
-  const mapPickupAddress = (row: DoctorPracticeItem) => ({
-    value: row.id,
-    label: `${row.officeName}${row.city ? ` — ${row.city}` : ""}`,
-  });
-
-  const fetchAddressDetails = async (
-    addressId: string | number
-  ): Promise<PickupAddressDetails> => {
-    const p = practices.find((pr) => String(pr.id) === String(addressId));
-    if (!p) return {};
-    return {
-      practiceName: p.officeName,
-      address:      [p.address, p.city, p.postCode].filter(Boolean).join(", "),
-      email:        undefined,
-      mobileNo:     undefined,
-    };
-  };
-
-  // ── Submit ────────────────────────────────────────────────────────────────
+  // ── Submit ─────────────────────────────────────────────────────────────────
   const handleSubmit = async (data: PickupCreateFormData) => {
     await CasePickupService.create({
-      labMasterId:               Number(data.labMasterId),
-      pickUpDate:                data.pickUpDate,
-      pickUpEarliestTime:        data.pickUpEarliestTime,
-      pickUpLateTime:            data.pickUpLateTime,
-      pickUpAddress:             data.pickUpAddress!,
-      caseRegistrationMasterIds: data.caseRegistrationMasterIds,
-      trackingNum:               data.trackingNum || undefined,
+      id: 0,
+      labMasterId: Number(data.labMasterId),
+      pickUpDate: data.pickUpDate,
+      pickUpEarliestTime: data.pickUpEarliestTime,
+      pickUpLateTime: data.pickUpLateTime,
+      pickUpAddress: String(data.pickUpAddress ?? ""),
+      trackingNum: data.trackingNum || "",
+      isActive: true,
+      isDeleted: false,
+      casePickUpDetails: data.caseRegistrationMasterIds.map((caseId) => ({
+        id: 0,
+        casePickUpId: 0,
+        caseRegistrationMasterId: Number(caseId),
+        isActive: true,
+        isDeleted: false,
+      })),
     });
+    onSuccess();
+    onHide();
   };
 
-  // ── Column definitions ────────────────────────────────────────────────────
-
+  // ── Column definitions ─────────────────────────────────────────────────────
   const labColumns = [
-    { key: "labName",     label: "Lab Name",     filterType: "text"   as const },
-    { key: "labCode",     label: "Code",         filterType: "text"   as const },
-    { key: "displayName", label: "Display Name", filterType: "text"   as const },
-    { key: "lmsSystem",   label: "LMS",          filterType: "text"   as const },
-    {
-      key: "isActive",
-      label: "Status",
-      filterType: "select" as const,
-      filterOptions: ["true", "false"],
-      render: (value: boolean) => (
-        <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>
-          {value ? "Active" : "Inactive"}
-        </span>
-      ),
-    },
+    { key: "labName",     label: "Lab Name",     filterType: "text" as const },
+    { key: "labCode",     label: "Code",         filterType: "text" as const },
+    { key: "displayName", label: "Display Name", filterType: "text" as const },
+    { key: "lmsSystem",   label: "LMS",          filterType: "text" as const },
+  ];
+
+  // Same columns as DentalOfficePopup
+  const practiceColumns = [
+    { key: "officeName", label: "Office Name", filterType: "text" as const },
+    { key: "officeCode", label: "Code",        filterType: "text" as const },
+    { key: "address",    label: "Address",     filterType: "text" as const },
+    { key: "city",       label: "City",        filterType: "text" as const },
+    { key: "postCode",   label: "Post Code",   filterType: "text" as const },
   ];
 
   const caseColumns = [
@@ -128,23 +103,26 @@ const CasePickupCreate: React.FC<Props> = ({ show, onHide, onSuccess }) => {
       show={show}
       onHide={onHide}
       onSuccess={onSuccess}
-      // Lab
+      // Labs — all labs (pre-loaded)
       labSelectData={labs}
       labColumns={labColumns}
       labIdKey="id"
       labLabelKey="labName"
       labSearchKeys={["labName", "labCode", "displayName"]}
-      // Pickup address — this doctor's linked practices only
-      fetchPickupAddresses={fetchPickupAddresses}
-      mapPickupAddress={mapPickupAddress}
-      fetchAddressDetails={fetchAddressDetails}
-      // Cases — this doctor's cases only
+      // Pickup address — doctor's linked practices (pre-loaded, MODE 1)
+      // Same as DentalOfficePopup receiving `offices` prop from AddNewCase
+      practicesData={practices}
+      practicesLoading={loadingPractices}
+      practiceColumns={practiceColumns}
+      practiceIdKey="id"
+      practiceLabelKey="officeName"
+      practiceSearchKeys={["officeName", "officeCode", "address", "city", "postCode"]}
+      // Cases — doctor's cases (pre-loaded)
       casesSelectData={cases}
       caseColumns={caseColumns}
       caseIdKey="id"
       caseLabelKey="patientName"
       caseSearchKeys={["caseId", "patientName", "doctorName", "status"]}
-      // Submit
       onSubmit={handleSubmit}
       title="Schedule Pickup"
       submitLabel="Schedule Pickup"

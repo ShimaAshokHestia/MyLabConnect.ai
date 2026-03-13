@@ -42,6 +42,7 @@ const CasePickupView: React.FC<Props> = ({ show, onHide, recordId }) => {
 
     return {
       id:                  data.id ?? 0,
+      labName:             data.labMasterName, 
       pickUpDate:          data.pickUpDate,
       pickUpEarliestTime:  data.pickUpEarliestTime,
       pickUpLateTime:      data.pickUpLateTime,

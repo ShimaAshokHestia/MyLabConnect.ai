@@ -262,7 +262,8 @@ const PickupViewModal: React.FC<PickupViewModalProps> = ({
           </div>
 
           {/* ── Right: Address panel ── */}
-          <PickupAddressPanel loading={loading} details={addrDetails}/>
+          {/* ── Right: Address panel ── */}
+<PickupAddressPanel details={addrDetails}/>
         </div>
       </Modal.Body>
     </Modal>

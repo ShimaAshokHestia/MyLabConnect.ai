@@ -75,12 +75,17 @@ export default class CasePickupService {
   }
 
   // ── Get by ID ─────────────────────────────────────────────────────────────
-  static async getById(id: number): Promise<CasePickupDetail> {
-    return await HttpService.callApi<any>(
-      API_ENDPOINTS.CASEPICKUP.GET_BY_ID(id),
-      "GET"
-    );
-  }
+ static async getById(id: number): Promise<CasePickupDetail> {
+  const response = await HttpService.callApi<any>(
+    API_ENDPOINTS.CASEPICKUP.GET_BY_ID(id),
+    "GET"
+  );
+
+  // API returns { value: [...], statusCode: 200, ... }
+  // unwrap the array
+  const result = response?.value ?? response;
+  return Array.isArray(result) ? result[0] : result;
+}
 
   // ── Create ────────────────────────────────────────────────────────────────
   // Payload matches CasePickUpCreateUpdateDTO:

@@ -14,8 +14,7 @@ export interface ViewHeaderField {
   isToggle?: boolean;
   isTextarea?: boolean;
   formatter?: (value: any) => string;
-  // For popup fields, we might want to show display value
-  displayName?: string; // The field that contains the display value
+  displayName?: string;
 }
 
 export interface ViewTabConfig {
@@ -24,8 +23,7 @@ export interface ViewTabConfig {
   columns: {
     key: string;
     label: string;
-    // For popup fields in tables
-    displayKey?: string; // The field that contains the display value
+    displayKey?: string;
     formatter?: (value: any, row: any) => string;
   }[];
 }
@@ -66,7 +64,6 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
   const [activeTab,  setActiveTab]  = useState(tabs.length > 0 ? tabs[0]?.key ?? "" : "");
   const [loading,    setLoading]    = useState(false);
 
-  // ── Fetch data when modal opens ───────────────────────────────────────────
   useEffect(() => {
     if (!show || !recordId) return;
 
@@ -90,12 +87,10 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
         }
 
         const data = response.value;
-        console.log("View modal data:", data); // Debug log
+        console.log("View modal data:", data);
 
-        // ── Map header fields ──────────────────────────────────────────────
         const formattedHeader: Record<string, any> = {};
         
-        // First, map all the defined header fields
         headerFields.forEach((f) => {
           if (f.isToggle || f.isBoolean) {
             const raw = data[f.name];
@@ -109,7 +104,6 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
               ? new Date(dateVal).toISOString().split("T")[0]
               : "";
           } else {
-            // Check if there's a display field for popup values
             if (f.displayName && data[f.displayName]) {
               formattedHeader[f.name] = data[f.displayName];
             } else {
@@ -119,7 +113,6 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
           }
         });
 
-        // Explicitly set isActive from the data
         if (data.isActive !== undefined) {
           formattedHeader.isActive = data.isActive;
         } else if (data.IsActive !== undefined) {
@@ -132,10 +125,8 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
           formattedHeader.isActive = false;
         }
 
-        console.log("Formatted header with isActive:", formattedHeader.isActive);
         setHeaderData(formattedHeader);
 
-        // ── Map tab data ───────────────────────────────────────────────────
         if (mapTabData) {
           setTabData(mapTabData(data));
         } else {
@@ -165,7 +156,6 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
     fetchData();
   }, [show, recordId]);
 
-  // ── Reset when modal closes ───────────────────────────────────────────────
   useEffect(() => {
     if (!show) {
       setHeaderData({});
@@ -176,7 +166,6 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
 
   if (!show) return null;
 
-  // ── Format value for display ──────────────────────────────────────────────
   const formatValue = (field: ViewHeaderField, value: any): string => {
     if (value === null || value === undefined || value === "") return "—";
     if (field.formatter) return field.formatter(value);
@@ -194,14 +183,11 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
   const currentTab = tabs.length > 0 ? tabs.find((t) => t.key === activeTab) : null;
   const currentRows = activeTab && tabData[activeTab] ? tabData[activeTab] : [];
 
-  // ==================== RENDER ====================
-
   return (
     <div className="ktf-overlay" onClick={onHide}>
       <div className="ktf-modal-wrapper">
         <div className="ktf-modal" onClick={(e) => e.stopPropagation()}>
 
-          {/* ── Floating close button ── */}
           <button
             type="button"
             className="ktf-floating-close-btn"
@@ -223,7 +209,6 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
             </svg>
           </button>
 
-          {/* ── Header with Active Status (VISUAL ONLY - NOT INTERACTIVE) ── */}
           <div className="ktf-header">
             <div className="ktf-header-left">
               <h2 className="ktf-title">{title}</h2>
@@ -238,7 +223,6 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
                   {badgeText}
                 </span>
               )}
-              {/* Active Status Display - PURELY VISUAL, NOT A TOGGLE */}
               <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                 <span className="ktf-active-label">Active</span>
                 <div
@@ -270,19 +254,15 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
             </div>
           </div>
 
-          {/* ── Loading ── */}
           {loading ? (
             <div className="ktf-loading">
               <span className="ktf-spinner ktf-spinner--dark" />
               Loading...
             </div>
           ) : (
-            /* ── Scrollable Content Area ── */
             <div className="ktf-scrollable-content">
-              {/* ── Header fields (read-only) ── */}
               <div className="ktf-top-fields">
                 {headerFields.map((field) => {
-                  // Skip isActive field since it's already shown in header
                   if (field.name === "isActive" || field.name === "IsActive" || field.name === "active") return null;
                   
                   return (
@@ -351,7 +331,6 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
                 })}
               </div>
 
-              {/* ── Tab Bar ── */}
               {tabs.length > 0 && (
                 <div className="ktf-tab-bar">
                   {tabs.map((tab) => (
@@ -367,7 +346,6 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
                 </div>
               )}
 
-              {/* ── Tab Content (read-only table) ── */}
               {tabs.length > 0 && currentTab && (
                 <div className="ktf-tab-content">
                   {currentRows.length === 0 ? (
@@ -386,19 +364,14 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
                           {currentRows.map((row, rowIdx) => (
                             <tr key={rowIdx} className="ktf-tr">
                               {currentTab.columns.map((col) => {
-                                // Get the value to display
                                 let displayValue = "—";
                                 
-                                // If there's a displayKey, use that first
                                 if (col.displayKey && row[col.displayKey]) {
                                   displayValue = String(row[col.displayKey]);
-                                } 
-                                // Otherwise use the regular key
-                                else if (row[col.key] !== undefined && row[col.key] !== null && row[col.key] !== "") {
+                                } else if (row[col.key] !== undefined && row[col.key] !== null && row[col.key] !== "") {
                                   displayValue = String(row[col.key]);
                                 }
                                 
-                                // Apply formatter if provided
                                 if (col.formatter) {
                                   displayValue = col.formatter(row[col.key], row);
                                 }

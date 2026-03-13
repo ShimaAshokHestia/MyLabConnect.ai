@@ -380,7 +380,7 @@ const KiduTabbedFormEditModal: React.FC<KiduTabbedFormEditModalProps> = ({
               </svg>
             </button>
 
-            {/* ── Header with Active Toggle (Fixed) ── */}
+            {/* ── Header with Active Toggle ── */}
             <div className="ktf-header">
               <div className="ktf-header-left">
                 <h2 className="ktf-title">{title}</h2>
@@ -473,7 +473,7 @@ const KiduTabbedFormEditModal: React.FC<KiduTabbedFormEditModalProps> = ({
                           onClick={() => openPopup({ colKey: field.name, isHeader: true }, field.popupConfig)}
                           readOnly
                           style={{ 
-                            cursor: "pointer", 
+                            cursor: "pointer",
                             paddingRight: "35px"
                           }}
                         />
@@ -612,7 +612,7 @@ const KiduTabbedFormEditModal: React.FC<KiduTabbedFormEditModalProps> = ({
                                       )}
                                       readOnly
                                       style={{ 
-                                        cursor: "pointer", 
+                                        cursor: "pointer",
                                         paddingRight: "30px"
                                       }}
                                     />
@@ -668,7 +668,7 @@ const KiduTabbedFormEditModal: React.FC<KiduTabbedFormEditModalProps> = ({
               ) : null}
             </div>
 
-            {/* ── Footer (Fixed) ── */}
+            {/* ── Footer ── */}
             <div className="ktf-footer">
               <button
                 type="button"

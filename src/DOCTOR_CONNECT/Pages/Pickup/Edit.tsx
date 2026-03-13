@@ -3,13 +3,10 @@
 import React, { useEffect, useState } from "react";
 import CasePickupService from "../../Service/Pickup/Pickup.services";
 import type { CaseLookupItem } from "../../Service/Pickup/Pickup.services";
-
 import type { PickupAddressDetails } from "../../../KIDU_COMPONENTS/PickUp/PickupScheduleModal";
 import { useCurrentUser } from "../../../Services/AuthServices/CurrentUser.services";
 import type { PickupEditFormData, PickupRecord } from "../../../KIDU_COMPONENTS/PickUp/PickupeditModal";
 import PickupEditModal from "../../../KIDU_COMPONENTS/PickUp/PickupeditModal";
-
-// ─── Props ────────────────────────────────────────────────────────────────────
 
 interface Props {
   show: boolean;
@@ -18,18 +15,10 @@ interface Props {
   recordId: number | string;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
-const CasePickupEdit: React.FC<Props> = ({
-  show,
-  onHide,
-  onSuccess,
-  recordId,
-}) => {
+const CasePickupEdit: React.FC<Props> = ({ show, onHide, onSuccess, recordId }) => {
   const { dsoDoctorId } = useCurrentUser();
   const [cases, setCases] = useState<CaseLookupItem[]>([]);
 
-  // Load doctor's cases on open
   useEffect(() => {
     if (!show || !dsoDoctorId) return;
     CasePickupService.getCasesByDoctor(dsoDoctorId).then(setCases);
@@ -40,41 +29,52 @@ const CasePickupEdit: React.FC<Props> = ({
     const data = await CasePickupService.getById(Number(id));
 
     return {
-      id: data.id ?? id,
-      labName: data.labMasterName ?? "",
-      pickUpDate: data.pickUpDate,
-      pickUpEarliestTime: data.pickUpEarliestTime,
-      pickUpLateTime: data.pickUpLateTime,
-      pickUpAddress: data.pickUpAddress,
-      pickUpAddressId: data.pickUpAddressId,
+      id:                       data.id ?? id,
+      labName:                  data.labMasterName ?? "",
+      pickUpDate:               data.pickUpDate,
+      pickUpEarliestTime:       data.pickUpEarliestTime,
+      pickUpLateTime:           data.pickUpLateTime,
+      pickUpAddress:            data.pickUpAddress,
+      pickUpAddressId:          undefined, // ✅ not returned by backend
       caseRegistrationMasterIds: data.caseRegistrationMasterIds ?? [],
-      caseLabels: data.caseLabels ?? [],
-      trackingNum: data.trackingNum ?? "",
-      isActive: data.isActive,
+      caseLabels:               data.caseLabels ?? [],
+      trackingNum:              data.trackingNum ?? "",
+      isActive:                 data.isActive,
     };
   };
 
-  // ── Fetch address details for right panel ─────────────────────────────────
-  // For edit, the address string comes from the record itself.
-  // We build a PickupAddressDetails from it so the map renders.
+  // ── Fetch address details ─────────────────────────────────────────────────
   const fetchAddressDetails = async (
     _addressId: string | number
   ): Promise<PickupAddressDetails> => {
-    // Address details are embedded in the record (pickUpAddress string).
-    // This will be populated by the modal itself from the record.
     return {};
   };
 
   // ── Submit ────────────────────────────────────────────────────────────────
-  const handleSubmit = async (
-    id: number | string,
-    data: PickupEditFormData
-  ) => {
+  // ✅ FIX: fetch current record first, build full payload
+  const handleSubmit = async (id: number | string, data: PickupEditFormData) => {
+    const current = await CasePickupService.getById(Number(id));
+
     const result = await CasePickupService.update(Number(id), {
-      id: Number(id),
-      caseRegistrationMasterIds: data.caseRegistrationMasterIds,
-      trackingNum: data.trackingNum,
+      id:                 Number(id),
+      pickUpDate:         current.pickUpDate,
+      pickUpEarliestTime: current.pickUpEarliestTime,
+      pickUpLateTime:     current.pickUpLateTime,
+      pickUpAddress:      current.pickUpAddress,
+      labMasterId:        current.labMasterId,
+      trackingNum:        data.trackingNum,
+      isActive:           current.isActive,
+      isDeleted:          false,
+      // ✅ FIX: map caseRegistrationMasterIds → casePickUpDetails array
+      casePickUpDetails: data.caseRegistrationMasterIds.map((caseId) => ({
+        id:                       0,
+        casePickUpId:             Number(id),
+        caseRegistrationMasterId: Number(caseId),
+        isActive:                 true,
+        isDeleted:                false,
+      })),
     });
+
     if (result && !result.isSucess) {
       throw new Error(result?.customMessage ?? "Failed to update pickup.");
     }

@@ -4,7 +4,7 @@ import React, { useState, useRef, useCallback, useEffect } from "react";
 import { Row, Col, Modal, Button } from "react-bootstrap";
 import Swal from "sweetalert2";
 import type { DentalOfficeItem } from "./DentalOfficePopup";
-import PrescriptionService from "../../Service/Prescription/Prescription.services";
+import PrescriptionService from "../../Service/Common/Prescription.services";
 import AuthService from "../../../Services/AuthServices/Auth.services";
 import KiduValidation, { KiduCharacterCounter } from "../../../KIDU_COMPONENTS/KiduValidation";
 import type { LabMasterItem } from "./LabmasterPopup";
@@ -15,7 +15,7 @@ import KiduDropdown from "../../../KIDU_COMPONENTS/KiduDropdown";
 import RestorationModal from "../../../KIDU_COMPONENTS/Case/RestorationModal";
 import type { RestorationFormData } from "../../../KIDU_COMPONENTS/Case/RestorationFormPanel";
 import "../../../Styles/Doctor/prescription.additions.css";
-import CaseService from "../../Service/Prescription/Case.services";
+import CaseService from "../../Service/AnalogCase/Case.services";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types

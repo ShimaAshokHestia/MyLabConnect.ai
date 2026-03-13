@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AuthService from "../../../Services/AuthServices/Auth.services";
-import CaseService from "../../Service/Prescription/Case.services";
+import CaseService from "../../Service/AnalogCase/Case.services";
 import type { CaseRegistrationDTO } from "../../Types/Case.types";
 import type { StatCardProps } from "../../../Types/KiduTypes/StatCard.types";
 import type { TabItem } from "../../../Types/Dashboards.types";

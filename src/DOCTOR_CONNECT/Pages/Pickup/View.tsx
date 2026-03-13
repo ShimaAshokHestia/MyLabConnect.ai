@@ -1,80 +1,55 @@
-// src/Pages/CasePickup/View.tsx
+// src/DOCTOR_CONNECT/Pages/CasePickup/View.tsx
 
-import React, { useEffect, useState } from "react";
-import type { PracticeLookupItem } from "../../../Types/Auth/Lookup.types";
-import LookupService from "../../../Services/Common/Lookup.services";
+import React from "react";
 import CasePickupService from "../../Service/Pickup/Pickup.services";
 import type { PickupViewRecord } from "../../../KIDU_COMPONENTS/PickUp/PickupViewModal";
 import type { PickupAddressDetails } from "../../../KIDU_COMPONENTS/PickUp/PickupScheduleModal";
 import PickupViewModal from "../../../KIDU_COMPONENTS/PickUp/PickupViewModal";
 
-
-// ─── Props ────────────────────────────────────────────────────────────────────
-
 interface Props {
-  show:     boolean;
-  onHide:   () => void;
+  show: boolean;
+  onHide: () => void;
   recordId: number | string;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
 const CasePickupView: React.FC<Props> = ({ show, onHide, recordId }) => {
-  const [practices, setPractices] = useState<PracticeLookupItem[]>([]);
 
-  useEffect(() => {
-    if (!show) return;
-    LookupService.getPractices().then(setPractices);
-  }, [show]);
-
-  // ── Fetch record → PickupViewRecord shape ─────────────────────────────────
+  // ── Fetch record ──────────────────────────────────────────────────────────
   const fetchRecord = async (id: number | string): Promise<PickupViewRecord> => {
-    const res  = await CasePickupService.getById(Number(id));
-    const data = res;
+    const data = await CasePickupService.getById(Number(id));
 
-    // Normalise cases array
-    const caseIds: (string | number)[] = data.caseRegistrationMasterIds ?? [];
-    const caseLabels: string[]          = data.caseLabels                ?? [];
-    const cases = caseIds.map((cid, i) => ({
-      id:    cid,
-      label: caseLabels[i] ?? String(cid),
-    }));
+    const cases = (data.casePickUpDetails ?? [])
+      .filter((d: { isDeleted: any; }) => !d.isDeleted)
+      .map((d: { caseRegistrationMasterId: any; patientName: any; caseNo: any; }) => ({
+        id: d.caseRegistrationMasterId,
+        label: d.patientName
+          ? d.caseNo
+            ? `${d.patientName} (${d.caseNo})`
+            : d.patientName
+          : String(d.caseRegistrationMasterId),
+      }));
 
     return {
-      id:                  data.id ?? 0,
-      labName:             data.labMasterName, 
-      pickUpDate:          data.pickUpDate,
-      pickUpEarliestTime:  data.pickUpEarliestTime,
-      pickUpLateTime:      data.pickUpLateTime,
-      pickUpAddress:       data.pickUpAddress,
-      pickUpAddressId:     data.pickUpAddressId,
+      id:                 data.id ?? 0,
+      labName:            data.labMasterName ?? "",
+      pickUpDate:         data.pickUpDate,
+      pickUpEarliestTime: data.pickUpEarliestTime,
+      pickUpLateTime:     data.pickUpLateTime,
+      pickUpAddress:      data.pickUpAddress,
+      pickUpAddressId:    undefined, // ✅ not returned by backend
       cases,
-      trackingNum:         data.trackingNum,
-      isActive:            data.isActive,
-      createdAt:           data.createdAt,
-      updatedAt:           data.updatedAt,
-      // Embedded address details (if API sends them)
-      practiceName:        data.practiceName,
-      addressLine:         data.addressLine,
-      email:               data.email,
-      mobileNo:            data.mobileNo,
+      trackingNum:        data.trackingNum,
+      isActive:           data.isActive,
     };
   };
 
-  // ── Fetch address details (fall back to lookup list) ──────────────────────
+  // ── Fetch address details ─────────────────────────────────────────────────
+  // ✅ FIX: pickUpAddressId is not stored on case_pickup — address is free text
+  // Right panel will only show the address string from the record itself
   const fetchAddressDetails = async (
-    addressId: string | number
+    _addressId: string | number
   ): Promise<PickupAddressDetails> => {
-    const practice = practices.find((p) => String(p.id) === String(addressId));
-    if (!practice) return {};
-    return {
-      practiceName: practice.officeName,
-      address:      [practice.address, practice.city, practice.postCode]
-                      .filter(Boolean)
-                      .join(", "),
-      email:    undefined,
-      mobileNo: undefined,
-    };
+    return {};
   };
 
   return (

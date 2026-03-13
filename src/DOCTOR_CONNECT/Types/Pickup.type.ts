@@ -1,6 +1,6 @@
 // src/DOCTOR_CONNECT/Types/Pickup.type.ts
 
-// ─── Paginated request params (for POST /getall-paginated) ───────────────────
+// ─── Paginated request params ─────────────────────────────────────────────────
 
 export interface CasePickupPaginatedRequest {
   pageNumber: number;
@@ -10,13 +10,26 @@ export interface CasePickupPaginatedRequest {
   sortDescending?: boolean;
   showDeleted?: boolean;
   showInactive?: boolean;
-  // Column-level filters
   labName?: string;
   pickUpDate?: string;
   trackingNum?: string;
 }
 
-// ─── List item (returned by paginated GET) ────────────────────────────────────
+// ─── One case detail row inside a pickup ─────────────────────────────────────
+
+export interface CasePickUpDetailItem {
+  id: number;
+  casePickUpId: number;
+  caseRegistrationMasterId: number;
+  isActive: boolean;
+  isDeleted: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  patientName?: string;   // READ-ONLY
+  caseNo?: string;        // READ-ONLY
+}
+
+// ─── List item (returned by GetAll and GetPaged) ──────────────────────────────
 
 export interface CasePickup {
   id?: number;
@@ -26,49 +39,39 @@ export interface CasePickup {
   pickUpEarliestTime?: string;
   pickUpLateTime?: string;
   pickUpAddress?: string;
-  pickUpAddressId?: number;
   trackingNum?: string;
+  caseCount?: number;
+  cases?: CasePickUpDetailItem[];             // ✅ backend paginated field
+  casePickUpDetails?: CasePickUpDetailItem[]; // ✅ backend getById field
   isActive?: boolean;
   isDeleted?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
 
-// ─── Detail record (returned by GET /:id) ────────────────────────────────────
+// ─── Detail record returned by GET /:id ──────────────────────────────────────
 
-export interface CasePickupDetail extends CasePickup {
-  caseNo?: string;
-  // Practice / address info (if embedded by API)
-  practiceName?: string;
-  practiceEmail?: string;
-  practiceMobile?: string;
-  addressLine?: string;
-  email?: string;
-  mobileNo?: string;
-  // Related cases
-  caseRegistrationMasterIds?: (string | number)[];
-  caseLabels?: string[];
-  cases?: { id: number | string; label: string }[];
-  // Nested detail rows
-  casePickUpDetails?: CasePickUpDetailItem[];
-}
-
-// ─── One case entry inside a pickup (nested) ─────────────────────────────────
-
-export interface CasePickUpDetailItem {
+export interface CasePickupDetail {
   id: number;
-  casePickUpId: number;
-  caseRegistrationMasterId?: number;
+  pickUpDate: string;
+  pickUpEarliestTime: string;
+  pickUpLateTime: string;
+  pickUpAddress: string;
+  trackingNum: string;
+  labMasterId: number;
+  labMasterName?: string;
   isActive: boolean;
   isDeleted: boolean;
-  createdAt?: string;
-  updatedAt?: string;
+  casePickUpDetails: CasePickUpDetailItem[];
+  caseRegistrationMasterIds?: (string | number)[];
+  caseLabels?: string[];
+  pickUpAddressId?: number; // not returned by backend — always undefined
 }
 
-// ─── Create payload — matches CasePickUpCreateUpdateDTO ──────────────────────
+// ─── Create payload ───────────────────────────────────────────────────────────
 
 export interface CasePickupCreatePayload {
-  id: number;                         // 0 for new
+  id: number;
   pickUpDate: string;
   pickUpEarliestTime: string;
   pickUpLateTime: string;
@@ -77,13 +80,32 @@ export interface CasePickupCreatePayload {
   labMasterId: number;
   isActive: boolean;
   isDeleted: boolean;
-  casePickUpDetails: CasePickUpDetailItem[];
+  casePickUpDetails: Array<{
+    id: number;
+    casePickUpId: number;
+    caseRegistrationMasterId: number;
+    isActive: boolean;
+    isDeleted: boolean;
+  }>;
 }
 
-// ─── Update payload ───────────────────────────────────────────────────────────
+// ─── Update payload — must match full CasePickUpCreateUpdateDTO ───────────────
 
 export interface CasePickupUpdatePayload {
   id: number;
-  caseRegistrationMasterIds: (string | number)[];
+  pickUpDate: string;
+  pickUpEarliestTime: string;
+  pickUpLateTime: string;
+  pickUpAddress: string;
   trackingNum: string;
+  labMasterId: number;
+  isActive: boolean;
+  isDeleted: boolean;
+  casePickUpDetails: Array<{
+    id: number;
+    casePickUpId: number;
+    caseRegistrationMasterId: number;
+    isActive: boolean;
+    isDeleted: boolean;
+  }>;
 }

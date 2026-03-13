@@ -11,9 +11,10 @@
 //   8 = Cancelled     → null (excluded from dashboard)
 
 import { useState, useEffect, useCallback } from "react";
-import type { CaseRecord, CaseStatus, DashboardPageData, LoginRole } from "../../Types/IndexPage.types";
-import type { CaseRegistrationDTO } from "./Case.types";
-import CaseService from "../Service/Prescription/Case.services";
+import type { CaseRecord, CaseStatus, DashboardPageData, LoginRole } from "../../../Types/IndexPage.types";
+import type { CaseRegistrationDTO } from "../Case.types";
+import CaseService from "../../Service/AnalogCase/Case.services";
+
 
 const STATUS_TO_TAB: Record<number, CaseStatus | null> = {
   1: "submitted",    // Pending   → shows under Submitted tab

@@ -9,11 +9,9 @@ import HttpService from "../../../Services/Common/HttpService";
 import type {
   CasePickup,
   CasePickupCreatePayload,
-  CasePickupDetail,
+  CasePickUpDetailItem,
   CasePickupUpdatePayload,
 } from "../../Types/Pickup.type";
-
-// ─── Local return types ───────────────────────────────────────────────────────
 
 export interface CaseLookupItem {
   id: number;
@@ -34,8 +32,6 @@ export interface DoctorPracticeItem {
   isActive: boolean;
 }
 
-// ─── Service ──────────────────────────────────────────────────────────────────
-
 export default class CasePickupService {
 
   // ── Paginated list ────────────────────────────────────────────────────────
@@ -44,20 +40,20 @@ export default class CasePickupService {
   ): Promise<TableResponse<CasePickup>> {
     let showInactive: boolean | undefined = undefined;
     const statusFilter = params["isActive"];
-    if (statusFilter === "Active") showInactive = true;
+    if (statusFilter === "Active")   showInactive = true;
     if (statusFilter === "Inactive") showInactive = false;
 
     const payload = {
-      pageNumber: params.pageNumber,
-      pageSize: params.pageSize,
-      searchTerm: params.searchTerm ?? "",
-      sortBy: params.sortBy ?? "",
+      pageNumber:     params.pageNumber,
+      pageSize:       params.pageSize,
+      searchTerm:     params.searchTerm     ?? "",
+      sortBy:         params.sortBy         ?? "",
       sortDescending: params.sortDescending ?? false,
-      showDeleted: false,
+      showDeleted:    false,
       showInactive,
-      labName: params["labName"] ?? "",
-      pickUpDate: params["pickUpDate"] ?? "",
-      trackingNum: params["trackingNum"] ?? "",
+      labName:        params["labName"]     ?? "",
+      pickUpDate:     params["pickUpDate"]  ?? "",
+      trackingNum:    params["trackingNum"] ?? "",
     };
 
     const response = await HttpService.callApi<any>(
@@ -66,32 +62,110 @@ export default class CasePickupService {
       payload
     );
 
-    const result = response?.value ?? response;
+    const result    = response?.value ?? response;
+    const rawItems: any[] = result.data ?? result.items ?? [];
+
+    const data: CasePickup[] = rawItems.map((item: any): CasePickup => ({
+      id:                 item.id,
+      labMasterId:        item.labMasterId,
+      labMasterName:      item.labMasterName       ?? "",
+      pickUpDate:         item.pickUpDate          ?? "",
+      pickUpEarliestTime: item.pickUpEarliestTime  ?? "",
+      pickUpLateTime:     item.pickUpLateTime       ?? "",
+      pickUpAddress:      item.pickUpAddress        ?? "",
+      trackingNum:        item.trackingNum          ?? "",
+      isActive:           item.isActive             ?? true,
+      isDeleted:          item.isDeleted            ?? false,
+      createdAt:          item.createdAt,
+      updatedAt:          item.updatedAt,
+      caseCount:          item.caseCount            ?? 0,
+      // ✅ FIX: backend paginated returns `cases`, getById returns `casePickUpDetails`
+      cases: (item.cases ?? item.casePickUpDetails ?? []).map(
+        (d: any): CasePickUpDetailItem => ({
+          id:                       d.id                       ?? 0,
+          casePickUpId:             d.casePickUpId             ?? 0,
+          caseRegistrationMasterId: d.caseRegistrationMasterId ?? 0,
+          isActive:                 d.isActive                 ?? true,
+          isDeleted:                d.isDeleted                ?? false,
+          createdAt:                d.createdAt,
+          updatedAt:                d.updatedAt,
+          patientName:              d.patientName              ?? "",
+          caseNo:                   d.caseNo                   ?? "",
+        })
+      ),
+      casePickUpDetails: (item.casePickUpDetails ?? item.cases ?? []).map(
+        (d: any): CasePickUpDetailItem => ({
+          id:                       d.id                       ?? 0,
+          casePickUpId:             d.casePickUpId             ?? 0,
+          caseRegistrationMasterId: d.caseRegistrationMasterId ?? 0,
+          isActive:                 d.isActive                 ?? true,
+          isDeleted:                d.isDeleted                ?? false,
+          createdAt:                d.createdAt,
+          updatedAt:                d.updatedAt,
+          patientName:              d.patientName              ?? "",
+          caseNo:                   d.caseNo                   ?? "",
+        })
+      ),
+    }));
+
     return {
-      data: result.data ?? result.items ?? [],
-      total: result.totalRecords ?? result.total ?? 0,
+      data,
+      total:      result.totalRecords ?? result.total ?? 0,
       totalPages: result.totalPages,
     };
   }
 
   // ── Get by ID ─────────────────────────────────────────────────────────────
- static async getById(id: number): Promise<CasePickupDetail> {
-  const response = await HttpService.callApi<any>(
-    API_ENDPOINTS.CASEPICKUP.GET_BY_ID(id),
-    "GET"
-  );
+  static async getById(id: number): Promise<any> {
+    const response = await HttpService.callApi<any>(
+      API_ENDPOINTS.CASEPICKUP.GET_BY_ID(id),
+      "GET"
+    );
 
-  // API returns { value: [...], statusCode: 200, ... }
-  // unwrap the array
-  const result = response?.value ?? response;
-  return Array.isArray(result) ? result[0] : result;
-}
+    const raw  = response?.value ?? response;
+    const data = Array.isArray(raw) ? raw[0] : raw;
+
+    const details: CasePickUpDetailItem[] = (
+      data?.casePickUpDetails ?? data?.CasePickUpDetails ?? []
+    ).map((d: any): CasePickUpDetailItem => ({
+      id:                       d.id                       ?? d.Id                       ?? 0,
+      casePickUpId:             d.casePickUpId             ?? d.CasePickUpId             ?? 0,
+      caseRegistrationMasterId: d.caseRegistrationMasterId ?? d.CaseRegistrationMasterId ?? 0,
+      isActive:                 d.isActive                 ?? d.IsActive                 ?? true,
+      isDeleted:                d.isDeleted                ?? d.IsDeleted                ?? false,
+      createdAt:                d.createdAt                ?? d.CreatedAt,
+      updatedAt:                d.updatedAt                ?? d.UpdatedAt,
+      patientName:              d.patientName              ?? d.PatientName              ?? "",
+      caseNo:                   d.caseNo                   ?? d.CaseNo                   ?? "",
+    }));
+
+    const activeDetails             = details.filter((d) => !d.isDeleted);
+    const caseRegistrationMasterIds = activeDetails.map((d) => d.caseRegistrationMasterId);
+    const caseLabels                = activeDetails.map((d) =>
+      d.patientName
+        ? d.caseNo ? `${d.patientName} (${d.caseNo})` : d.patientName
+        : String(d.caseRegistrationMasterId)
+    );
+
+    return {
+      id:                 data.id                 ?? data.Id                 ?? id,
+      pickUpDate:         data.pickUpDate         ?? data.PickUpDate         ?? "",
+      pickUpEarliestTime: data.pickUpEarliestTime ?? data.PickUpEarliestTime ?? "",
+      pickUpLateTime:     data.pickUpLateTime     ?? data.PickUpLateTime     ?? "",
+      pickUpAddress:      data.pickUpAddress      ?? data.PickUpAddress      ?? "",
+      trackingNum:        data.trackingNum        ?? data.TrackingNum        ?? "",
+      labMasterId:        data.labMasterId        ?? data.LabMasterId        ?? 0,
+      labMasterName:      data.labMasterName      ?? data.LabMasterName      ?? "",
+      isActive:           data.isActive           ?? data.IsActive           ?? true,
+      isDeleted:          data.isDeleted          ?? data.IsDeleted          ?? false,
+      casePickUpDetails:  details,
+      caseRegistrationMasterIds,
+      caseLabels,
+      pickUpAddressId:    undefined, // ✅ not returned by backend
+    };
+  }
 
   // ── Create ────────────────────────────────────────────────────────────────
-  // Payload matches CasePickUpCreateUpdateDTO:
-  //   id, pickUpDate, pickUpEarliestTime, pickUpLateTime,
-  //   pickUpAddress, trackingNum, labMasterId, isActive, isDeleted,
-  //   casePickUpDetails: [{ id, casePickUpId, isActive, isDeleted }]
   static async create(data: CasePickupCreatePayload): Promise<any> {
     return await HttpService.callApi<any>(
       API_ENDPOINTS.CASEPICKUP.CREATE,
@@ -105,7 +179,7 @@ export default class CasePickupService {
     return await HttpService.callApi<any>(
       API_ENDPOINTS.CASEPICKUP.UPDATE(id),
       "PUT",
-      data
+      { ...data, id }
     );
   }
 
@@ -128,69 +202,106 @@ export default class CasePickupService {
   }
 
   // ── Get cases for a specific doctor ──────────────────────────────────────
-  static async getCasesByDoctor(
-    dsoDoctorId: number
-  ): Promise<CaseLookupItem[]> {
+  static async getCasesByDoctor(dsoDoctorId: number): Promise<CaseLookupItem[]> {
     const response = await HttpService.callApi<any>(
       API_ENDPOINTS.CASE_REGISTRATION.GET_PAGINATED,
       "POST",
       {
-        pageNumber: 1,
-        pageSize: 9999,
-        searchTerm: "",
-        sortBy: "",
-        sortDescending: false,
-        showDeleted: false,
-        dsoDoctorId,
+        pageNumber: 1, pageSize: 9999,
+        searchTerm: "", sortBy: "", sortDescending: false,
+        showDeleted: false, dsoDoctorId,
       }
     );
 
     const result = response?.value ?? response;
     const items: any[] = result?.data ?? result?.items ?? [];
 
-    return items.map(
-      (c: any): CaseLookupItem => ({
-        id: c.id,
-        caseId: c.caseId ?? c.caseNumber ?? String(c.id),
-        patientName: c.patientName ?? c.patientFirstName ?? "—",
-        doctorName: c.doctorName ?? "",
-        status: c.statusName ?? c.status ?? "",
-      })
-    );
+    return items.map((c: any): CaseLookupItem => ({
+      id:          c.id,
+      caseId:      c.caseNo ?? c.caseId ?? String(c.id),
+      patientName: c.patientFirstName
+                     ? `${c.patientFirstName} ${c.patientLastName ?? ""}`.trim()
+                     : (c.patientName ?? "—"),
+      doctorName:  c.doctorName ?? "",
+      status:      c.caseStatusName ?? c.status ?? "",
+    }));
   }
 
-  // ── Get dental offices (practices) for a specific doctor ─────────────────
-  static async getPracticesByDoctor(
-    dsoDoctorId: number
-  ): Promise<DoctorPracticeItem[]> {
-    const response = await HttpService.callApi<any>(
-      API_ENDPOINTS.DSO_DOCTOR_DENTAL_OFFICE.UPDATE_PAGINATION,
-      "POST",
-      {
-        pageNumber: 1,
-        pageSize: 9999,
-        searchTerm: "",
-        sortBy: "",
-        sortDescending: false,
-        showDeleted: false,
-        dsoDoctorId,
-      }
-    );
+  // ── Get dental offices for a specific doctor ──────────────────────────────
+  static async getPracticesByDoctor(dsoDoctorId: number): Promise<DoctorPracticeItem[]> {
+    try {
+      const doctorRes = await HttpService.callApi<any>(
+        API_ENDPOINTS.DSO_DOCTOR.GET_BY_ID(dsoDoctorId),
+        "GET", null, false
+      );
 
-    const result = response?.value ?? response;
-    const items: any[] = result?.data ?? result?.items ?? [];
+      if (!doctorRes?.isSucess || !doctorRes.value) return [];
 
-    return items.map(
-      (row: any): DoctorPracticeItem => ({
-        id: row.dsodentalOfficeId ?? row.dentalOfficeId ?? row.id,
-        officeName: row.officeName ?? row.dentalOfficeName ?? "",
-        officeCode: row.officeCode ?? "",
-        address: row.address ?? "",
-        city: row.city ?? "",
-        postCode: row.postCode ?? "",
-        country: row.country ?? "",
-        isActive: row.isActive ?? true,
-      })
-    );
+      const value    = doctorRes.value;
+      const mappings: any[] =
+        value.dsoDentalDoctors ?? value.DsoDentalDoctors ??
+        value.officeMappings   ?? value.OfficeMappings   ??
+        value.dentalOfficeMappings ?? [];
+
+      const activeMappings = mappings.filter(
+        (m: any) => !(m.isDeleted ?? m.IsDeleted ?? false)
+      );
+
+      if (activeMappings.length === 0) return [];
+
+      const officeResults = await Promise.all(
+        activeMappings.map((m: any) => {
+          const officeId =
+            m.dsoDentalOfficeId ?? m.dSODentalOfficeId ??
+            m.DSODentalOfficeId ?? m.dentalOfficeId    ?? null;
+
+          if (!officeId) return Promise.resolve(null);
+
+          return HttpService.callApi<any>(
+            API_ENDPOINTS.DSO_DENTAL_OFFICE.GET_BY_ID(officeId),
+            "GET", null, false
+          ).then((r: any) => (r?.isSucess && r.value ? r.value : null));
+        })
+      );
+
+      return officeResults.filter(Boolean).map((o: any): DoctorPracticeItem => ({
+        id:         o.id         ?? 0,
+        officeName: o.officeName ?? "",
+        officeCode: o.officeCode ?? "",
+        address:    o.address    ?? "",
+        city:       o.city       ?? "",
+        postCode:   o.postCode   ?? "",
+        country:    o.country    ?? "",
+        isActive:   o.isActive   ?? true,
+      }));
+    } catch (err) {
+      console.error("[CasePickupService] getPracticesByDoctor failed:", err);
+      return [];
+    }
+  }
+
+  // ── Get full dental office detail by ID (for View modal address panel) ───
+  static async getOfficeById(officeId: number): Promise<{
+    practiceName: string;
+    address: string;
+    email: string;
+    mobileNo: string;
+  } | null> {
+    try {
+      const res = await HttpService.callApi<any>(
+        API_ENDPOINTS.DSO_DENTAL_OFFICE.GET_BY_ID(officeId),
+        "GET", null, false
+      );
+      const o = res?.value ?? res;
+      if (!o) return null;
+      return {
+        practiceName: o.officeName ?? "",
+        address:      [o.address, o.city, o.postCode, o.country].filter(Boolean).join(", "),
+        email:        o.email    ?? o.emailAddress ?? "",
+        mobileNo:     o.mobileNo ?? o.phone        ?? o.mobile ?? "",
+      };
+    } catch {
+      return null;
+    }
   }
 }

@@ -6,7 +6,7 @@
 import React from "react";
 import CaseDashboard from "../../KIDU_COMPONENTS/KiduCaseDashboard";
 import AuthService from "../../Services/AuthServices/Auth.services";
-import { useDashboardCases } from "../Types/UseDashBoard.types";
+import { useDashboardCases } from "../Types/Common/UseDashBoard.types";
 
 const DoctorIndexPage: React.FC = () => {
   const user = AuthService.getUser();

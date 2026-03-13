@@ -1,4 +1,4 @@
-// src/Pages/CasePickup/List.tsx
+// src/DOCTOR_CONNECT/Pages/CasePickup/List.tsx
 
 import React, { useRef, useState } from "react";
 import Swal from "sweetalert2";
@@ -8,6 +8,19 @@ import CasePickupView from "./View";
 import type { KiduColumn } from "../../../KIDU_COMPONENTS/KiduServerTable";
 import CasePickupService from "../../Service/Pickup/Pickup.services";
 import KiduServerTableList from "../../../KIDU_COMPONENTS/KiduServerTableList";
+import type { CasePickUpDetailItem } from "../../Types/Pickup.type";
+
+// ─── Helper ───────────────────────────────────────────────────────────────────
+
+const formatTime = (value: string): string => {
+  if (!value) return "—";
+  const timePart = value.includes("T") ? value.split("T")[1] : value;
+  const [h, m] = timePart.split(":").map(Number);
+  if (isNaN(h) || isNaN(m)) return value;
+  const period = h >= 12 ? "PM" : "AM";
+  const hour12 = h % 12 || 12;
+  return `${hour12}:${String(m).padStart(2, "0")} ${period}`;
+};
 
 // ─── Table columns ────────────────────────────────────────────────────────────
 
@@ -32,12 +45,9 @@ const columns: KiduColumn[] = [
     enableSorting: false,
     enableFiltering: false,
     render: (value: string) => {
-      if (!value) return <span className="kidu-cell-empty">—</span>;
-      const [h, m] = value.split(":").map(Number);
-      if (isNaN(h)) return <span>{value}</span>;
-      return (
-        <span>{`${h % 12 || 12}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`}</span>
-      );
+      const formatted = formatTime(value);
+      if (formatted === "—") return <span className="kidu-cell-empty">—</span>;
+      return <span>{formatted}</span>;
     },
   },
   {
@@ -46,12 +56,9 @@ const columns: KiduColumn[] = [
     enableSorting: false,
     enableFiltering: false,
     render: (value: string) => {
-      if (!value) return <span className="kidu-cell-empty">—</span>;
-      const [h, m] = value.split(":").map(Number);
-      if (isNaN(h)) return <span>{value}</span>;
-      return (
-        <span>{`${h % 12 || 12}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`}</span>
-      );
+      const formatted = formatTime(value);
+      if (formatted === "—") return <span className="kidu-cell-empty">—</span>;
+      return <span>{formatted}</span>;
     },
   },
   {
@@ -68,6 +75,58 @@ const columns: KiduColumn[] = [
     filterType: "text",
   },
   {
+    // ✅ FIX: key changed from "casePickUpDetails" to "cases"
+    // backend paginated now returns `cases` array
+    key: "cases",
+    label: "Cases",
+    enableSorting: false,
+    enableFiltering: false,
+    render: (details: CasePickUpDetailItem[], row: any) => {
+      // ✅ FIX: fallback to casePickUpDetails if cases not present
+      const items = details ?? row?.casePickUpDetails ?? [];
+
+      if (!items?.length && !row?.caseCount) {
+        return <span className="kidu-cell-empty">—</span>;
+      }
+
+      if (items?.length) {
+        return (
+          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            {items.map((d: CasePickUpDetailItem, i: number) => (
+              <span key={d.id ?? i} style={{ fontSize: 12 }}>
+                {d.patientName ? (
+                  <>
+                    <strong>{d.patientName}</strong>
+                    {d.caseNo && (
+                      <span
+                        style={{
+                          color: "var(--color-text-secondary)",
+                          marginLeft: 4,
+                        }}
+                      >
+                        ({d.caseNo})
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <span style={{ color: "var(--color-text-secondary)" }}>
+                    Case #{d.caseRegistrationMasterId}
+                  </span>
+                )}
+              </span>
+            ))}
+          </div>
+        );
+      }
+
+      return (
+        <span className="kidu-badge kidu-badge--info">
+          {row.caseCount} {row.caseCount === 1 ? "case" : "cases"}
+        </span>
+      );
+    },
+  },
+  {
     key: "isActive",
     label: "Status",
     type: "badge",
@@ -76,7 +135,9 @@ const columns: KiduColumn[] = [
     filterType: "select",
     filterOptions: ["Inactive", "Active"],
     render: (value: boolean) => (
-      <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>
+      <span
+        className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}
+      >
         {value ? "Active" : "Inactive"}
       </span>
     ),
@@ -87,20 +148,27 @@ const columns: KiduColumn[] = [
 
 const CasePickupList: React.FC = () => {
   const [showCreate, setShowCreate] = useState(false);
-  const [showEdit,   setShowEdit]   = useState(false);
-  const [showView,   setShowView]   = useState(false);
-  const [recordId,   setRecordId]   = useState<number | string>("");
+  const [showEdit, setShowEdit]     = useState(false);
+  const [showView, setShowView]     = useState(false);
+  const [recordId, setRecordId]     = useState<number | string>("");
 
   const tableKeyRef = useRef(0);
-  const [tableKey,   setTableKey]   = useState(0);
+  const [tableKey, setTableKey] = useState(0);
 
   const refreshTable = () => {
     tableKeyRef.current += 1;
     setTableKey(tableKeyRef.current);
   };
 
-  const handleEditClick = (row: any) => { setRecordId(row.id); setShowEdit(true); };
-  const handleViewClick = (row: any) => { setRecordId(row.id); setShowView(true); };
+  const handleEditClick = (row: any) => {
+    setRecordId(row.id);
+    setShowEdit(true);
+  };
+
+  const handleViewClick = (row: any) => {
+    setRecordId(row.id);
+    setShowView(true);
+  };
 
   const handleDeleteClick = async (row: any) => {
     const result = await Swal.fire({
@@ -144,20 +212,24 @@ const CasePickupList: React.FC = () => {
         auditLogTableName="CasePickUp"
       />
 
-      {/* Create */}
       <CasePickupCreate
         show={showCreate}
         onHide={() => setShowCreate(false)}
-        onSuccess={() => { setShowCreate(false); refreshTable(); }}
+        onSuccess={() => {
+          setShowCreate(false);
+          refreshTable();
+        }}
       />
 
-      {/* Edit / View — only mount when a record is selected */}
       {recordId && (
         <>
           <CasePickupEdit
             show={showEdit}
             onHide={() => setShowEdit(false)}
-            onSuccess={() => { setShowEdit(false); refreshTable(); }}
+            onSuccess={() => {
+              setShowEdit(false);
+              refreshTable();
+            }}
             recordId={recordId}
           />
           <CasePickupView

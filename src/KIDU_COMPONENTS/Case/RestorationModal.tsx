@@ -12,8 +12,8 @@ import RestorationBreadcrumb from "./RestorationBreadcrumb";
 import TeethDiagram from "./TeethDiagram";
 import RestorationFormPanel from "./RestorationFormPanel";
 import "../../Styles/Case/RestorationModal.css";
-import type { IdNameOption } from "../../DOCTOR_CONNECT/Service/Prescription/Prescription.services";
-import PrescriptionService from "../../DOCTOR_CONNECT/Service/Prescription/Prescription.services";
+import type { IdNameOption } from "../../DOCTOR_CONNECT/Service/Common/Prescription.services";
+import PrescriptionService from "../../DOCTOR_CONNECT/Service/Common/Prescription.services";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types

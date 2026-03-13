@@ -11,7 +11,7 @@
 
 import React from "react";
 import "../../Styles/Case/RestorationFormPanel.css";
-import type { IdNameOption } from "../../DOCTOR_CONNECT/Service/Prescription/Prescription.services";
+import type { IdNameOption } from "../../DOCTOR_CONNECT/Service/Common/Prescription.services";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types

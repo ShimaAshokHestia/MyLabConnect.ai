@@ -52,28 +52,42 @@ const CasePickupCreate: React.FC<Props> = ({ show, onHide, onSuccess }) => {
 
   // ── Submit ─────────────────────────────────────────────────────────────────
   const handleSubmit = async (data: PickupCreateFormData) => {
-    await CasePickupService.create({
-      id: 0,
-      labMasterId: Number(data.labMasterId),
-      pickUpDate: data.pickUpDate,
-      pickUpEarliestTime: data.pickUpEarliestTime,
-      pickUpLateTime: data.pickUpLateTime,
-      pickUpAddress: String(data.pickUpAddress ?? ""),
-      trackingNum: data.trackingNum || "",
-      isActive: true,
-      isDeleted: false,
-      casePickUpDetails: data.caseRegistrationMasterIds.map((caseId) => ({
-        id: 0,
-        casePickUpId: 0,
-        caseRegistrationMasterId: Number(caseId),
-        isActive: true,
-        isDeleted: false,
-      })),
-    });
-    onSuccess();
-    onHide();
+  // Helper: combine a date string "2026-03-15" + time string "09:00" 
+  // into a full ISO datetime "2026-03-15T09:00:00"
+  const combineDateTime = (date: string, time: string): string => {
+    if (!date) return "";
+    // If time already looks like a full ISO string, return as-is
+    if (time?.includes("T")) return time;
+    // If time is HH:mm or HH:mm:ss, append to date
+    const t = time?.includes(":") ? time : "00:00:00";
+    return `${date}T${t.length === 5 ? t + ":00" : t}`;
   };
 
+  const pickUpDate = typeof data.pickUpDate === "string"
+    ? data.pickUpDate.split("T")[0]   // ensure we have just the date part
+    : data.pickUpDate;
+
+  await CasePickupService.create({
+    id: 0,
+    labMasterId: Number(data.labMasterId),
+    pickUpDate:         combineDateTime(pickUpDate, pickUpDate),
+    pickUpEarliestTime: combineDateTime(pickUpDate, data.pickUpEarliestTime),
+    pickUpLateTime:     combineDateTime(pickUpDate, data.pickUpLateTime),
+    pickUpAddress: String(data.pickUpAddress ?? ""),
+    trackingNum: data.trackingNum || "",
+    isActive: true,
+    isDeleted: false,
+    casePickUpDetails: data.caseRegistrationMasterIds.map((caseId) => ({
+      id: 0,
+      casePickUpId: 0,
+      caseRegistrationMasterId: Number(caseId),
+      isActive: true,
+      isDeleted: false,
+    })),
+  });
+  onSuccess();
+  onHide();
+};
   // ── Column definitions ─────────────────────────────────────────────────────
   const labColumns = [
     { key: "labName",     label: "Lab Name",     filterType: "text" as const },

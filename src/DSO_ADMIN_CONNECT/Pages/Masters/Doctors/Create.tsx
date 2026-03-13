@@ -239,7 +239,7 @@ const DSODoctorCreateModal: React.FC<Props> = ({
     <KiduTabbedFormCreateModal
       show={show}
       onHide={onHide}
-      title="Create DSO Doctor"
+      title="Create Doctor"
       headerFields={headerFields}
       tabs={baseTabs}
       onSubmit={handleSubmit}

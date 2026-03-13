@@ -74,25 +74,27 @@ const DSODentalOfficeEditModal: React.FC<Props> = ({
   const baseTabs: TabConfig[] = [
     {
       key: "Location",
-      label: "Location",
+      label:"Location",
       addButtonLabel: "Add Location",
       columns: [
         {
-          key: "dsoZoneId", // Match the field name with header
-          label: "Zone",
-          type: "popup",
-          required: true,
-          placeholder: "Select Zone",
-          popupConfig: {
-            component: DSOZonePopup,
-            props: {
-              showAddButton: true
-            },
-            mapValue: (selected: any) => ({
-              value: String(selected.id),
-              display: selected.name || `Zone #${selected.id}`
-            })
-          }
+          key:"Map Url",
+          label:"Map Url",
+          type:"popup",
+          placeholder:"Select Map"
+        }
+      ]
+    },
+     {
+      key: "Address",
+      label:"Change Address",
+      addButtonLabel: "Add Address",
+      columns: [
+        {
+          key:"Location",
+          label:"Location",
+          type:"popup",
+          placeholder:"Select Location"
         }
       ]
     }

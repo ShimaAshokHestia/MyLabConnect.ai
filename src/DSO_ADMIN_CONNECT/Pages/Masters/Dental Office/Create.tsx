@@ -72,6 +72,19 @@ const DSODentalOfficeCreateModal: React.FC<Props> = ({
       addButtonLabel: "Add Location",
       columns: [
         {
+          key:"Map Url",
+          label:"Map Url",
+          type:"popup",
+          placeholder:"Select Map"
+        }
+      ]
+    },
+     {
+      key: "Address",
+      label:"Change Address",
+      addButtonLabel: "Add Address",
+      columns: [
+        {
           key:"Location",
           label:"Location",
           type:"popup",

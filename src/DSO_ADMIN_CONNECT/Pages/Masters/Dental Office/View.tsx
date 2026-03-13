@@ -23,12 +23,25 @@ const headerFields: ViewHeaderField[] = [
 // ── Tab definitions ───────────────────────────────────────────────────────────
 const tabs: ViewTabConfig[] = [
   {
-    key: "location",
-    label: "Location Details",
-    columns: [
-      { key: "Location", label: "Location" },
-    ],
-  },
+      key: "Location",
+      label:"Location",
+      columns: [
+        {
+          key:"Map Url",
+          label:"Map Url",
+        }
+      ]
+    },
+     {
+      key: "Address",
+      label:"Change Address",
+      columns: [
+        {
+          key:"Location",
+          label:"Location",
+        }
+      ]
+    }
 ];
 
 // ── Props ─────────────────────────────────────────────────────────────────────
@@ -45,7 +58,7 @@ const DSODentalOfficeViewModal: React.FC<Props> = ({ show, onHide, recordId }) =
       show={show}
       onHide={onHide}
       title="View Practice"
-      subtitle="DSO Dental Office details"
+      //subtitle="DSO Dental Office details"
       headerFields={headerFields}
       tabs={tabs}
       recordId={recordId}

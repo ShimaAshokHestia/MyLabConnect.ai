@@ -452,15 +452,17 @@ const KiduTabbedFormEditModal: React.FC<KiduTabbedFormEditModalProps> = ({
                         </div>
                       </div>
                     ) : field.type === "select" ? (
-                      <KiduDropdown
-                        value={headerData[field.name] ?? null}
-                        onChange={(value) => handleHeaderChange(field.name, value)}
-                        placeholder={field.placeholder ?? `Select ${field.label.toLowerCase()}`}
-                        required={field.required}
-                        error={errors[field.name]}
-                        inputWidth="100%"
-                        staticOptions={field.options}
-                      />
+                      <div className="ktf-dropdown-field">
+                        <KiduDropdown
+                          value={headerData[field.name] ?? null}
+                          onChange={(value) => handleHeaderChange(field.name, value)}
+                          placeholder={field.placeholder ?? `Select ${field.label.toLowerCase()}`}
+                          required={field.required}
+                          error={errors[field.name]}
+                          inputWidth="100%"
+                          staticOptions={field.options}
+                        />
+                      </div>
                     ) : field.type === "popup" ? (
                       <div className="ktf-popup-field" style={{ position: "relative" }}>
                         <input
@@ -587,14 +589,16 @@ const KiduTabbedFormEditModal: React.FC<KiduTabbedFormEditModalProps> = ({
                                     </div>
                                   </div>
                                 ) : col.type === "select" ? (
-                                  <KiduDropdown
-                                    value={row[col.key] ?? null}
-                                    onChange={(value) => handleRowChange(activeTab, rowIdx, col.key, value)}
-                                    placeholder={col.placeholder ?? `Select ${col.label.toLowerCase()}`}
-                                    required={col.required}
-                                    inputWidth="100%"
-                                    staticOptions={col.options}
-                                  />
+                                  <div className="ktf-dropdown-field ktf-dropdown-field--sm">
+                                    <KiduDropdown
+                                      value={row[col.key] ?? null}
+                                      onChange={(value) => handleRowChange(activeTab, rowIdx, col.key, value)}
+                                      placeholder={col.placeholder ?? `Select ${col.label.toLowerCase()}`}
+                                      required={col.required}
+                                      inputWidth="100%"
+                                      staticOptions={col.options}
+                                    />
+                                  </div>
                                 ) : col.type === "popup" ? (
                                   <div className="ktf-popup-field ktf-popup-field--sm" style={{ position: "relative" }}>
                                     <input

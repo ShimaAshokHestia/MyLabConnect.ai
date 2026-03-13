@@ -51,7 +51,7 @@ const DSODoctorViewModal: React.FC<Props> = ({ show, onHide, recordId }) => {
       show={show}
       onHide={onHide}
       title="View Doctor"
-      subtitle="DSO Doctor details"
+      //subtitle="Doctor details"
       headerFields={headerFields}
       tabs={tabs}
       recordId={recordId}

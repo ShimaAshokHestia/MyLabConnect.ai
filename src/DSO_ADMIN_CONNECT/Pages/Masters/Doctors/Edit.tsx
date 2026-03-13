@@ -62,7 +62,7 @@ const DSODoctorEditModal: React.FC<Props> = ({
           label: "Practice", 
           type: "popup",
           required: true,
-          placeholder: "🔍 Select a practice",
+          placeholder: "Select a practice",
           popupConfig: {
             component: DSODentalOfficePopup,
             props: {
@@ -87,7 +87,7 @@ const DSODoctorEditModal: React.FC<Props> = ({
           label: "Lab", 
           type: "popup",
           required: true,
-          placeholder: "🔍 Select a practice",
+          placeholder: "Select a practice",
          
         },
       ],
@@ -296,7 +296,7 @@ const DSODoctorEditModal: React.FC<Props> = ({
     <KiduTabbedFormEditModal
       show={show}
       onHide={onHide}
-      title="Edit DSO Doctor"
+      title="Edit Doctor"
       headerFields={headerFields}
       tabs={baseTabs}
       onSubmit={handleSubmit}
@@ -304,7 +304,7 @@ const DSODoctorEditModal: React.FC<Props> = ({
       initialHeaderData={initialHeaderData}
       initialTabData={initialTabData}
       themeColor="#ef0d50"
-      successMessage="DSO Doctor updated successfully!"
+      successMessage="Doctor updated successfully!"
       onSuccess={onSuccess}
     />
   );

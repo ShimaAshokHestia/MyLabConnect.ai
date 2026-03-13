@@ -63,7 +63,7 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
 }) => {
   const [headerData, setHeaderData] = useState<Record<string, any>>({});
   const [tabData,    setTabData]    = useState<Record<string, Record<string, any>[]>>({});
-  const [activeTab,  setActiveTab]  = useState(tabs[0]?.key ?? "");
+  const [activeTab,  setActiveTab]  = useState(tabs.length > 0 ? tabs[0]?.key ?? "" : "");
   const [loading,    setLoading]    = useState(false);
 
   // ── Fetch data when modal opens ───────────────────────────────────────────
@@ -170,7 +170,7 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
     if (!show) {
       setHeaderData({});
       setTabData({});
-      setActiveTab(tabs[0]?.key ?? "");
+      setActiveTab(tabs.length > 0 ? tabs[0]?.key ?? "" : "");
     }
   }, [show]);
 
@@ -191,8 +191,8 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
     return String(value);
   };
 
-  const currentTab  = tabs.find((t) => t.key === activeTab)!;
-  const currentRows = tabData[activeTab] ?? [];
+  const currentTab = tabs.length > 0 ? tabs.find((t) => t.key === activeTab) : null;
+  const currentRows = activeTab && tabData[activeTab] ? tabData[activeTab] : [];
 
   // ==================== RENDER ====================
 
@@ -277,7 +277,8 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
               Loading...
             </div>
           ) : (
-            <>
+            /* ── Scrollable Content Area ── */
+            <div className="ktf-scrollable-content">
               {/* ── Header fields (read-only) ── */}
               <div className="ktf-top-fields">
                 {headerFields.map((field) => {
@@ -351,73 +352,77 @@ const KiduTabbedFormViewModal: React.FC<KiduTabbedFormViewModalProps> = ({
               </div>
 
               {/* ── Tab Bar ── */}
-              <div className="ktf-tab-bar">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.key}
-                    type="button"
-                    className={`ktf-tab-btn ${activeTab === tab.key ? "ktf-tab-btn--active" : ""}`}
-                    onClick={() => setActiveTab(tab.key)}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
+              {tabs.length > 0 && (
+                <div className="ktf-tab-bar">
+                  {tabs.map((tab) => (
+                    <button
+                      key={tab.key}
+                      type="button"
+                      className={`ktf-tab-btn ${activeTab === tab.key ? "ktf-tab-btn--active" : ""}`}
+                      onClick={() => setActiveTab(tab.key)}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              )}
 
               {/* ── Tab Content (read-only table) ── */}
-              <div className="ktf-tab-content">
-                {currentRows.length === 0 ? (
-                  <div className="ktf-empty">No records found.</div>
-                ) : (
-                  <div className="ktf-table-wrap">
-                    <table className="ktf-table">
-                      <thead>
-                        <tr>
-                          {currentTab.columns.map((col) => (
-                            <th key={col.key} className="ktf-th">{col.label}</th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {currentRows.map((row, rowIdx) => (
-                          <tr key={rowIdx} className="ktf-tr">
-                            {currentTab.columns.map((col) => {
-                              // Get the value to display
-                              let displayValue = "—";
-                              
-                              // If there's a displayKey, use that first
-                              if (col.displayKey && row[col.displayKey]) {
-                                displayValue = String(row[col.displayKey]);
-                              } 
-                              // Otherwise use the regular key
-                              else if (row[col.key] !== undefined && row[col.key] !== null && row[col.key] !== "") {
-                                displayValue = String(row[col.key]);
-                              }
-                              
-                              // Apply formatter if provided
-                              if (col.formatter) {
-                                displayValue = col.formatter(row[col.key], row);
-                              }
-                              
-                              return (
-                                <td key={col.key} className="ktf-td">
-                                  <input
-                                    type="text"
-                                    className="ktf-input ktf-input--sm ktf-view-readonly"
-                                    value={displayValue}
-                                    readOnly
-                                  />
-                                </td>
-                              );
-                            })}
+              {tabs.length > 0 && currentTab && (
+                <div className="ktf-tab-content">
+                  {currentRows.length === 0 ? (
+                    <div className="ktf-empty">No records found.</div>
+                  ) : (
+                    <div className="ktf-table-wrap">
+                      <table className="ktf-table">
+                        <thead>
+                          <tr>
+                            {currentTab.columns.map((col) => (
+                              <th key={col.key} className="ktf-th">{col.label}</th>
+                            ))}
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            </>
+                        </thead>
+                        <tbody>
+                          {currentRows.map((row, rowIdx) => (
+                            <tr key={rowIdx} className="ktf-tr">
+                              {currentTab.columns.map((col) => {
+                                // Get the value to display
+                                let displayValue = "—";
+                                
+                                // If there's a displayKey, use that first
+                                if (col.displayKey && row[col.displayKey]) {
+                                  displayValue = String(row[col.displayKey]);
+                                } 
+                                // Otherwise use the regular key
+                                else if (row[col.key] !== undefined && row[col.key] !== null && row[col.key] !== "") {
+                                  displayValue = String(row[col.key]);
+                                }
+                                
+                                // Apply formatter if provided
+                                if (col.formatter) {
+                                  displayValue = col.formatter(row[col.key], row);
+                                }
+                                
+                                return (
+                                  <td key={col.key} className="ktf-td">
+                                    <input
+                                      type="text"
+                                      className="ktf-input ktf-input--sm ktf-view-readonly"
+                                      value={displayValue}
+                                      readOnly
+                                    />
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           )}
 
         </div>

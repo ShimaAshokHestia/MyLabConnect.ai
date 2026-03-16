@@ -146,10 +146,10 @@ async function persistTempToken(token: string) {
 }
 
 // ─── Complete a SUCCESS login from a full-access token ────────────
-function completeSessionFromToken(token: string, portal: string | null): boolean {
+async function completeSessionFromToken(token: string, portal: string | null): Promise<boolean> {
   const user = buildUserFromToken(token);
   if (!user) return false;
-  persistFullSession(token, user, portal);
+  await persistFullSession(token, user, portal);
   return true;
 }
 
@@ -189,7 +189,7 @@ class AuthService {
       };
 
       if (dto.authState === 'SUCCESS' && dto.token) {
-        const ok = completeSessionFromToken(dto.token, dto.redirectPortal ?? null);
+        const ok = await completeSessionFromToken(dto.token, dto.redirectPortal ?? null);
         if (!ok) {
           return {
             ...response,
@@ -224,7 +224,7 @@ class AuthService {
         redirectPortal: string | null;
       };
       if (dto.authState === 'SUCCESS' && dto.token) {
-        completeSessionFromToken(dto.token, dto.redirectPortal ?? null);
+      await  completeSessionFromToken(dto.token, dto.redirectPortal ?? null);
       }
     }
 

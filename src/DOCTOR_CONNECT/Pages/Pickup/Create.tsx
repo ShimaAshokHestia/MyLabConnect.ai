@@ -23,7 +23,6 @@ const CasePickupCreate: React.FC<Props> = ({ show, onHide, onSuccess }) => {
   const [practices, setPractices] = useState<DoctorPracticeItem[]>([]);
   const [loadingPractices, setLoadingPractices] = useState(false);
 
-  
   useEffect(() => {
     if (!show || !dsoDoctorId) return;
 
@@ -47,39 +46,40 @@ const CasePickupCreate: React.FC<Props> = ({ show, onHide, onSuccess }) => {
   }, [show, dsoDoctorId]);
 
   // ── Submit ─────────────────────────────────────────────────────────────────
- const handleSubmit = async (data: PickupCreateFormData) => {
-  const combineDateTime = (date: string, time: string): string => {
-    if (!date) return "";
-    if (time?.includes("T")) return time;
-    const t = time?.includes(":") ? time : "00:00:00";
-    return `${date}T${t.length === 5 ? t + ":00" : t}`;
-  };
+  const handleSubmit = async (data: PickupCreateFormData) => {
+    const combineDateTime = (date: string, time: string): string => {
+      if (!date) return "";
+      if (time?.includes("T")) return time;
+      const t = time?.includes(":") ? time : "00:00:00";
+      return `${date}T${t.length === 5 ? t + ":00" : t}`;
+    };
 
-  const pickUpDate = typeof data.pickUpDate === "string"
-    ? data.pickUpDate.split("T")[0]
-    : data.pickUpDate;
+    const pickUpDate = typeof data.pickUpDate === "string"
+      ? data.pickUpDate.split("T")[0]
+      : data.pickUpDate;
 
-  await CasePickupService.create({
-    id: 0,
-    labMasterId: Number(data.labMasterId),
-    pickUpDate:         combineDateTime(pickUpDate, pickUpDate),
-    pickUpEarliestTime: combineDateTime(pickUpDate, data.pickUpEarliestTime),
-    pickUpLateTime:     combineDateTime(pickUpDate, data.pickUpLateTime),
-    pickUpAddress: data.pickUpAddressText || String(data.pickUpAddress ?? ""), 
-    trackingNum: data.trackingNum || "",
-    isActive: true,
-    isDeleted: false,
-    casePickUpDetails: data.caseRegistrationMasterIds.map((caseId) => ({
+    await CasePickupService.create({
       id: 0,
-      casePickUpId: 0,
-      caseRegistrationMasterId: Number(caseId),
+      labMasterId: Number(data.labMasterId),
+      pickUpDate:         combineDateTime(pickUpDate, pickUpDate),
+      pickUpEarliestTime: combineDateTime(pickUpDate, data.pickUpEarliestTime),
+      pickUpLateTime:     combineDateTime(pickUpDate, data.pickUpLateTime),
+      pickUpAddress: data.pickUpAddressText || String(data.pickUpAddress ?? ""),
+      trackingNum: data.trackingNum || "",
       isActive: true,
       isDeleted: false,
-    })),
-  });
-  onSuccess();
-  onHide();
-};
+      casePickUpDetails: data.caseRegistrationMasterIds.map((caseId) => ({
+        id: 0,
+        casePickUpId: 0,
+        caseRegistrationMasterId: Number(caseId),
+        isActive: true,
+        isDeleted: false,
+      })),
+    });
+    onSuccess();
+    onHide();
+  };
+
   // ── Column definitions ─────────────────────────────────────────────────────
   const labColumns = [
     { key: "labName",     label: "Lab Name",     filterType: "text" as const },
@@ -88,7 +88,6 @@ const CasePickupCreate: React.FC<Props> = ({ show, onHide, onSuccess }) => {
     { key: "lmsSystem",   label: "LMS",          filterType: "text" as const },
   ];
 
-  // Same columns as DentalOfficePopup
   const practiceColumns = [
     { key: "officeName", label: "Office Name", filterType: "text" as const },
     { key: "officeCode", label: "Code",        filterType: "text" as const },
@@ -115,8 +114,7 @@ const CasePickupCreate: React.FC<Props> = ({ show, onHide, onSuccess }) => {
       labIdKey="id"
       labLabelKey="labName"
       labSearchKeys={["labName", "labCode", "displayName"]}
-      // Pickup address — doctor's linked practices (pre-loaded, MODE 1)
-      // Same as DentalOfficePopup receiving `offices` prop from AddNewCase
+      // Pickup address — doctor's linked practices (pre-loaded)
       practicesData={practices}
       practicesLoading={loadingPractices}
       practiceColumns={practiceColumns}
@@ -127,7 +125,7 @@ const CasePickupCreate: React.FC<Props> = ({ show, onHide, onSuccess }) => {
       casesSelectData={cases}
       caseColumns={caseColumns}
       caseIdKey="id"
-      caseLabelKey="patientName"
+      caseLabelKey="patientNameWithCase"   // ✅ shows "Teena Rejin (CASE-20260313-00006)"
       caseSearchKeys={["caseId", "patientName", "doctorName", "status"]}
       onSubmit={handleSubmit}
       title="Schedule Pickup"

@@ -17,6 +17,7 @@ export interface CaseLookupItem {
   id: number;
   caseId: string;
   patientName: string;
+  patientNameWithCase: string; // ✅ combined label: "Teena Rejin (CASE-20260313-00006)"
   doctorName: string;
   status: string;
 }
@@ -216,15 +217,23 @@ export default class CasePickupService {
     const result = response?.value ?? response;
     const items: any[] = result?.data ?? result?.items ?? [];
 
-    return items.map((c: any): CaseLookupItem => ({
-      id:          c.id,
-      caseId:      c.caseNo ?? c.caseId ?? String(c.id),
-      patientName: c.patientFirstName
-                     ? `${c.patientFirstName} ${c.patientLastName ?? ""}`.trim()
-                     : (c.patientName ?? "—"),
-      doctorName:  c.doctorName ?? "",
-      status:      c.caseStatusName ?? c.status ?? "",
-    }));
+    return items.map((c: any): CaseLookupItem => {
+      const patientName = c.patientFirstName
+        ? `${c.patientFirstName} ${c.patientLastName ?? ""}`.trim()
+        : (c.patientName ?? "—");
+
+      const caseId = c.caseNo ?? c.caseId ?? String(c.id);
+
+      return {
+        id:                  c.id,
+        caseId,
+        patientName,
+        // ✅ Combined label shown in chip after selection
+        patientNameWithCase: `${patientName} (${caseId})`,
+        doctorName:          c.doctorName ? `Dr. ${c.doctorName}` : "",
+        status:              c.caseStatusName ?? c.status ?? "",
+      };
+    });
   }
 
   // ── Get dental offices for a specific doctor ──────────────────────────────

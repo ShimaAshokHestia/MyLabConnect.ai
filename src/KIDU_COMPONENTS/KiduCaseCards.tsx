@@ -6,6 +6,7 @@
 
 import React, { useState } from 'react';
 import '.././Styles/KiduStyles/CaseCards.css';
+import { FaUserDoctor } from 'react-icons/fa6';
 import QuickChatModal from './KiduQuickChatModal';
 import type { CaseDetailData, LoginRole } from './KiduCaseDetailModal';
 import CaseDetailModal from './KiduCaseDetailModal';
@@ -63,17 +64,12 @@ export interface CaseCardProps {
 }
 
 // ─────────────────────────────────────────────────────────────
-// SVG Icons  (unchanged)
+// SVG Icons  (IconUser removed — replaced by FaUserDoctor)
 // ─────────────────────────────────────────────────────────────
 
 const IconCopy = () => (
   <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
     <rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-  </svg>
-);
-const IconUser = () => (
-  <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" />
   </svg>
 );
 const IconBuilding = () => (
@@ -158,7 +154,6 @@ function buildStepsFromStatus(status: CaseStatus, date: string) {
     const stepDate = idx === 0 ? date : undefined;
 
     if (isHold && idx === done - 1) {
-      // Last completed step is on hold
       return { label, status: 'hold' as const, date: stepDate };
     }
     if (idx < done) {
@@ -332,7 +327,7 @@ const CaseCard: React.FC<CaseCardProps> = (props) => {
 
   return (
     <>
-      {/* ── Card shell (no visual changes) ── */}
+      {/* ── Card shell ── */}
       <div
         className={cardClasses}
         style={{ animationDelay: `${animationDelay}s` }}
@@ -376,10 +371,17 @@ const CaseCard: React.FC<CaseCardProps> = (props) => {
               <span className="case-card__meta-icon"><IconCopy /></span>
               <span className="case-card__meta-text case-card__meta-text--mono">{caseId}</span>
             </div>
+
+            {/* ── Doctor row: FaUserDoctor icon + Dr. prefix ── */}
             <div className="case-card__meta-row">
-              <span className="case-card__meta-icon"><IconUser /></span>
-              <span className="case-card__meta-text case-card__meta-text--bold">{doctorName}</span>
+              <span className="case-card__meta-icon">
+                <FaUserDoctor size={11} aria-hidden="true" />
+              </span>
+              <span className="case-card__meta-text case-card__meta-text--bold">
+                {doctorName ? `Dr. ${doctorName}` : '—'}
+              </span>
             </div>
+
             <div className="case-card__meta-row">
               <span className="case-card__meta-icon"><IconBuilding /></span>
               <span className="case-card__meta-text">{labName}</span>

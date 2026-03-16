@@ -111,20 +111,76 @@ const KiduDropdown = forwardRef<KiduDropdownHandle, KiduDropdownProps>(({
     }
   }, [name, reset, resetRef]);
 
-  // ── Resolve display label from value ──────────────────────────────────────
+  // ── Load the selected option label when component mounts or value changes ──
+  useEffect(() => {
+    const loadSelectedOption = async () => {
+      // If no value, clear display label
+      if (value === null || value === undefined || value === "") {
+        setDisplayLabel("");
+        return;
+      }
+
+      // If static options, find label from static options
+      if (staticOptions) {
+        const found = staticOptions.find((o) => String(o.value) === String(value));
+        if (found) {
+          setDisplayLabel(found.label);
+        } else {
+          setDisplayLabel(String(value));
+        }
+        return;
+      }
+
+      // For paginated dropdowns, we need to fetch the specific item
+      if (paginatedFetch && mapOption) {
+        try {
+          // Try to find the option in already loaded options
+          const foundInOptions = options.find((o) => String(o.value) === String(value));
+          if (foundInOptions) {
+            setDisplayLabel(foundInOptions.label);
+            return;
+          }
+
+          // If not found, fetch with search to get the specific item
+          const result = await paginatedFetch({ 
+            pageNumber: 1, 
+            pageSize: pageSize * 2,
+            searchTerm: "" 
+          });
+          
+          const mapped = (result.data ?? []).map(mapOption);
+          const found = mapped.find((o) => String(o.value) === String(value));
+          
+          if (found) {
+            setDisplayLabel(found.label);
+            // Also add to options if not already there
+            if (!options.some(o => String(o.value) === String(value))) {
+              setOptions(prev => [...prev, found]);
+            }
+          } else {
+            // If still not found, show the ID as label
+            setDisplayLabel(String(value));
+          }
+        } catch (error) {
+          console.error("Error loading selected option:", error);
+          setDisplayLabel(String(value));
+        }
+      }
+    };
+
+    loadSelectedOption();
+  }, [value, staticOptions, paginatedFetch, mapOption, pageSize]);
+
+  // ── Resolve display label from value (backup) ────────────────────────────
   useEffect(() => {
     if (value === null || value === undefined || value === "") {
-      setDisplayLabel("");
       return;
     }
     const found = options.find((o) => String(o.value) === String(value));
     if (found) {
       setDisplayLabel(found.label);
-    } else if (staticOptions) {
-      const s = staticOptions.find((o) => String(o.value) === String(value));
-      setDisplayLabel(s?.label ?? String(value));
     }
-  }, [value, options, staticOptions]);
+  }, [options, value]);
 
   // ── Static options ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -148,9 +204,12 @@ const KiduDropdown = forwardRef<KiduDropdownHandle, KiduDropdownProps>(({
         const total = result.total ?? 0;
         setHasMore(pg * pageSize < total);
 
+        // Check if the current value is in the newly loaded options
         if (value !== null && value !== undefined && value !== "") {
           const found = mapped.find((o) => String(o.value) === String(value));
-          if (found) setDisplayLabel(found.label);
+          if (found) {
+            setDisplayLabel(found.label);
+          }
         }
       } finally {
         setLoading(false);

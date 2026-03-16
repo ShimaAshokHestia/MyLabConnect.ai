@@ -40,29 +40,6 @@ const columns: KiduColumn[] = [
     filterType: "text",
   },
   {
-    key: "authenticationType",
-    label: "Auth Type",
-    enableSorting: true,
-    enableFiltering: true,
-    filterType: "select",
-    filterOptions: ["Normal", "SSO", "Basic"],
-    render: (value) => {
-      const authTypes: Record<number, string> = {
-        1: "Normal",
-        2: "SSO",
-        3: "Basic"
-      };
-      return <span>{authTypes[value] || value}</span>;
-    },
-  },
-  {
-    key: "labGroupId",
-    label: "Lab Group",
-    enableSorting: true,
-    enableFiltering: true,
-    filterType: "text",
-  },
-  {
     key: "isActive",
     label: "Status",
     type: "badge",

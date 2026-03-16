@@ -1,12 +1,13 @@
 // src/Pages/Masters/Lab/Edit.tsx
 
-import React from "react";
+import React, {  useEffect } from "react";
 import KiduEditModal, { type Field } from "../../../../KIDU_COMPONENTS/KiduEditModal";
 import LabGroupService from "../../../Services/Masters/Labgroup.services";
 import LabMasterService from "../../../Services/Masters/Lab.services";
 import type { LabMaster } from "../../../Types/Masters/Lab.types";
 import type { DropdownHandlers } from "../../../../KIDU_COMPONENTS/KiduCreateModal";
-import { useApiErrorHandler } from "../../../../Services/AuthServices/APIErrorHandler.services"; // Removed useCurrentUser
+import { useCurrentUser } from "../../../../Services/AuthServices/CurrentUser.services";
+import { useApiErrorHandler } from "../../../../Services/AuthServices/APIErrorHandler.services";
 
 // ── Authentication type static options ────────────────────────────────────────
 const AUTHENTICATION_TYPE_OPTIONS = [
@@ -116,6 +117,7 @@ const fields: Field[] = [
 const dropdownHandlers: DropdownHandlers = {
   labGroupId: {
     paginatedFetch: async (params) => {
+      console.log("Fetching lab groups with params:", params);
       const result = await LabGroupService.getPaginatedList({
         pageNumber: params.pageNumber,
         pageSize: params.pageSize,
@@ -123,6 +125,7 @@ const dropdownHandlers: DropdownHandlers = {
         sortBy: "",
         sortDescending: false,
       });
+      console.log("Lab groups fetched:", result);
       return { data: result.data, total: result.total };
     },
     mapOption: (row) => ({ 
@@ -149,16 +152,93 @@ interface Props {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 const LabMasterEditModal: React.FC<Props> = ({ show, onHide, onSuccess, recordId }) => {
-  const { handleApiError, assertApiSuccess } = useApiErrorHandler(); // Removed useCurrentUser
+  const { requireDSOMasterId } = useCurrentUser();
+  const { handleApiError, assertApiSuccess } = useApiErrorHandler();
+  
+  // State to store the fetched lab group name for debugging
+  //const [labGroupName, setLabGroupName] = useState<string>("");
+
+  // ── Fetch the lab group name separately if needed ────────────────────────
+  const fetchLabGroupName = async (groupId: number) => {
+    try {
+      // You might need to fetch the specific lab group to get its name
+      // This depends on your API - you might have a getById endpoint
+      console.log("Fetching lab group name for ID:", groupId);
+      // If you have a getById endpoint:
+      // const response = await LabGroupService.getById(groupId);
+      // if (response?.isSucess) {
+      //   setLabGroupName(response.value.name);
+      // }
+    } catch (error) {
+      console.error("Error fetching lab group name:", error);
+    }
+  };
 
   // ── Fetch handler ─────────────────────────────────────────────────────────
   const handleFetch = async (id: string | number) => {
-    return await LabMasterService.getById(Number(id));
+    console.log("========== EDIT MODAL FETCH START ==========");
+    console.log("Fetching lab with ID:", id);
+    
+    try {
+      const response = await LabMasterService.getById(Number(id));
+      console.log("Raw API Response:", response);
+      
+      if (response?.isSucess && response.value) {
+        const data = response.value;
+        console.log("Fetched lab data:", data);
+        console.log("labGroupId from API:", data.labGroupId);
+        console.log("authenticationType from API:", data.authenticationType);
+        
+        // Fetch the lab group name if needed
+        if (data.labGroupId) {
+          await fetchLabGroupName(data.labGroupId);
+        }
+        
+        // IMPORTANT: Return the data in the format KiduEditModal expects
+        // The modal will use this to populate formData and dropdownValues
+        return {
+          isSucess: true,
+          value: {
+            ...data,
+            // Ensure these are explicitly set
+            labGroupId: data.labGroupId,
+            authenticationType: data.authenticationType,
+          }
+        };
+      }
+      
+      console.log("========== EDIT MODAL FETCH END ==========");
+      return response;
+    } catch (error) {
+      console.error("Fetch error:", error);
+      throw error;
+    }
   };
+
+  // Log when modal opens/closes
+  useEffect(() => {
+    if (show) {
+      console.log("Edit modal opened for record ID:", recordId);
+    }
+  }, [show, recordId]);
 
   // ── Update handler ────────────────────────────────────────────────────────
   const handleUpdate = async (id: string | number, formData: Record<string, any>) => {
-    // Build payload - NO dsoMasterId
+    console.log("========== EDIT MODAL UPDATE START ==========");
+    console.log("Update formData received from modal:", formData);
+    console.log("labGroupId in formData:", formData.labGroupId);
+    console.log("authenticationType in formData:", formData.authenticationType);
+    
+    // 1. Get DSOMasterId from token
+    let dsoMasterId: number;
+    try {
+      dsoMasterId = requireDSOMasterId();
+    } catch (err) {
+      await handleApiError(err, "session");
+      return;
+    }
+
+    // 2. Build payload
     const payload: Partial<LabMaster> = {
       id: Number(id),
       labCode: formData.labCode,
@@ -170,24 +250,32 @@ const LabMasterEditModal: React.FC<Props> = ({ show, onHide, onSuccess, recordId
       logoforRX: formData.logoforRX || undefined,
       lmsSystem: formData.lmsSystem || undefined,
       isActive: formData.isActive ?? true,
+      dsoLabMappings: [
+        {
+          dsoMasterId: dsoMasterId,
+          isActive: true,
+          isDeleted: false,
+        },
+      ],
     };
 
-    console.log("Update payload:", payload);
+    console.log("Update payload being sent to API:", payload);
 
-    // Call API
+    // 3. Call API
     let result: any;
     try {
       result = await LabMasterService.update(Number(id), payload);
-      console.log("Update result:", result);
+      console.log("API Update result:", result);
     } catch (err) {
       console.error("Update error:", err);
       await handleApiError(err, "network");
       return;
     }
 
-    // Assert success
+    // 4. Assert success
     await assertApiSuccess(result, "Failed to update Lab Master.");
-
+    
+    console.log("========== EDIT MODAL UPDATE END ==========");
     return result;
   };
 

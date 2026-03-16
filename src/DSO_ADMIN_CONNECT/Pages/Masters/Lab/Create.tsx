@@ -1,4 +1,5 @@
 // src/Pages/Masters/Lab/Create.tsx
+
 import React from "react";
 import KiduCreateModal, { type Field } from "../../../../KIDU_COMPONENTS/KiduCreateModal";
 import LabGroupService from "../../../Services/Masters/Labgroup.services";
@@ -15,7 +16,6 @@ const AUTHENTICATION_TYPE_OPTIONS = [
 ];
 
 // ── Field definitions ─────────────────────────────────────────────────────────
-// FIXED: labCode maxLength changed from 20 to 10 to match backend validation
 const fields: Field[] = [
   { 
     name: "labCode", 
@@ -24,7 +24,7 @@ const fields: Field[] = [
       label: "Lab Code", 
       required: true, 
       minLength: 3, 
-      maxLength: 10, // FIXED: Changed from 20 to 10
+      maxLength: 10,
       colWidth: 6 
     } 
   },
@@ -161,7 +161,7 @@ const LabMasterCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }) => {
       return;
     }
 
-    // 2. Build payload
+    // 2. Build payload - WITH dsoMasterId UNCOMMENTED
     const payload: Partial<LabMaster> = {
       labCode: formData.labCode,
       labName: formData.labName,
@@ -172,7 +172,7 @@ const LabMasterCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }) => {
       logoforRX: formData.logoforRX || undefined,
       lmsSystem: formData.lmsSystem || undefined,
       isActive: formData.isActive ?? true,
-      //dsoMasterId: dsoMasterId, // CRITICAL: Include this
+      dsoMasterId: dsoMasterId, // UNCOMMENTED - This is critical!
     };
 
     console.log("Sending payload:", payload);

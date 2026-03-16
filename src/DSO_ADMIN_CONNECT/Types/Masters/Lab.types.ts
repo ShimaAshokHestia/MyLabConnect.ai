@@ -47,6 +47,7 @@ export interface LabMaster {
   updatedAt: string | null;
   isDeleted: boolean;
   isActive: boolean;
+  dsoMasterId: number;
   
   // Relationships
   labMappings: any[]; // Array of lab mappings (could be empty)

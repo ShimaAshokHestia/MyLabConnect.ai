@@ -67,13 +67,13 @@ export interface LabMaster {
 }
 
 export interface DsoLabMapping {
-  id: number;
-  createdAt: string;
-  updatedAt: string | null;
-  isDeleted: boolean;
-  isActive: boolean;
+  id?: number;
+  createdAt?: string;
+  updatedAt?: string | null;
+  isDeleted?: boolean;
+  isActive?: boolean;
   dsoMasterId: number;
-  labMasterId: number;
+  labMasterId?: number;
 }
 
 // For paginated requests

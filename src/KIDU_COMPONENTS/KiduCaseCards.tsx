@@ -220,11 +220,18 @@ const CaseCard: React.FC<CaseCardProps> = (props) => {
   const [chatOpen,  setChatOpen]  = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
 
+  // FIX: snapshot the modal data at click-time so it is always consistent
+  // with the card that was clicked (avoids stale closure issues if the
+  // parent re-renders the list while a modal is open).
+  const [modalData, setModalData] = useState<CaseDetailData | null>(null);
+
   const cardClasses = [
     'case-card',
     `case-card--${status}`,
     isRush ? 'case-card--rush' : '',
     VIEW_ONLY_MODES.includes(mode) ? 'case-card--view-only' : '',
+    // FIX: add a mode modifier so doctor cards get the compact-footer rule
+    `case-card--mode-${mode}`,
   ].filter(Boolean).join(' ');
 
   const stopProp = (e: React.MouseEvent) => e.stopPropagation();
@@ -321,6 +328,9 @@ const CaseCard: React.FC<CaseCardProps> = (props) => {
 
   // ── Card click → open detail modal ──
   const handleCardClick = () => {
+    // Build and snapshot data at click-time so the modal always shows
+    // exactly what was on the card that was clicked.
+    setModalData(buildModalData(props));
     setModalOpen(true);
     onClick?.();
   };
@@ -403,7 +413,11 @@ const CaseCard: React.FC<CaseCardProps> = (props) => {
       {/* ── Case Detail Modal ── */}
       <CaseDetailModal
         isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => {
+            setModalOpen(false);
+            // keep modalData alive during close animation, clear after
+            setTimeout(() => setModalData(null), 350);
+          }}
         role={mapModeToRole(mode)}
         data={buildModalData(props)}
         onSendMessage={onSendMessage}

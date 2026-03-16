@@ -8,11 +8,26 @@
   position: relative;
 }
 
-.kmsp-pill-trigger {
+/* .kmsp-pill-trigger {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
+  min-height: 42px;
+  padding: 6px 10px;
+  background: var(--theme-bg-input, #f1f5f9);
+  border: 1.5px solid var(--theme-border, #e2e8f0);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.18s, box-shadow 0.18s;
+  width: 100%;
+} */
+
+.kmsp-pill-trigger {
+  display: flex;
+  align-items: center;   /* changed from flex-start */
+  justify-content: space-between;
+  gap: 6px;
   min-height: 42px;
   padding: 6px 10px;
   background: var(--theme-bg-input, #f1f5f9);
@@ -60,6 +75,7 @@
   line-height: 28px;
 }
 
+/* AFTER */
 .kmsp-pill-tag {
   display: inline-flex;
   align-items: center;
@@ -73,10 +89,7 @@
   font-weight: 600;
   letter-spacing: 0.1px;
   animation: ksp-pop 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  max-width: 200px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: nowrap;   /* keep on one line but don't clip */
 }
 
 /* .kmsp-pill-tag-remove {

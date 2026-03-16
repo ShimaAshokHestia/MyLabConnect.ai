@@ -161,7 +161,7 @@ const LabMasterCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }) => {
       return;
     }
 
-    // 2. Build payload - WITH dsoMasterId UNCOMMENTED
+    // 2. Build payload - dsoMasterId goes inside dsoLabMappings as per API contract
     const payload: Partial<LabMaster> = {
       labCode: formData.labCode,
       labName: formData.labName,
@@ -172,7 +172,13 @@ const LabMasterCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }) => {
       logoforRX: formData.logoforRX || undefined,
       lmsSystem: formData.lmsSystem || undefined,
       isActive: formData.isActive ?? true,
-      dsoMasterId: dsoMasterId, // UNCOMMENTED - This is critical!
+      dsoLabMappings: [
+        {
+          dsoMasterId: dsoMasterId,
+          isActive: true,
+          isDeleted: false,
+        },
+      ],
     };
 
     console.log("Sending payload:", payload);

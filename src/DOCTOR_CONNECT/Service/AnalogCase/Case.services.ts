@@ -1,10 +1,4 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// FILE: src/DOCTOR_CONNECT/Service/Prescription/Case.services.ts
-//
-// Path matches what the screenshot shows:
-//   src/DOCTOR_CONNECT/Service/Prescription/Case.services.ts
-//   (alongside Prescription.services.ts)
-// ─────────────────────────────────────────────────────────────────────────────
+// src/DOCTOR_CONNECT/Service/Prescription/Case.services.ts
 
 import { API_ENDPOINTS } from "../../../CONSTANTS/API_ENDPOINTS";
 import HttpService from "../../../Services/Common/HttpService";
@@ -34,7 +28,7 @@ export interface CasePaginationParams {
   dSOMasterId?: number;
   dSODentalOfficeId?: number;
   dSODoctorId?: number;
-  labMasterId?: number;
+  labMasterId?: number;          // ← used to scope results to a specific lab
   caseStatusMasterId?: number;
 }
 
@@ -62,13 +56,13 @@ const CaseService = {
       sortBy:         params.sortBy       ?? "",
       sortDescending: params.sortDescending ?? false,
       showDeleted:    false,
-      caseNo:              params["caseNo"]             ?? "",
-      patientName:         params["patientFirstName"]   ?? params["patientName"] ?? "",
-      dSODentalOfficeId:   params["dSODentalOfficeId"]  ? Number(params["dSODentalOfficeId"])  : undefined,
-      dSODoctorId:         params["dSODoctorId"]        ? Number(params["dSODoctorId"])         : undefined,
-      labMasterId:         params["labMasterId"]        ? Number(params["labMasterId"])         : undefined,
-      caseStatusMasterId:  params["caseStatusMasterId"] ? Number(params["caseStatusMasterId"])  : undefined,
-      dSOMasterId:         params["dSOMasterId"]        ? Number(params["dSOMasterId"])         : undefined,
+      caseNo:             params["caseNo"]             ?? "",
+      patientName:        params["patientFirstName"]   ?? params["patientName"] ?? "",
+      dSODentalOfficeId:  params["dSODentalOfficeId"]  ? Number(params["dSODentalOfficeId"])  : undefined,
+      dSODoctorId:        params["dSODoctorId"]        ? Number(params["dSODoctorId"])         : undefined,
+      labMasterId:        params["labMasterId"]        ? Number(params["labMasterId"])         : undefined,  // ← Lab scope
+      caseStatusMasterId: params["caseStatusMasterId"] ? Number(params["caseStatusMasterId"])  : undefined,
+      dSOMasterId:        params["dSOMasterId"]        ? Number(params["dSOMasterId"])         : undefined,
     };
 
     const response = await HttpService.callApi<any>(

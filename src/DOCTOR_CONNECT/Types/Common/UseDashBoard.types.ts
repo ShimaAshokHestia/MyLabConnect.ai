@@ -1,30 +1,34 @@
 // src/Hooks/useDashboardCases.ts
 //
 // Status IDs from dbo.case_status_master:
-//   1 = Pending       → "submitted"  ← newly created cases sit here
+//   1 = Pending       → "submitted"
 //   2 = Submitted     → "submitted"
 //   3 = In Production → "production"
 //   4 = In Transit    → "transit"
 //   5 = Case on Hold  → "hold"
 //   6 = Scan Rejected → "rejected"
-//   7 = Completed     → null (excluded from dashboard)
-//   8 = Cancelled     → null (excluded from dashboard)
+//   7 = Completed     → null (excluded)
+//   8 = Cancelled     → null (excluded)
 
 import { useState, useEffect, useCallback } from "react";
-import type { CaseRecord, CaseStatus, DashboardPageData, LoginRole } from "../../../Types/IndexPage.types";
+import type {
+  CaseRecord,
+  CaseStatus,
+  DashboardPageData,
+  LoginRole,
+} from "../../../Types/IndexPage.types";
 import type { CaseRegistrationDTO } from "../Case.types";
 import CaseService from "../../Service/AnalogCase/Case.services";
 
-
 const STATUS_TO_TAB: Record<number, CaseStatus | null> = {
-  1: "submitted",    // Pending   → shows under Submitted tab
-  2: "submitted",    // Submitted
-  3: "production",   // In Production
-  4: "transit",      // In Transit
-  5: "hold",         // Case on Hold
-  6: "rejected",     // Scan Rejected
-  7: null,           // Completed — excluded
-  8: null,           // Cancelled — excluded
+  1: "submitted",
+  2: "submitted",
+  3: "production",
+  4: "transit",
+  5: "hold",
+  6: "rejected",
+  7: null,
+  8: null,
 };
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
@@ -34,6 +38,18 @@ function isRecent(createdAt?: string): boolean {
   return Date.now() - new Date(createdAt).getTime() <= SEVEN_DAYS_MS;
 }
 
+// ── Extract labMasterId from a raw API row regardless of casing ──────────────
+// DB column = LabMasterId  →  JSON may come back as any of these variants
+function getLabMasterId(c: any): number | null {
+  const val =
+    c?.labMasterId   ??   // camelCase  (most .NET JSON serializers)
+    c?.LabMasterId   ??   // PascalCase (some legacy endpoints)
+    c?.labMasterID   ??   // mixed case
+    c?.LABMasterId   ??   // all-caps prefix
+    null;
+  return val !== null ? Number(val) : null;
+}
+
 function toCard(c: CaseRegistrationDTO, tab: CaseStatus): CaseRecord {
   return {
     id:          c.caseNo || String(c.id),
@@ -41,7 +57,16 @@ function toCard(c: CaseRegistrationDTO, tab: CaseStatus): CaseRecord {
     patientId:   c.patientId,
     caseType:    "Analog Case",
     doctorName:  c.doctorName?.trim() || `Doctor #${c.dSODoctorId}`,
-    labName:     c.labName?.trim()    || `Lab #${c.labMasterId}`,
+
+    // ── Show PRACTICE name, not lab name ────────────────────────────
+    labName:
+      (c as any).practiceName?.trim()        ||
+      (c as any).dentalOfficeName?.trim()    ||
+      (c as any).officeName?.trim()          ||
+      (c as any).dSODentalOfficeName?.trim() ||
+      (c as any).practiceNameStr?.trim()     ||
+      "—",
+
     date: c.dueDate
       ? new Date(c.dueDate).toLocaleDateString("en-GB", {
           day: "2-digit", month: "2-digit", year: "numeric",
@@ -56,6 +81,7 @@ export interface UseDashboardCasesParams {
   role: LoginRole;
   dSODoctorId?: number | null;
   dSOMasterId?: number | null;
+  labMasterId?: number | null;
 }
 
 export interface UseDashboardCasesResult {
@@ -69,6 +95,7 @@ export function useDashboardCases({
   role,
   dSODoctorId,
   dSOMasterId,
+  labMasterId,
 }: UseDashboardCasesParams): UseDashboardCasesResult {
 
   const [data, setData]       = useState<DashboardPageData>(emptyData(role));
@@ -86,12 +113,52 @@ export function useDashboardCases({
         showDeleted: false,
         ...(dSODoctorId ? { dSODoctorId } : {}),
         ...(dSOMasterId ? { dSOMasterId } : {}),
+        ...(labMasterId ? { labMasterId } : {}),
       });
 
-      const all: CaseRegistrationDTO[] = result.data ?? [];
+      let all: CaseRegistrationDTO[] = result.data ?? [];
+
+      // ── MANDATORY CLIENT-SIDE FILTER ─────────────────────────────────
+      // The backend currently ignores labMasterId in the POST body and
+      // returns ALL cases. We filter here to show only this lab's cases.
+      // This is the authoritative filter — do NOT remove even if the API
+      // is later fixed (it will simply be a no-op at that point).
+      if (labMasterId) {
+        const targetId = Number(labMasterId);
+        all = all.filter((c) => {
+          const id = getLabMasterId(c);
+          if (id === null) {
+            // Field missing entirely — log once so we can update getLabMasterId
+            console.warn(
+              "[useDashboardCases] labMasterId field not found on case row. " +
+              "Check API response field name. Case id:", (c as any).id
+            );
+            return false; // exclude unknown cases from this lab's view
+          }
+          return id === targetId;
+        });
+      }
+
+      // ── DSO-level doctor filter (already handled server-side but kept for safety) ──
+      if (dSODoctorId) {
+        const targetDoctorId = Number(dSODoctorId);
+        all = all.filter((c) => {
+          const id =
+            (c as any).dSODoctorId ??
+            (c as any).DSODoctorId ??
+            (c as any).dsoDoctorId ??
+            null;
+          return id !== null ? Number(id) === targetDoctorId : true;
+        });
+      }
+
       const buckets: DashboardPageData["cases"] = {
-        rejected: [], hold: [], transit: [],
-        production: [], submitted: [], recent: [],
+        rejected:   [],
+        hold:       [],
+        transit:    [],
+        production: [],
+        submitted:  [],
+        recent:     [],
       };
 
       for (const c of all) {
@@ -117,7 +184,7 @@ export function useDashboardCases({
     } finally {
       setLoading(false);
     }
-  }, [role, dSODoctorId, dSOMasterId]);
+  }, [role, dSODoctorId, dSOMasterId, labMasterId]);
 
   useEffect(() => { load(); }, [load]);
 

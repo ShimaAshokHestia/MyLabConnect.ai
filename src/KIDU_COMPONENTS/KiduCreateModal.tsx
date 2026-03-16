@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react"; // Added useRef
 import { Form, Button, Row, Col, Modal, InputGroup } from "react-bootstrap";
 import toast, { Toaster } from "react-hot-toast";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
@@ -8,6 +8,7 @@ import KiduValidation, { KiduCharacterCounter } from "./KiduValidation";
 import { KiduSelectInputPill } from "./KiduSelectPopup";
 import type { KiduDropdownOption, KiduDropdownPaginatedParams, KiduDropdownPaginatedResult } from "./KiduDropdown";
 import KiduDropdown from "./KiduDropdown";
+import KiduReset from "./KiduReset"; // Import KiduReset
 
 // ==================== TYPES ====================
 
@@ -74,7 +75,7 @@ export interface KiduCreateModalProps {
   fields: Field[];
   onSubmit: (formData: Record<string, any>) => Promise<void> | void;
   submitButtonText?: string;
-  cancelButtonText?: string;
+  cancelButtonText?: string; // This prop is kept but won't be used for cancel button anymore
   options?: Record<string, SelectOption[] | string[]>;
   popupHandlers?: PopupHandlers;
   dropdownHandlers?: DropdownHandlers;
@@ -98,7 +99,6 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
   fields,
   onSubmit,
   submitButtonText = "Create",
-  cancelButtonText = "Cancel",
   options = {},
   popupHandlers = {},
   dropdownHandlers = {},
@@ -111,6 +111,10 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
   size = "lg",
   centered = true,
 }) => {
+  // Refs for dropdown and popup reset functions
+  const dropdownResetRefs = useRef<{ [key: string]: () => void }>({});
+  const popupResetRefs = useRef<{ [key: string]: () => void }>({});
+
   // Find the active toggle field if it exists
   const activeField = fields.find(
     (f) => f.name.toLowerCase() === "isactive" || (f.name.toLowerCase() === "active" && f.rules.type === "toggle")
@@ -313,26 +317,51 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
     const ph = placeholder || `Enter ${rules.label.toLowerCase()}`;
 
     switch (type) {
+      // case "popup": {
+      //   const handler = popupHandlers[name];
+      //   return (
+      //     <KiduSelectInputPill
+      //       ref={(ref: any) => {
+      //         if (ref?.reset) {
+      //           popupResetRefs.current[name] = ref.reset;
+      //         }
+      //       }}
+      //       value={handler?.value ?? ""}
+      //       onOpen={handler?.onOpen ?? (() => { })}
+      //       onClear={handler?.onClear ?? (() => { })}
+      //       placeholder={`Select ${rules.label}...`}
+      //       required={rules.required}
+      //       disabled={disabled}
+      //       error={errors[name]}
+      //       inputWidth="100%"
+      //     />
+      //   );
+      // }
       case "popup": {
-        const handler = popupHandlers[name];
-        return (
-          <KiduSelectInputPill
-            value={handler?.value ?? ""}
-            onOpen={handler?.onOpen ?? (() => { })}
-            onClear={handler?.onClear ?? (() => { })}
-            placeholder={`Select ${rules.label}...`}
-            required={rules.required}
-            disabled={disabled}
-            error={errors[name]}
-            inputWidth="100%"
-          />
-        );
-      }
+  const handler = popupHandlers[name];
+  return (
+    <KiduSelectInputPill
+      value={handler?.value ?? ""}
+      onOpen={handler?.onOpen ?? (() => {})}
+      onClear={handler?.onClear ?? (() => {})}
+      placeholder={`Select ${rules.label}...`}
+      required={rules.required}
+      disabled={disabled}
+      error={errors[name]}
+      inputWidth="100%"
+    />
+  );
+}
 
       case "smartdropdown": {
         const handler = dropdownHandlers[name];
         return (
           <KiduDropdown
+            ref={(ref: any) => {
+              if (ref?.reset) {
+                dropdownResetRefs.current[name] = ref.reset;
+              }
+            }}
             value={dropdownValues[name] ?? null}
             onChange={(val) => {
               setDropdownValues((prev) => ({ ...prev, [name]: val }));
@@ -535,9 +564,6 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
 
         {renderFormControl(field)}
 
-        {/* {rules.type !== "popup" && errors[name] && (
-          <div className="kidu-error-message">{errors[name]}</div>
-        )} */}
         {rules.type !== "popup" && rules.type !== "smartdropdown" && errors[name] && (
           <div className="kidu-error-message">{errors[name]}</div>
         )}
@@ -632,14 +658,14 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
         </Modal.Body>
 
         <Modal.Footer className="kidu-modal-footer">
-          <Button
-            variant="light"
-            onClick={onHide}
-            disabled={isSubmitting}
-            className="kidu-btn-cancel"
-          >
-            {cancelButtonText}
-          </Button>
+          {/* Reset button replaces the cancel button */}
+          <KiduReset
+            initialValues={initialValues}
+            setFormData={setFormData}
+            setErrors={setErrors}
+            dropdownRefs={dropdownResetRefs}
+            popupRefs={popupResetRefs}
+          />
           <Button
             type="submit"
             onClick={handleSubmit}

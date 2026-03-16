@@ -1,16 +1,12 @@
-// src/KIDU_COMPONENTS/KiduSelectPopup.tsx
-
 import React, {
-  useState, useEffect, useCallback, useRef,
+  useState, useEffect, useCallback, useRef, forwardRef, useImperativeHandle,
   type CSSProperties,
 } from "react";
 import { Modal } from "react-bootstrap";
 import HttpService from "../Services/Common/HttpService";
 import "../Styles/KiduStyles/PopUp.css";
 
-// ═══════════════════════════════════════════════════════════
-// Types
-// ═══════════════════════════════════════════════════════════
+// ==================== TYPES ====================
 
 export interface KiduSelectColumn<T> {
   key: keyof T;
@@ -25,37 +21,18 @@ export interface KiduSelectPopupProps<T extends Record<string, any>> {
   onClose: () => void;
   title: string;
   subtitle?: string;
-
-  /**
-   * MODE 1 — Pre-loaded: pass `data` directly (no internal fetch).
-   * Use when the parent already fetched the list.
-   */
   data?: T[];
-
-  /**
-   * MODE 2 — Fetch on open: pass `fetchEndpoint` (GET request).
-   * Required when `data` is NOT provided.
-   */
   fetchEndpoint?: string;
-
-  /**
-   * External loading flag (MODE 1).
-   * Shows skeleton while the parent is still fetching.
-   */
   loading?: boolean;
-
   columns: KiduSelectColumn<T>[];
   onSelect: (item: T) => void;
-
   idKey?: keyof T;
   labelKey: keyof T;
   searchKeys?: (keyof T)[];
-
   rowsPerPage?: number;
   rowsPerPageOptions?: number[];
   themeColor?: string;
   multiSelect?: boolean;
-
   AddModalComponent?: React.ComponentType<{
     show: boolean;
     handleClose: () => void;
@@ -63,6 +40,14 @@ export interface KiduSelectPopupProps<T extends Record<string, any>> {
   }>;
   showAddButton?: boolean;
   addButtonLabel?: string;
+  /** Name for reset ref registration */
+  name?: string;
+  /** Ref for reset functionality */
+  resetRef?: React.MutableRefObject<{ [key: string]: () => void }> | null;
+}
+
+export interface KiduSelectPopupHandle {
+  reset: () => void;
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -152,7 +137,7 @@ export const KiduSelectInputPill: React.FC<KiduSelectInputPillProps> = ({
 // KiduSelectPopup
 // ═══════════════════════════════════════════════════════════
 
-function KiduSelectPopup<T extends Record<string, any>>({
+function KiduSelectPopupInner<T extends Record<string, any>>({
   show,
   onClose,
   title,
@@ -171,27 +156,49 @@ function KiduSelectPopup<T extends Record<string, any>>({
   AddModalComponent,
   showAddButton = false,
   addButtonLabel = "Add New",
-}: KiduSelectPopupProps<T>) {
+  name,
+  resetRef,
+}: KiduSelectPopupProps<T>, ref: React.Ref<KiduSelectPopupHandle>) {
 
   const [allData, setAllData]     = useState<T[]>([]);
   const [filtered, setFiltered]   = useState<T[]>([]);
   const [fetchLoading, setFetchLoading] = useState(false);
-
   const [search, setSearch]               = useState("");
   const [filtersOpen, setFiltersOpen]     = useState(false);
   const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
-  const activeFilterCount = Object.values(columnFilters).filter(Boolean).length;
-
   const [page, setPage]       = useState(1);
   const [perPage, setPerPage] = useState(rowsPerPage);
-
   const [selectedIds, setSelectedIds] = useState<Set<any>>(new Set());
   const [showAdd, setShowAdd]         = useState(false);
 
   const searchRef = useRef<HTMLInputElement>(null);
-
-  // Combined loading flag
   const isLoading = fetchLoading || externalLoading;
+  const activeFilterCount = Object.values(columnFilters).filter(Boolean).length;
+
+  // ── Reset function ────────────────────────────────────────────────────────
+  const reset = useCallback(() => {
+    setSearch("");
+    setColumnFilters({});
+    setSelectedIds(new Set());
+    setPage(1);
+    setFiltersOpen(false);
+    setPerPage(rowsPerPage);
+  }, [rowsPerPage]);
+
+  // Expose reset function via ref
+  useImperativeHandle(ref, () => ({
+    reset
+  }));
+
+  // Register reset function with parent
+  useEffect(() => {
+    if (name && resetRef?.current) {
+      resetRef.current[name] = reset;
+      return () => {
+        delete resetRef.current[name];
+      };
+    }
+  }, [name, reset, resetRef]);
 
   // ── Fetch / sync data on open ────────────────────────────────────────────
   useEffect(() => {
@@ -204,7 +211,6 @@ function KiduSelectPopup<T extends Record<string, any>>({
     setFiltersOpen(false);
     setPerPage(rowsPerPage);
 
-    // MODE 1: pre-loaded data via prop
     if (externalData !== undefined) {
       setAllData(externalData);
       setFiltered(externalData);
@@ -212,7 +218,6 @@ function KiduSelectPopup<T extends Record<string, any>>({
       return;
     }
 
-    // MODE 2: fetch from endpoint
     if (!fetchEndpoint) return;
     setFetchLoading(true);
     HttpService.callApi<any>(fetchEndpoint, "GET")
@@ -231,7 +236,6 @@ function KiduSelectPopup<T extends Record<string, any>>({
       });
   }, [show, fetchEndpoint, rowsPerPage, externalData]);
 
-  // ── When external data changes while open (e.g. parent finishes loading) ─
   useEffect(() => {
     if (!show || externalData === undefined) return;
     setAllData(externalData);
@@ -258,11 +262,9 @@ function KiduSelectPopup<T extends Record<string, any>>({
     setPage(1);
   }, [search, columnFilters, allData, searchKeys, columns]);
 
-  // ── Pagination ───────────────────────────────────────────────────────────
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
   const pageData   = filtered.slice((page - 1) * perPage, page * perPage);
 
-  // ── Selection ────────────────────────────────────────────────────────────
   const allPageSelected  = pageData.length > 0 && pageData.every((r) => selectedIds.has(r[idKey]));
   const somePageSelected = pageData.some((r) => selectedIds.has(r[idKey]));
 
@@ -298,7 +300,6 @@ function KiduSelectPopup<T extends Record<string, any>>({
     setShowAdd(false);
   }, []);
 
-  // ── Highlight ────────────────────────────────────────────────────────────
   const highlight = (text: string) => {
     if (!search.trim()) return <>{text}</>;
     const q   = search.toLowerCase();
@@ -331,7 +332,6 @@ function KiduSelectPopup<T extends Record<string, any>>({
 
   const filterableCols = columns.filter((c) => !!c.filterType);
 
-  // ── Render ───────────────────────────────────────────────────────────────
   return (
     <>
       <Modal show={show} onHide={onClose} size="lg" centered
@@ -592,5 +592,9 @@ function KiduSelectPopup<T extends Record<string, any>>({
     </>
   );
 }
+
+const KiduSelectPopup = forwardRef(KiduSelectPopupInner) as <T extends Record<string, any>>(
+  props: KiduSelectPopupProps<T> & { ref?: React.Ref<KiduSelectPopupHandle> }
+) => React.ReactElement;
 
 export default KiduSelectPopup;

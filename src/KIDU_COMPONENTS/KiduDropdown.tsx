@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from "react";
 import "../Styles/KiduStyles/Dropdown.css";
 
 // ==================== TYPES ====================
@@ -35,41 +35,41 @@ export interface KiduDropdownProps {
   error?: string;
   /** Full width of the dropdown trigger */
   inputWidth?: string;
+  /** Name for reset ref registration */
+  name?: string;
+  /** Ref for reset functionality */
+  resetRef?: React.MutableRefObject<{ [key: string]: () => void }> | null;
 
   // ── Static options (mutually exclusive with paginatedFetch) ──
   /** Static list of { value, label } options */
   staticOptions?: KiduDropdownOption[];
 
   // ── Paginated API options ─────────────────────────────────────
-  /**
-   * Async function that returns paginated options.
-   * Receives { pageNumber, pageSize, searchTerm }.
-   */
   paginatedFetch?: (params: KiduDropdownPaginatedParams) => Promise<KiduDropdownPaginatedResult>;
-  /**
-   * Map a raw API row to { value, label }.
-   * e.g. (row) => ({ value: row.id, label: row.name })
-   */
   mapOption?: (row: any) => KiduDropdownOption;
-  /** Page size for paginated fetch (default: 10) */
   pageSize?: number;
+}
+
+export interface KiduDropdownHandle {
+  reset: () => void;
 }
 
 // ==================== COMPONENT ====================
 
-const KiduDropdown: React.FC<KiduDropdownProps> = ({
-  value,
+const KiduDropdown = forwardRef<KiduDropdownHandle, KiduDropdownProps>(({
+  value: externalValue,
   onChange,
   placeholder = "Select an option...",
-
   disabled,
   error,
   inputWidth = "100%",
+  name,
+  resetRef,
   staticOptions,
   paginatedFetch,
   mapOption,
   pageSize = 10,
-}) => {
+}, ref) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [options, setOptions] = useState<KiduDropdownOption[]>([]);
@@ -77,11 +77,39 @@ const KiduDropdown: React.FC<KiduDropdownProps> = ({
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [displayLabel, setDisplayLabel] = useState<string>("");
+  const [internalValue, setInternalValue] = useState<string | number | null | undefined>(externalValue);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Use external value if provided, otherwise use internal
+  const value = externalValue !== undefined ? externalValue : internalValue;
+
+  // ── Reset function ────────────────────────────────────────────────────────
+  const reset = useCallback(() => {
+    setInternalValue(null);
+    setDisplayLabel("");
+    setSearch("");
+    setOpen(false);
+    onChange(null);
+  }, [onChange]);
+
+  // Expose reset function via ref
+  useImperativeHandle(ref, () => ({
+    reset
+  }));
+
+  // Register reset function with parent
+  useEffect(() => {
+    if (name && resetRef?.current) {
+      resetRef.current[name] = reset;
+      return () => {
+        delete resetRef.current[name];
+      };
+    }
+  }, [name, reset, resetRef]);
 
   // ── Resolve display label from value ──────────────────────────────────────
   useEffect(() => {
@@ -89,7 +117,6 @@ const KiduDropdown: React.FC<KiduDropdownProps> = ({
       setDisplayLabel("");
       return;
     }
-    // Check already-loaded options first
     const found = options.find((o) => String(o.value) === String(value));
     if (found) {
       setDisplayLabel(found.label);
@@ -97,7 +124,6 @@ const KiduDropdown: React.FC<KiduDropdownProps> = ({
       const s = staticOptions.find((o) => String(o.value) === String(value));
       setDisplayLabel(s?.label ?? String(value));
     }
-    // For paginated: label will resolve once options load (handled below in fetchPage)
   }, [value, options, staticOptions]);
 
   // ── Static options ────────────────────────────────────────────────────────
@@ -122,7 +148,6 @@ const KiduDropdown: React.FC<KiduDropdownProps> = ({
         const total = result.total ?? 0;
         setHasMore(pg * pageSize < total);
 
-        // Resolve display label if value is set but label unknown
         if (value !== null && value !== undefined && value !== "") {
           const found = mapped.find((o) => String(o.value) === String(value));
           if (found) setDisplayLabel(found.label);
@@ -134,15 +159,12 @@ const KiduDropdown: React.FC<KiduDropdownProps> = ({
     [paginatedFetch, mapOption, pageSize, value]
   );
 
-  // Trigger initial load when dropdown opens (paginated mode)
   useEffect(() => {
     if (!open || staticOptions) return;
     setPage(1);
     fetchPage(1, search, true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open, staticOptions, fetchPage, search]);
 
-  // Debounced search for paginated
   useEffect(() => {
     if (!open || staticOptions) return;
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
@@ -153,15 +175,12 @@ const KiduDropdown: React.FC<KiduDropdownProps> = ({
     return () => {
       if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search]);
+  }, [search, open, staticOptions, fetchPage]);
 
-  // Focus search input when dropdown opens
   useEffect(() => {
     if (open) setTimeout(() => searchRef.current?.focus(), 50);
   }, [open]);
 
-  // Close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -173,7 +192,6 @@ const KiduDropdown: React.FC<KiduDropdownProps> = ({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // ── Infinite scroll ───────────────────────────────────────────────────────
   const handleScroll = () => {
     const el = listRef.current;
     if (!el || loading || !hasMore) return;
@@ -184,19 +202,20 @@ const KiduDropdown: React.FC<KiduDropdownProps> = ({
     }
   };
 
-  // ── Selection ─────────────────────────────────────────────────────────────
   const handleSelect = (opt: KiduDropdownOption) => {
-    onChange(opt.value);
+    setInternalValue(opt.value);
     setDisplayLabel(opt.label);
     setOpen(false);
     setSearch("");
+    onChange(opt.value);
   };
 
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onChange(null);
+    setInternalValue(null);
     setDisplayLabel("");
     setSearch("");
+    onChange(null);
   };
 
   const hasValue = value !== null && value !== undefined && value !== "";
@@ -207,7 +226,6 @@ const KiduDropdown: React.FC<KiduDropdownProps> = ({
       style={{ width: inputWidth }}
       ref={containerRef}
     >
-      {/* ── Trigger pill ── */}
       <div
         className={`kidu-dropdown-trigger ${open ? "open" : ""} ${error ? "has-error" : ""} ${disabled ? "disabled" : ""}`}
         onClick={() => !disabled && setOpen((p) => !p)}
@@ -222,7 +240,7 @@ const KiduDropdown: React.FC<KiduDropdownProps> = ({
       >
         <span
           className={`kidu-dropdown-value ${!hasValue ? "placeholder" : ""}`}
-          style={{ background: "transparent" }}  /* ← belt-and-suspenders: no bar in any context */
+          style={{ background: "transparent" }}
         >
           {hasValue ? displayLabel : placeholder}
         </span>
@@ -242,10 +260,8 @@ const KiduDropdown: React.FC<KiduDropdownProps> = ({
         </span>
       </div>
 
-      {/* ── Dropdown panel ── */}
       {open && (
         <div className="kidu-dropdown-panel">
-          {/* Search */}
           <div className="kidu-dropdown-search-wrap">
             <input
               ref={searchRef}
@@ -258,7 +274,6 @@ const KiduDropdown: React.FC<KiduDropdownProps> = ({
             />
           </div>
 
-          {/* List */}
           <div
             className="kidu-dropdown-list"
             ref={listRef}
@@ -292,10 +307,11 @@ const KiduDropdown: React.FC<KiduDropdownProps> = ({
         </div>
       )}
 
-      {/* ── Error message ── */}
       {error && <div className="kidu-error-message">{error}</div>}
     </div>
   );
-};
+});
+
+KiduDropdown.displayName = 'KiduDropdown';
 
 export default KiduDropdown;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react"; // Added useRef
 import { Form, Button, Row, Col, Modal, InputGroup } from "react-bootstrap";
 import toast, { Toaster } from "react-hot-toast";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
@@ -9,6 +9,7 @@ import { KiduSelectInputPill } from "./KiduSelectPopup";
 import type { KiduDropdownOption, KiduDropdownPaginatedParams, KiduDropdownPaginatedResult } from "./KiduDropdown";
 import type { DropdownHandlers } from "./KiduCreateModal";
 import KiduDropdown from "./KiduDropdown";
+import KiduReset from "./KiduReset"; // Import KiduReset
 
 // ==================== TYPES ====================
 export interface FieldRule {
@@ -63,7 +64,7 @@ export interface KiduEditModalProps {
   onFetch: (id: string | number) => Promise<any>;
   onUpdate: (id: string | number, formData: Record<string, any>) => Promise<void | any>;
   submitButtonText?: string;
-  cancelButtonText?: string;
+  cancelButtonText?: string; // Kept for backward compatibility
   options?: Record<string, SelectOption[] | string[]>;
   popupHandlers?: Record<string, PopupHandler>;
   dropdownHandlers?: DropdownHandlers;
@@ -87,7 +88,6 @@ const KiduEditModal: React.FC<KiduEditModalProps> = ({
   onFetch,
   onUpdate,
   submitButtonText = "Update",
-  cancelButtonText = "Cancel",
   options = {},
   popupHandlers = {},
   dropdownHandlers = {},
@@ -99,6 +99,10 @@ const KiduEditModal: React.FC<KiduEditModalProps> = ({
   size = "lg",
   centered = true,
 }) => {
+  // Refs for dropdown and popup reset functions
+  const dropdownResetRefs = useRef<{ [key: string]: () => void }>({});
+  const popupResetRefs = useRef<{ [key: string]: () => void }>({});
+
   // Find the active toggle field if it exists
   const activeField = fields.find(
     (f) => (f.name.toLowerCase() === "isactive" || f.name.toLowerCase() === "active") && f.rules.type === "toggle"
@@ -398,6 +402,11 @@ const KiduEditModal: React.FC<KiduEditModalProps> = ({
         const handler = dropdownHandlers[name];
         return (
           <KiduDropdown
+            ref={(ref: any) => {
+              if (ref?.reset) {
+                dropdownResetRefs.current[name] = ref.reset;
+              }
+            }}
             value={dropdownValues[name] ?? null}
             onChange={(val) => {
               setDropdownValues((prev) => ({ ...prev, [name]: val }));
@@ -416,21 +425,42 @@ const KiduEditModal: React.FC<KiduEditModalProps> = ({
         );
       }
 
-      case "popup": {
-        const handler = popupHandlers[name];
-        return (
-          <KiduSelectInputPill
-            value={handler?.value ?? ""}
-            onOpen={handler?.onOpen ?? (() => {})}
-            onClear={handler?.onClear ?? (() => {})}
-            placeholder={`Select ${rules.label}...`}
-            required={rules.required}
-            disabled={rules.disabled}
-            error={errors[name]}
-            inputWidth="100%"
-          />
-        );
-      }
+      // case "popup": {
+      //   const handler = popupHandlers[name];
+      //   return (
+      //     <KiduSelectInputPill
+      //       ref={(ref: any) => {
+      //         if (ref?.reset) {
+      //           popupResetRefs.current[name] = ref.reset;
+      //         }
+      //       }}
+      //       value={handler?.value ?? ""}
+      //       onOpen={handler?.onOpen ?? (() => {})}
+      //       onClear={handler?.onClear ?? (() => {})}
+      //       placeholder={`Select ${rules.label}...`}
+      //       required={rules.required}
+      //       disabled={rules.disabled}
+      //       error={errors[name]}
+      //       inputWidth="100%"
+      //     />
+      //   );
+      // }
+      // In KiduEditModal, remove the ref and handle reset through props
+case "popup": {
+  const handler = popupHandlers[name];
+  return (
+    <KiduSelectInputPill
+      value={handler?.value ?? ""}
+      onOpen={handler?.onOpen ?? (() => {})}
+      onClear={handler?.onClear ?? (() => {})}
+      placeholder={`Select ${rules.label}...`}
+      required={rules.required}
+      disabled={rules.disabled}
+      error={errors[name]}
+      inputWidth="100%"
+    />
+  );
+}
 
       case "password":
         return (
@@ -722,14 +752,14 @@ const KiduEditModal: React.FC<KiduEditModalProps> = ({
         </Modal.Body>
 
         <Modal.Footer className="kidu-modal-footer">
-          <Button
-            variant="light"
-            onClick={onHide}
-            disabled={isSubmitting}
-            className="kidu-btn-cancel"
-          >
-            {cancelButtonText}
-          </Button>
+          {/* Reset button replaces the cancel button */}
+          <KiduReset
+            initialValues={initialData} // Use initialData (the fetched data) as the reset target
+            setFormData={setFormData}
+            setErrors={setErrors}
+            dropdownRefs={dropdownResetRefs}
+            popupRefs={popupResetRefs}
+          />
           <Button
             type="submit"
             onClick={handleSubmit}

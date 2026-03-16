@@ -1,11 +1,11 @@
+// src/Pages/Masters/Lab/Create.tsx
 import React from "react";
-import KiduCreateModal, {
-  type DropdownHandlers,
-  type Field,
-} from "../../../../KIDU_COMPONENTS/KiduCreateModal";
+import KiduCreateModal, { type Field } from "../../../../KIDU_COMPONENTS/KiduCreateModal";
 import LabGroupService from "../../../Services/Masters/Labgroup.services";
-import type { LabMaster } from "../../../Types/Masters/Lab.types";
 import LabMasterService from "../../../Services/Masters/Lab.services";
+import type { LabMaster } from "../../../Types/Masters/Lab.types";
+import { useCurrentUser } from "../../../../Services/AuthServices/CurrentUser.services";
+import { useApiErrorHandler } from "../../../../Services/AuthServices/APIErrorHandler.services";
 
 // ── Authentication type static options ────────────────────────────────────────
 const AUTHENTICATION_TYPE_OPTIONS = [
@@ -15,20 +15,130 @@ const AUTHENTICATION_TYPE_OPTIONS = [
 ];
 
 // ── Field definitions ─────────────────────────────────────────────────────────
+// FIXED: labCode maxLength changed from 20 to 10 to match backend validation
 const fields: Field[] = [
-  { name: "labCode", rules: { type: "text", label: "Lab Code", required: true, minLength: 3, maxLength: 20, colWidth: 6 } },
-  { name: "labName", rules: { type: "text", label: "Lab Name", required: true, minLength: 3, maxLength: 100, colWidth: 6 } },
-  { name: "displayName", rules: { type: "text", label: "Display Name", required: false, minLength: 3, maxLength: 100, colWidth: 6 } },
-  { name: "email", rules: { type: "email", label: "Email", required: false, minLength: 3, maxLength: 100, colWidth: 6 } },
-  { name: "labGroupId", rules: { type: "smartdropdown", label: "Lab Group", required: true, colWidth: 6 } },
-  { name: "authenticationType", rules: { type: "smartdropdown", label: "Authentication Type", required: true, colWidth: 6 } },
-  { name: "logoforRX", rules: { type: "text", label: "Logo for RX", required: false, minLength: 3, maxLength: 200, colWidth: 6 } },
-  { name: "lmsSystem", rules: { type: "text", label: "LMS System", required: false, minLength: 3, maxLength: 100, colWidth: 6 } },
-  { name: "isActive", rules: { type: "toggle", label: "Active", colWidth: 6 } },
+  { 
+    name: "labCode", 
+    rules: { 
+      type: "text", 
+      label: "Lab Code", 
+      required: true, 
+      minLength: 3, 
+      maxLength: 10, // FIXED: Changed from 20 to 10
+      colWidth: 6 
+    } 
+  },
+  { 
+    name: "labName", 
+    rules: { 
+      type: "text", 
+      label: "Lab Name", 
+      required: true, 
+      minLength: 3, 
+      maxLength: 100, 
+      colWidth: 6 
+    } 
+  },
+  { 
+    name: "displayName", 
+    rules: { 
+      type: "text", 
+      label: "Display Name", 
+      required: false, 
+      minLength: 3, 
+      maxLength: 100, 
+      colWidth: 6 
+    } 
+  },
+  { 
+    name: "email", 
+    rules: { 
+      type: "email", 
+      label: "Email", 
+      required: false, 
+      minLength: 3, 
+      maxLength: 100, 
+      colWidth: 6 
+    } 
+  },
+  { 
+    name: "labGroupId", 
+    rules: { 
+      type: "smartdropdown", 
+      label: "Lab Group", 
+      required: true, 
+      colWidth: 6 
+    } 
+  },
+  { 
+    name: "authenticationType", 
+    rules: { 
+      type: "smartdropdown", 
+      label: "Authentication Type", 
+      required: true, 
+      colWidth: 6 
+    } 
+  },
+  { 
+    name: "logoforRX", 
+    rules: { 
+      type: "text", 
+      label: "Logo for RX", 
+      required: false, 
+      minLength: 3, 
+      maxLength: 200, 
+      colWidth: 6 
+    } 
+  },
+  { 
+    name: "lmsSystem", 
+    rules: { 
+      type: "text", 
+      label: "LMS System", 
+      required: false, 
+      minLength: 3, 
+      maxLength: 100, 
+      colWidth: 6 
+    } 
+  },
+  { 
+    name: "isActive", 
+    rules: { 
+      type: "toggle", 
+      label: "Active", 
+      colWidth: 6 
+    } 
+  },
 ];
 
-// ── Props ─────────────────────────────────────────────────────────────────────
+// ── Dropdown handlers ─────────────────────────────────────────────────────────
+const dropdownHandlers = {
+  labGroupId: {
+    paginatedFetch: async (params: any) => {
+      const result = await LabGroupService.getPaginatedList({
+        pageNumber: params.pageNumber,
+        pageSize: params.pageSize,
+        searchTerm: params.searchTerm,
+        sortBy: "",
+        sortDescending: false,
+      });
+      return { data: result.data, total: result.total };
+    },
+    mapOption: (row: any) => ({ 
+      value: row.id, 
+      label: row.name ?? row.groupName ?? String(row.id) 
+    }),
+    pageSize: 10,
+    placeholder: "Select Lab Group...",
+  },
 
+  authenticationType: {
+    staticOptions: AUTHENTICATION_TYPE_OPTIONS,
+    placeholder: "Select Authentication Type...",
+  },
+};
+
+// ── Props ─────────────────────────────────────────────────────────────────────
 interface Props {
   show: boolean;
   onHide: () => void;
@@ -36,58 +146,51 @@ interface Props {
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
-
 const LabMasterCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }) => {
-
-  // ── Dropdown handlers ─────────────────────────────────────────────────────
-  // labGroupId  → paginated fetch from LabGroup API
-  // authenticationType → static options (no API call needed)
-  const dropdownHandlers: DropdownHandlers = {
-    labGroupId: {
-      paginatedFetch: async (params) => {
-        const result = await LabGroupService.getPaginatedList({
-          pageNumber: params.pageNumber,
-          pageSize: params.pageSize,
-          searchTerm: params.searchTerm,
-          sortBy: "",
-          sortDescending: false,
-        });
-        return { data: result.data, total: result.total };
-      },
-      mapOption: (row) => ({ value: row.id, label: row.name ?? row.groupName ?? String(row.id) }),
-      pageSize: 10,
-      placeholder: "Select Lab Group...",
-    },
-
-    authenticationType: {
-      staticOptions: AUTHENTICATION_TYPE_OPTIONS,
-      placeholder: "Select Authentication Type...",
-    },
-  };
+  const { requireDSOMasterId } = useCurrentUser();
+  const { handleApiError, assertApiSuccess } = useApiErrorHandler();
 
   // ── Submit handler ────────────────────────────────────────────────────────
-const handleSubmit = async (formData: Record<string, any>) => {
-  const payload: Partial<LabMaster> = {
-    labCode: formData.labCode,
-    labName: formData.labName,
-    displayName: formData.displayName,
-    email: formData.email,
-    labGroupId: formData.labGroupId ? Number(formData.labGroupId) : undefined,
-    authenticationType: formData.authenticationType
-      ? Number(formData.authenticationType)
-      : undefined,
-    logoforRX: formData.logoforRX,
-    lmsSystem: formData.lmsSystem,
-    isActive: formData.isActive ?? true,
+  const handleSubmit = async (formData: Record<string, any>) => {
+    // 1. Get DSOMasterId from token
+    let dsoMasterId: number;
+    try {
+      dsoMasterId = requireDSOMasterId();
+    } catch (err) {
+      await handleApiError(err, "session");
+      return;
+    }
+
+    // 2. Build payload
+    const payload: Partial<LabMaster> = {
+      labCode: formData.labCode,
+      labName: formData.labName,
+      displayName: formData.displayName || undefined,
+      email: formData.email || undefined,
+      labGroupId: formData.labGroupId ? Number(formData.labGroupId) : undefined,
+      authenticationType: formData.authenticationType ? Number(formData.authenticationType) : 1,
+      logoforRX: formData.logoforRX || undefined,
+      lmsSystem: formData.lmsSystem || undefined,
+      isActive: formData.isActive ?? true,
+      //dsoMasterId: dsoMasterId, // CRITICAL: Include this
+    };
+
+    console.log("Sending payload:", payload);
+
+    // 3. Call API
+    let result: any;
+    try {
+      result = await LabMasterService.create(payload);
+      console.log("API Result:", result);
+    } catch (err) {
+      console.error("API Error:", err);
+      await handleApiError(err, "network");
+      return;
+    }
+
+    // 4. Assert success
+    await assertApiSuccess(result, "Failed to create Lab Master.");
   };
-
-  const result = await LabMasterService.create(payload);
-
-  // If your service returns a response object instead of throwing:
-  if (!result || !result.isSucess) {
-    throw new Error(result?.customMessage || result?.error || "Failed to create Lab");
-  }
-};
 
   return (
     <KiduCreateModal

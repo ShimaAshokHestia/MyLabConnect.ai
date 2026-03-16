@@ -8,7 +8,7 @@ import LabMasterService from "../../../Services/Masters/Lab.services";
 import LabMasterCreateModal from "./Create";
 import LabMasterEditModal from "./Edit";
 import LabMasterViewModal from "./View";
-import { useCurrentUser } from "../../../../Services/AuthServices/CurrentUser.services";
+//import { useCurrentUser } from "../../../../Services/AuthServices/CurrentUser.services";
 
 const columns: KiduColumn[] = [
   {
@@ -64,7 +64,7 @@ const LabMasterList: React.FC = () => {
   const [tableKey, setTableKey] = useState(0);
   
   // FIXED: Use only available properties from useCurrentUser
-  const { isDSOUser, isAppAdmin } = useCurrentUser();
+  //const { isDSOUser, isAppAdmin } = useCurrentUser();
 
   const refreshTable = () => {
     tableKeyRef.current += 1;
@@ -105,10 +105,10 @@ const LabMasterList: React.FC = () => {
 
   // Determine permissions based on user role
   // FIXED: Removed isLabUser
-  const canAdd = isAppAdmin || isDSOUser;
-  const canEdit = isAppAdmin || isDSOUser;
-  const canDelete = isAppAdmin || isDSOUser;
-  const canView = true; // Everyone can view
+  //const canAdd = isAppAdmin || isDSOUser;
+  //const canEdit = isAppAdmin || isDSOUser;
+  //const canDelete = isAppAdmin || isDSOUser;
+  //const canView = true; // Everyone can view
 
   return (
     <>
@@ -119,12 +119,12 @@ const LabMasterList: React.FC = () => {
         columns={columns}
         paginatedFetchService={LabMasterService.getPaginatedList}
         rowKey="id"
-        showAddButton={canAdd}
+        showAddButton={true}
         addButtonLabel="Add Lab"
         onAddClick={() => setShowCreate(true)}
-        onEditClick={canEdit ? handleEditClick : undefined}
-        onViewClick={canView ? handleViewClick : undefined}
-        onDeleteClick={canDelete ? handleDeleteClick : undefined}
+        onEditClick={handleEditClick}
+        onViewClick={handleViewClick}
+        onDeleteClick={handleDeleteClick}
         showActions={true}
         showSearch={true}
         showFilters={true}

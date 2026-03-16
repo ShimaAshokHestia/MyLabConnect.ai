@@ -10,6 +10,7 @@ import { FaUserDoctor } from 'react-icons/fa6';
 import QuickChatModal from './KiduQuickChatModal';
 import type { CaseDetailData, LoginRole } from './KiduCaseDetailModal';
 import CaseDetailModal from './KiduCaseDetailModal';
+import CaseStatusUpdateModal, { type CaseStatusUpdatePayload } from './KiduCaseStatusUpdateModal';
 // adjust import path to match your project
 
 // ─────────────────────────────────────────────────────────────
@@ -57,6 +58,9 @@ export interface CaseCardProps {
    */
   caseDetailData?: Partial<CaseDetailData>;
   onClick?: () => void;
+  /** Called when status is updated via the modal. */
+  onStatusUpdate?: (payload: CaseStatusUpdatePayload) => Promise<void> | void;
+  /** Legacy click handler kept for backwards compat. */
   onStatusClick?: () => void;
   onSupportClick?: () => void;
   onSendMessage?: (text: string) => Promise<void> | void;
@@ -118,7 +122,7 @@ const IconRush = () => (
 function getTypeBadgeClass(type: CaseType): string {
   const t = type.toLowerCase();
   if (t.includes('ios qc') || t.includes('scan qc')) return 'case-card__type-badge--qc';
-  if (t.includes('ios'))                              return 'case-card__type-badge--ios';
+  if (t.includes('ios')) return 'case-card__type-badge--ios';
   return 'case-card__type-badge--analog';
 }
 
@@ -139,12 +143,12 @@ function buildStepsFromStatus(status: CaseStatus, date: string) {
 
   // How many steps are "done" for each status
   const doneCount: Record<CaseStatus, number> = {
-    submitted:  2,
-    hold:       2,
+    submitted: 2,
+    hold: 2,
     production: 4,
-    transit:    5,
-    recent:     6,
-    rejected:   1,
+    transit: 5,
+    recent: 6,
+    rejected: 1,
   };
 
   const done = doneCount[status] ?? 1;
@@ -171,26 +175,38 @@ function buildModalData(props: CaseCardProps): CaseDetailData {
   const extra = props.caseDetailData ?? {};
 
   return {
-    id:             props.caseId,
-    patientName:    props.patientName,
-    patientId:      props.patientId,
-    lab:            props.labName,
-    doctorName:     props.doctorName,
-    practiceName:   extra.practiceName,
-    doctorId:       extra.doctorId,
-    address:        extra.address,
-    status:         props.status,
-    statusNote:     extra.statusNote,
-    steps:          extra.steps ?? buildStepsFromStatus(props.status, props.date),
-    alertMessage:   extra.alertMessage,
-    restoration:    extra.restoration,
+    id: props.caseId,
+    patientName: props.patientName,
+    patientId: props.patientId,
+    lab: props.labName,
+    doctorName: props.doctorName,
+    practiceName: extra.practiceName,
+    doctorId: extra.doctorId,
+    address: extra.address,
+    status: props.status,
+    statusNote: extra.statusNote,
+    steps: extra.steps ?? buildStepsFromStatus(props.status, props.date),
+    alertMessage: extra.alertMessage,
+    restoration: extra.restoration,
     additionalInfo: extra.additionalInfo,
-    caseNotes:      extra.caseNotes,
-    iosRemarks:     extra.iosRemarks,
-    files:          extra.files        ?? [],
-    chatMessages:   extra.chatMessages ?? [],
-    history:        extra.history      ?? [],
+    caseNotes: extra.caseNotes,
+    iosRemarks: extra.iosRemarks,
+    files: extra.files ?? [],
+    chatMessages: extra.chatMessages ?? [],
+    history: extra.history ?? [],
   };
+}
+
+function statusLabel(status: CaseStatus): string {
+  const map: Record<CaseStatus, string> = {
+    hold: 'Case on Hold',
+    submitted: 'Submitted',
+    production: 'In Production',
+    transit: 'In Transit',
+    recent: 'Completed',
+    rejected: 'Rejected',
+  };
+  return map[status] ?? status;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -211,27 +227,22 @@ const CaseCard: React.FC<CaseCardProps> = (props) => {
     mode,
     disableChat = false,
     onClick,
+    onStatusUpdate,
     onStatusClick,
     onSupportClick,
     onSendMessage,
     animationDelay = 0,
   } = props;
 
-  const [chatOpen,  setChatOpen]  = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-
-  // FIX: snapshot the modal data at click-time so it is always consistent
-  // with the card that was clicked (avoids stale closure issues if the
-  // parent re-renders the list while a modal is open).
-  const [modalData, setModalData] = useState<CaseDetailData | null>(null);
+  const [statusModalOpen, setStatusModalOpen] = useState(false);
 
   const cardClasses = [
     'case-card',
     `case-card--${status}`,
     isRush ? 'case-card--rush' : '',
     VIEW_ONLY_MODES.includes(mode) ? 'case-card--view-only' : '',
-    // FIX: add a mode modifier so doctor cards get the compact-footer rule
-    `case-card--mode-${mode}`,
   ].filter(Boolean).join(' ');
 
   const stopProp = (e: React.MouseEvent) => e.stopPropagation();
@@ -257,7 +268,12 @@ const CaseCard: React.FC<CaseCardProps> = (props) => {
       <div className="case-card__tooltip">{label}</div>
     </div>
   );
-
+  // ── Open the status update modal ──
+  const handleStatusBtnClick = (e: React.MouseEvent) => {
+    stopProp(e);
+    setStatusModalOpen(true);
+    onStatusClick?.();
+  };
   // ── Buttons by mode (unchanged logic) ──
   const renderActions = () => {
     if (VIEW_ONLY_MODES.includes(mode)) return null;
@@ -284,8 +300,9 @@ const CaseCard: React.FC<CaseCardProps> = (props) => {
             onBtnClick={(e) => { stopProp(e); setChatOpen(true); }}>
             <IconChat />
           </ActionBtn>
-          <ActionBtn type="status" label="Status"
-            onBtnClick={(e) => { stopProp(e); onStatusClick?.(); }}>
+          <ActionBtn type="status" label="Status" onBtnClick={handleStatusBtnClick}
+            // onBtnClick={(e) => { stopProp(e); onStatusClick?.(); }}
+            >
             <IconStatus />
           </ActionBtn>
           <ActionBtn type="help" label="Help"
@@ -328,9 +345,6 @@ const CaseCard: React.FC<CaseCardProps> = (props) => {
 
   // ── Card click → open detail modal ──
   const handleCardClick = () => {
-    // Build and snapshot data at click-time so the modal always shows
-    // exactly what was on the card that was clicked.
-    setModalData(buildModalData(props));
     setModalOpen(true);
     onClick?.();
   };
@@ -410,14 +424,26 @@ const CaseCard: React.FC<CaseCardProps> = (props) => {
         </div>
       </div>
 
+      {/* ── Case Status Update Modal ── */}
+      <CaseStatusUpdateModal
+        isOpen={statusModalOpen}
+        onClose={() => setStatusModalOpen(false)}
+        caseId={caseId}
+        submissionDate={date}
+        doctorName={doctorName}
+        patientName={patientName}
+        patientId={patientId}
+        currentStatus={statusLabel(status)}
+        onSubmit={async (payload) => {
+          await onStatusUpdate?.(payload);
+          setStatusModalOpen(false);
+        }}
+      />
+
       {/* ── Case Detail Modal ── */}
       <CaseDetailModal
         isOpen={modalOpen}
-        onClose={() => {
-            setModalOpen(false);
-            // keep modalData alive during close animation, clear after
-            setTimeout(() => setModalData(null), 350);
-          }}
+        onClose={() => setModalOpen(false)}
         role={mapModeToRole(mode)}
         data={buildModalData(props)}
         onSendMessage={onSendMessage}

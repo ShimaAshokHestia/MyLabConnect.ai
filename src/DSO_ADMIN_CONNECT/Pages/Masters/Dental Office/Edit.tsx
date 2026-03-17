@@ -1,49 +1,72 @@
-import React, { useState, useEffect } from "react";
-import KiduTabbedFormEditModal, {
-  type TabConfig,
-  type TabbedFormField,
-} from "../../../../KIDU_COMPONENTS/KiduTabbedFormEditModal";
-import type { DSODentalOffice } from "../../../Types/Masters/DsoDentalOffice.types";
-import DSODentalOfficeService from "../../../Services/Masters/DsoDentalOffice.services";
-import DSOZonePopup from "../../Setup/Zone/DSOZonePopup";
+// src/Pages/Masters/DentalOffice/Edit.tsx
+
+import React, { useState, useCallback, useEffect } from "react";
+import KiduEditModal, { type Field } from "../../../../KIDU_COMPONENTS/KiduEditModal";
+import DentalOfficeService from "../../../Services/Masters/DsoDentalOffice.services";
+import type { DentalOffice } from "../../../Types/Masters/DsoDentalOffice.types";
 import { useCurrentUser } from "../../../../Services/AuthServices/CurrentUser.services";
 import { useApiErrorHandler } from "../../../../Services/AuthServices/APIErrorHandler.services";
-import COUNTRIES from "../../../../Configs/Country";
-import CITIES from "../../../../Configs/City";
-import toast from "react-hot-toast";
+import DSOZonePopup from "../../Setup/Zone/DSOZonePopup";
+import type { DSOZone } from "../../../Types/Setup/DsoZone.types";
+import type { PopupHandlers } from "../../../../KIDU_COMPONENTS/KiduCreateModal";
 
-// ── Header fields (same as create page) ───────────────────────────────────────
-const headerFields: TabbedFormField[] = [
-  { name: "officeCode", label: "Office Code", type: "text", required: true, placeholder: "Enter office code", colWidth: 3, maxLength: 50 },
-  { name: "officeName", label: "Office Name", type: "text", required: true, placeholder: "Enter office name", colWidth: 4, maxLength: 100 },
-  { name: "email", label: "Email", type: "email", required: true, placeholder: "Enter email", colWidth: 4, maxLength: 150 },
-  { name: "mobileNum", label: "Mobile Number", type: "number", required: true, placeholder: "Enter mobile number", colWidth: 3, maxLength: 20 },
-  { name: "postCode", label: "Post Code", type: "number", required: true, placeholder: "Enter post code", colWidth: 4, maxLength: 20 },
-  { 
-    name: "country", 
-    label: "Country", 
-    type: "select", 
-    required: true, 
-    placeholder: "Select country", 
-    colWidth: 4,
-    options: COUNTRIES.map(c => ({ value: c.value, label: c.label }))
+const fields: Field[] = [
+  {
+    name: "officeCode",
+    rules: { type: "text", label: "Office Code", required: true, minLength: 2, maxLength: 50, colWidth: 6 },
   },
-  { 
-    name: "city", 
-    label: "City", 
-    type: "select", 
-    required: true, 
-    placeholder: "Select City", 
-    colWidth: 4,
-    options: CITIES.map(c => ({ value: c.value, label: c.label }))
+  {
+    name: "officeName",
+    rules: { type: "text", label: "Office Name", required: true, minLength: 3, maxLength: 100, colWidth: 6 },
   },
-  { name: "dsoZoneId", label: "Zone", type: "popup", required: true, placeholder: "Select zone", colWidth: 4 },
-  { name: "address", label: "Address", type: "textarea", required: true, placeholder: "Enter address", colWidth: 4, maxLength: 255 },
-  { name: "info", label: "Additional Info", type: "textarea", required: false, placeholder: "Enter additional info", colWidth: 4, maxLength: 500 },
-  // isActive is handled by the header toggle, not as a field
+  {
+    name: "postCode",
+    rules: { type: "text", label: "Post Code", required: true, maxLength: 20, colWidth: 4 },
+  },
+  {
+    name: "mobileNum",
+    rules: { type: "text", label: "Mobile Number", required: true, maxLength: 15, pattern: /^[0-9]+$/, colWidth: 4 },
+  },
+  {
+    name: "email",
+    rules: { type: "email", label: "Email", required: true, maxLength: 100, colWidth: 4 },
+  },
+  {
+    name: "city",
+    rules: { type: "text", label: "City", required: true, maxLength: 50, colWidth: 4 },
+  },
+  {
+    name: "country",
+    rules: { type: "text", label: "Country", required: true, maxLength: 50, colWidth: 4 },
+  },
+   {
+    name: "dsoZoneId",
+    rules: { type: "popup", label: "DSO Zone", required: true, colWidth: 4 },
+  },
+  {
+    name: "address",
+    rules: { type: "textarea", label: "Address", required: true, maxLength: 200, colWidth: 6 },
+  },
+  {
+    name: "alternateAddress",
+    rules: { type: "textarea", label: "Alternate Address", required: false, maxLength: 200, colWidth: 6 },
+  },
+  {
+    name: "mapUrl",
+    rules: { type: "url", label: "Map URL", required: false, maxLength: 500, colWidth: 12 },
+  },
+  {
+    name: "info",
+    rules: { type: "textarea", label: "Additional Info", required: false, maxLength: 500, colWidth: 12 },
+  },
+  {
+    name: "isActive",
+    rules: { type: "toggle", label: "Active", colWidth: 6 },
+  },
 ];
 
 // ── Props ─────────────────────────────────────────────────────────────────────
+
 interface Props {
   show: boolean;
   onHide: () => void;
@@ -52,7 +75,8 @@ interface Props {
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
-const DSODentalOfficeEditModal: React.FC<Props> = ({ 
+
+const DentalOfficeEditModal: React.FC<Props> = ({ 
   show, 
   onHide, 
   onSuccess, 
@@ -60,270 +84,148 @@ const DSODentalOfficeEditModal: React.FC<Props> = ({
 }) => {
   const { requireDSOMasterId } = useCurrentUser();
   const { handleApiError, assertApiSuccess } = useApiErrorHandler();
-
-  // State for zone popup
-  const [selectedZone, setSelectedZone] = useState<any | null>(null);
-  const [zonePopupOpen, setZonePopupOpen] = useState(false);
   
-  // State for initial data
-  const [initialHeaderData, setInitialHeaderData] = useState<Record<string, any>>({});
-  const [initialTabData, setInitialTabData] = useState<Record<string, Record<string, any>[]>>({});
-  const [loading, setLoading] = useState(false);
+  // State for popup
+  const [showZonePopup, setShowZonePopup] = useState(false);
+  const [selectedZone, setSelectedZone] = useState<{ id: number; name: string } | null>(null);
+  const [initialZoneName, setInitialZoneName] = useState<string>("");
 
-  // ── Tab definitions ────────────────────────────────────────────────────────
-  const baseTabs: TabConfig[] = [
-    {
-      key: "Location",
-      label:"Location",
-      addButtonLabel: "Add Location",
-      columns: [
-        {
-          key:"Map Url",
-          label:"Map Url",
-          type:"popup",
-          placeholder:"Select Map"
-        }
-      ]
+  // Popup handlers for DSO Zone
+  const popupHandlers: PopupHandlers = {
+    dsoZoneId: {
+      value: selectedZone?.name || initialZoneName,
+      onOpen: () => setShowZonePopup(true),
+      onClear: () => setSelectedZone(null),
     },
-     {
-      key: "Address",
-      label:"Change Address",
-      addButtonLabel: "Add Address",
-      columns: [
-        {
-          key:"Location",
-          label:"Location",
-          type:"popup",
-          placeholder:"Select Location"
-        }
-      ]
-    }
-  ];
+  };
 
-  // ── Fetch existing record when modal opens ────────────────────────────────
-  useEffect(() => {
-    if (!show || !recordId) return;
+  // Handle zone selection from popup
+  const handleZoneSelect = useCallback((zone: DSOZone) => {
+    setSelectedZone({
+      id: zone.id!,
+      name: zone.name!,
+    });
+    setShowZonePopup(false);
+  }, []);
 
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        console.log("Fetching dental office data for ID:", recordId);
-        
-        const response = await DSODentalOfficeService.getById(Number(recordId));
-        console.log("Dental office data response:", response);
-        
-        await assertApiSuccess(response, "Failed to load dental office data.");
-
-        const data = response.value;
-        console.log("Dental office data:", data);
-
-        // Set header data
-        setInitialHeaderData({
-          officeCode: data.officeCode ?? "",
-          officeName: data.officeName ?? "",
-          email: data.email ?? "",
-          mobileNum: data.mobileNum ?? "",
-          postCode: data.postCode ?? "",
-          country: data.country ?? "",
-          city: data.city ?? "",
-          address: data.address ?? "",
-          info: data.info ?? "",
-          isActive: data.isActive ?? true,
-        });
-
-        // Set selected zone from fetched data
-        if (data?.dsoZoneId) {
-          const zoneData = {
-            id: data.dsoZoneId,
-            name: data.dsoZoneName || `Zone #${data.dsoZoneId}`
-          };
-          setSelectedZone(zoneData);
-          
-          // Set the tab data with the zone info - this is what displays in the input
-          setInitialTabData({
-            Location: [{
-              dsoZoneId: String(data.dsoZoneId),
-              dsoZoneIdDisplay: data.dsoZoneName || `Zone #${data.dsoZoneId}`
-            }]
-          });
-        } else {
-          // Empty row if no zone
-          setInitialTabData({
-            Location: [{
-              dsoZoneId: "",
-              dsoZoneIdDisplay: ""
-            }]
-          });
-        }
-        
-      } catch (err: any) {
-        console.error("Error fetching dental office data:", err);
-        onHide();
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [show, recordId]);
-
-  // ── Reset when modal closes ───────────────────────────────────────────────
-  useEffect(() => {
-    if (!show) {
-      setSelectedZone(null);
-      setInitialHeaderData({});
-      setInitialTabData({});
-    }
-  }, [show]);
-
-  // ── Submit handler ────────────────────────────────────────────────────────
-  const handleSubmit = async (data: {
-    headerData: Record<string, any>;
-    tabData: Record<string, Record<string, any>[]>;
-  }) => {
-    if (!recordId) return;
+  // ── Fetch existing data ───────────────────────────────────────────────────
+  const handleFetch = async (id: string | number) => {
+    const response = await DentalOfficeService.getById(Number(id));
     
-    const { headerData, tabData } = data;
-
-    console.log("Header Data:", headerData);
-    console.log("Tab Data:", tabData);
-    console.log("Selected Zone:", selectedZone);
-
-    // Get zone from tabData or selectedZone
-    let zoneId = selectedZone?.id;
+    // Extract the data from response
+    const data = response?.value || response?.data || response;
     
-    // If selectedZone is not set, try to get from tabData
-    if (!zoneId && tabData.Location && tabData.Location[0] && tabData.Location[0].dsoZoneId) {
-      zoneId = tabData.Location[0].dsoZoneId;
+    // Set initial zone info for display
+    if (data?.dsoZoneId && data?.dsoZoneName) {
+      setSelectedZone({
+        id: data.dsoZoneId,
+        name: data.dsoZoneName,
+      });
+      setInitialZoneName(data.dsoZoneName);
     }
+    
+    return response;
+  };
 
-    // Validate zone selection
-    if (!zoneId) {
-      toast.error("Please select a zone");
-      throw new Error("No zone selected");
+  // ── Update handler ────────────────────────────────────────────────────────
+  const handleUpdate = async (id: string | number, formData: Record<string, any>) => {
+    // Validate that zone is selected
+    if (!selectedZone) {
+      throw new Error("Please select a DSO Zone");
     }
 
     // 1. Get DSOMasterId from token
     let dsOMasterId: number;
     try {
       dsOMasterId = requireDSOMasterId();
-      console.log("DSO Master ID:", dsOMasterId);
     } catch (err) {
-      console.error("Failed to get DSO Master ID:", err);
       await handleApiError(err, "session");
       return;
     }
 
     // 2. Build payload
-    const payload: Partial<DSODentalOffice> = {
-      id: Number(recordId),
-      officeCode: headerData.officeCode,
-      officeName: headerData.officeName,
-      email: headerData.email ?? "",
-      mobileNum: headerData.mobileNum ?? "",
-      postCode: headerData.postCode ?? "",
-      country: headerData.country ?? "",
-      city: headerData.city ?? "",
-      dsoZoneId: Number(zoneId),
-      address: headerData.address ?? "",
-      info: headerData.info ?? "",
+    const payload: Partial<DentalOffice> = {
+      id: Number(id),
+      officeCode: formData.officeCode,
+      officeName: formData.officeName,
+      postCode: formData.postCode,
+      mobileNum: formData.mobileNum,
+      email: formData.email,
+      city: formData.city,
+      country: formData.country,
+      address: formData.address,
+      alternateAddress: formData.alternateAddress || "",
+      mapUrl: formData.mapUrl || "",
+      dsoZoneId: selectedZone.id,
+      info: formData.info || "",
       dsoMasterId: dsOMasterId,
-      isActive: headerData.isActive ?? true,
+      isActive: formData.isActive ?? true,
     };
-
-    console.log("Submitting payload:", payload);
 
     // 3. Call API
     let result: any;
     try {
-      result = await DSODentalOfficeService.update(Number(recordId), payload);
-      console.log("API Response:", result);
+      result = await DentalOfficeService.update(Number(id), payload);
     } catch (err) {
-      console.error("Error in API call:", err);
       await handleApiError(err, "network");
       return;
     }
 
     // 4. Assert success
-    if (result && result.isSucess) {
-      await assertApiSuccess(result, "Failed to update DSO Dental Office.");
-    } else {
-      console.error("Full error details:", result);
-      throw new Error(result?.customMessage || result?.error || "Failed to update dental office");
-    }
+    await assertApiSuccess(result, "Failed to update Dental Office.");
+    
+    return result;
   };
 
-  // ── Loading overlay ───────────────────────────────────────────────────────
-  if (loading) {
-    return (
-      <div style={{ 
-        position: "fixed", 
-        inset: 0, 
-        background: "rgba(0,0,0,0.45)", 
-        zIndex: 1055, 
-        display: "flex", 
-        alignItems: "center", 
-        justifyContent: "center" 
-      }}>
-        <div style={{ 
-          color: "#fff", 
-          fontSize: "0.9rem", 
-          display: "flex", 
-          alignItems: "center", 
-          gap: 10 
-        }}>
-          <span style={{ 
-            width: 18, 
-            height: 18, 
-            border: "2px solid rgba(255,255,255,0.35)", 
-            borderTopColor: "#fff", 
-            borderRadius: "50%", 
-            display: "inline-block", 
-            animation: "spin 0.65s linear infinite" 
-          }} />
-          Loading dental office data...
-        </div>
-      </div>
-    );
-  }
+  const handleModalHide = () => {
+    // Reset state when modal closes
+    setSelectedZone(null);
+    setInitialZoneName("");
+    onHide();
+  };
+
+  const handleSuccess = () => {
+    // Reset state after success
+    setSelectedZone(null);
+    setInitialZoneName("");
+    onSuccess();
+  };
+
+  // Reset state when modal is closed
+  useEffect(() => {
+    if (!show) {
+      setSelectedZone(null);
+      setInitialZoneName("");
+      setShowZonePopup(false);
+    }
+  }, [show]);
 
   return (
     <>
-      <KiduTabbedFormEditModal
+      <KiduEditModal
         show={show}
-        onHide={onHide}
-        title="Edit Practice"
-        headerFields={headerFields}
-        tabs={baseTabs}
-        onSubmit={handleSubmit}
-        submitButtonText="Update Practice"
-        themeColor="#ef0d50"
-        successMessage="Practice updated successfully!"
-        onSuccess={onSuccess}
-        initialHeaderData={initialHeaderData}
-        initialTabData={initialTabData}
+        onHide={handleModalHide}
+        title="Edit Dental Office"
+        subtitle="Update dental office details"
+        fields={fields}
+        recordId={recordId}
+        onFetch={handleFetch}
+        onUpdate={handleUpdate}
+        popupHandlers={popupHandlers}
+        successMessage="Dental Office updated successfully!"
+        onSuccess={handleSuccess}
+        size="xl"
       />
 
+      {/* DSO Zone Popup */}
       <DSOZonePopup
-        show={zonePopupOpen}
-        onClose={() => setZonePopupOpen(false)}
-        onSelect={(zone) => {
-          console.log("Selected zone:", zone);
-          setSelectedZone(zone);
-          setZonePopupOpen(false);
-          
-          // Also update the tab data when zone is selected
-          setInitialTabData({
-            Location: [{
-              dsoZoneId: String(zone.id),
-              dsoZoneIdDisplay: zone.name || `Zone #${zone.id}`
-            }]
-          });
-        }}
+        show={showZonePopup}
+        onClose={() => setShowZonePopup(false)}
+        onSelect={handleZoneSelect}
         showAddButton={true}
       />
     </>
   );
 };
 
-export default DSODentalOfficeEditModal;
+export default DentalOfficeEditModal;

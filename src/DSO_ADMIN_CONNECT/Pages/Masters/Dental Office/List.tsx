@@ -1,13 +1,13 @@
-import React, { useState, useRef } from "react";
-import Swal from "sweetalert2";
-import DSODentalOfficeCreateModal from "./Create";
-import DSODentalOfficeEditModal from "./Edit";
-import DSODentalOfficeViewModal from "./View";
-import type { KiduColumn } from "../../../../KIDU_COMPONENTS/KiduServerTable";
-import DSODentalOfficeService from "../../../Services/Masters/DsoDentalOffice.services";
-import KiduServerTableList from "../../../../KIDU_COMPONENTS/KiduServerTableList";
+// src/Pages/Masters/DentalOffice/List.tsx
 
-// ── Table column definitions ──────────────────────────────────────────────────
+import React, { useState, useRef } from "react";
+import KiduServerTableList from "../../../../KIDU_COMPONENTS/KiduServerTableList";
+import type { KiduColumn } from "../../../../KIDU_COMPONENTS/KiduServerTable";
+import Swal from "sweetalert2";
+import DentalOfficeService from "../../../Services/Masters/DsoDentalOffice.services";
+import DentalOfficeCreateModal from "./Create";
+import DentalOfficeEditModal from "./Edit";
+import DentalOfficeViewModal from "./View";
 
 const columns: KiduColumn[] = [
   {
@@ -39,16 +39,12 @@ const columns: KiduColumn[] = [
     filterType: "text",
   },
   {
-    key: "mobileNum",
-    label: "Mobile",
-    enableSorting: false,
-    enableFiltering: false,
-  },
-  {
     key: "dsoZoneName",
-    label: "Zone",
+    label: "DSO Zone",
     enableSorting: true,
-    enableFiltering: false,
+    enableFiltering: true,
+    filterType: "text",
+    render: (value, row) => <span>{value || `Zone #${row.dsoZoneId}`}</span>,
   },
   {
     key: "isActive",
@@ -57,7 +53,7 @@ const columns: KiduColumn[] = [
     enableSorting: false,
     enableFiltering: true,
     filterType: "select",
-    filterOptions: ["Inactive", "Active"],
+    filterOptions: ["Active", "Inactive"],
     render: (value) => (
       <span className={`kidu-badge kidu-badge--${value ? "active" : "inactive"}`}>
         {value ? "Active" : "Inactive"}
@@ -66,13 +62,11 @@ const columns: KiduColumn[] = [
   },
 ];
 
-// ── Component ─────────────────────────────────────────────────────────────────
-
-const DSODentalOfficeList: React.FC = () => {
+const DentalOfficeList: React.FC = () => {
   const [showCreate, setShowCreate] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [showView, setShowView] = useState(false);
-  const [recordId, setRecordId] = useState<string | number>("");
+  const [recordId, setRecordId] = useState<number>(0);
   const tableKeyRef = useRef(0);
   const [tableKey, setTableKey] = useState(0);
 
@@ -81,8 +75,15 @@ const DSODentalOfficeList: React.FC = () => {
     setTableKey(tableKeyRef.current);
   };
 
-  const handleEditClick = (row: any) => { setRecordId(row.id); setShowEdit(true); };
-  const handleViewClick = (row: any) => { setRecordId(row.id); setShowView(true); };
+  const handleEditClick = (row: any) => {
+    setRecordId(row.id);
+    setShowEdit(true);
+  };
+
+  const handleViewClick = (row: any) => {
+    setRecordId(row.id);
+    setShowView(true);
+  };
 
   const handleDeleteClick = async (row: any) => {
     const result = await Swal.fire({
@@ -94,10 +95,16 @@ const DSODentalOfficeList: React.FC = () => {
       cancelButtonColor: "#6c757d",
       confirmButtonText: "Yes, delete it!",
     });
+
     if (result.isConfirmed) {
-      await DSODentalOfficeService.delete(row.id);
-      refreshTable();
-      Swal.fire("Deleted!", "Practice has been deleted.", "success");
+      try {
+        await DentalOfficeService.delete(row.id);
+        refreshTable();
+        Swal.fire("Deleted!", "Dental office has been deleted.", "success");
+      } catch (error) {
+        console.error("Delete error:", error);
+        Swal.fire("Error!", "Failed to delete dental office.", "error");
+      }
     }
   };
 
@@ -105,13 +112,13 @@ const DSODentalOfficeList: React.FC = () => {
     <>
       <KiduServerTableList
         key={tableKey}
-        title="Practices"
-        subtitle="Manage practice master data"
+        title="Dental Offices"
+        subtitle="Manage dental office master data"
         columns={columns}
-        paginatedFetchService={DSODentalOfficeService.getPaginatedList}
+        paginatedFetchService={DentalOfficeService.getPaginatedList}
         rowKey="id"
         showAddButton={true}
-        addButtonLabel="Add Practice"
+        addButtonLabel="Add Dental Office"
         onAddClick={() => setShowCreate(true)}
         onEditClick={handleEditClick}
         onViewClick={handleViewClick}
@@ -123,24 +130,30 @@ const DSODentalOfficeList: React.FC = () => {
         showColumnToggle={true}
         defaultRowsPerPage={10}
         highlightOnHover={true}
-        auditLogTableName="DSO_DentalOffice"
+        auditLogTableName="dso_dental_office"
       />
 
-      <DSODentalOfficeCreateModal
+      <DentalOfficeCreateModal
         show={showCreate}
         onHide={() => setShowCreate(false)}
-        onSuccess={() => { setShowCreate(false); refreshTable(); }}
+        onSuccess={() => {
+          setShowCreate(false);
+          refreshTable();
+        }}
       />
 
-      {recordId && (
+      {recordId > 0 && (
         <>
-          <DSODentalOfficeEditModal
+          <DentalOfficeEditModal
             show={showEdit}
             onHide={() => setShowEdit(false)}
-            onSuccess={() => { setShowEdit(false); refreshTable(); }}
+            onSuccess={() => {
+              setShowEdit(false);
+              refreshTable();
+            }}
             recordId={recordId}
           />
-          <DSODentalOfficeViewModal
+          <DentalOfficeViewModal
             show={showView}
             onHide={() => setShowView(false)}
             recordId={recordId}
@@ -151,4 +164,4 @@ const DSODentalOfficeList: React.FC = () => {
   );
 };
 
-export default DSODentalOfficeList;
+export default DentalOfficeList;

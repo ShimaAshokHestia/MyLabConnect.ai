@@ -1,6 +1,4 @@
-// src/Pages/Masters/Lab/View.tsx
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import KiduViewModal, { type ViewField } from "../../../../KIDU_COMPONENTS/KiduViewModal";
 import LabMasterService from "../../../Services/Masters/Lab.services";
 import LabGroupService from "../../../Services/Masters/Labgroup.services";
@@ -11,7 +9,6 @@ interface Props {
   recordId: string | number;
 }
 
-// ── Authentication type mapping ───────────────────────────────────────────────
 const AUTHENTICATION_TYPE_MAP: Record<number, string> = {
   1: "Normal",
   2: "SSO",
@@ -35,62 +32,92 @@ const fields: ViewField[] = [
 const LabMasterViewModal: React.FC<Props> = ({ show, onHide, recordId }) => {
   const [labGroups, setLabGroups] = useState<Record<number, string>>({});
 
-  // Fetch all lab groups when modal opens
   useEffect(() => {
     const fetchLabGroups = async () => {
+      if (!show) return;
+      
       try {
         const result = await LabGroupService.getPaginatedList({
           pageNumber: 1,
-          pageSize: 100, // Fetch enough to cover all lab groups
+          pageSize: 100,
           searchTerm: "",
           sortBy: "",
           sortDescending: false,
         });
 
-        // Create a mapping of id -> name
+        // Create mapping based on actual response structure
         const groupMap: Record<number, string> = {};
-        result.data.forEach((item: any) => {
-          groupMap[item.id] = item.name ?? item.groupName ?? String(item.id);
-        });
+        
+        // Handle different possible response structures
+        const groups = result?.data || result || [];
+        
+        if (Array.isArray(groups)) {
+          groups.forEach((item: any) => {
+            if (item?.id) {
+              groupMap[item.id] = item.name || item.groupName || String(item.id);
+            }
+          });
+        }
+        
         setLabGroups(groupMap);
       } catch (error) {
         console.error("Failed to fetch lab groups:", error);
       }
     };
 
-    if (show) {
-      fetchLabGroups();
-    }
+    fetchLabGroups();
   }, [show]);
 
-  // Custom fetch handler to transform the data
-  const handleFetch = async (id: string | number) => {
-    const response = await LabMasterService.getById(Number(id));
+  const handleFetch = useCallback(async (id: string | number) => {
+    try {
+      const response = await LabMasterService.getById(Number(id));
+      console.log("API Response:", response);
+      
+      // FIXED: Check for isSucess (with one 's') instead of isSuccess
+      if (!response || !response.isSucess) {
+        throw new Error(response?.customMessage || "Failed to load data");
+      }
 
-    if (!response || !response.isSucess) {
-      throw new Error(response?.customMessage || "Failed to load data");
+      // Get the actual data from the value property
+      const data = response.value;
+      console.log("Extracted data:", data);
+      
+      if (!data) {
+        throw new Error("No data received");
+      }
+      
+      // Transform the data to show names instead of IDs
+      const transformedData = {
+        labCode: data.labCode || "N/A",
+        labName: data.labName || "N/A",
+        displayName: data.displayName || "N/A",
+        email: data.email || "N/A",
+        authenticationType: data.authenticationType
+          ? AUTHENTICATION_TYPE_MAP[data.authenticationType] || String(data.authenticationType)
+          : "N/A",
+        labGroupId: data.labGroupId && labGroups[data.labGroupId]
+          ? labGroups[data.labGroupId]
+          : data.labGroupId ? String(data.labGroupId) : "N/A",
+        logoforRX: data.logoforRX || "N/A",
+        lmsSystem: data.lmsSystem || "N/A",
+        isActive: data.isActive ?? true,
+        createdAt: data.createdAt ? new Date(data.createdAt).toLocaleString() : "N/A",
+        updatedAt: data.updatedAt ? new Date(data.updatedAt).toLocaleString() : "Never",
+      };
+      
+      console.log("Transformed Data:", transformedData);
+      
+      // Return in the format expected by KiduViewModal
+      return { 
+        isSuccess: true, 
+        value: transformedData 
+      };
+      
+    } catch (error) {
+      console.error("Error in handleFetch:", error);
+      throw error;
     }
-
-    const data = response.value;
-
-    // Transform the data to show names instead of IDs
-    const transformedData = {
-      ...data,
-      // Map authenticationType ID to label
-      authenticationType: data.authenticationType
-        ? AUTHENTICATION_TYPE_MAP[data.authenticationType] || String(data.authenticationType)
-        : "N/A",
-      // Map labGroupId to lab group name
-      labGroupId: data.labGroupId && labGroups[data.labGroupId]
-        ? labGroups[data.labGroupId]
-        : data.labGroupId ? String(data.labGroupId) : "N/A",
-      // Format dates if needed
-      createdAt: data.createdAt ? new Date(data.createdAt).toLocaleString() : "N/A",
-      updatedAt: data.updatedAt ? new Date(data.updatedAt).toLocaleString() : "Never",
-    };
-
-    return { isSucess: true, value: transformedData };
-  };
+  }, [labGroups]);
 
   return (
     <KiduViewModal

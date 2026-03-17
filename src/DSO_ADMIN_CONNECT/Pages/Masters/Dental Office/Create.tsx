@@ -1,49 +1,71 @@
-import React, { useState } from "react";
-import KiduTabbedFormCreateModal, {
-  type TabConfig,
-  type TabbedFormField,
-} from "../../../../KIDU_COMPONENTS/KiduTabbedFormCreateModal";
-import type { DSODentalOffice } from "../../../Types/Masters/DsoDentalOffice.types";
-import DSODentalOfficeService from "../../../Services/Masters/DsoDentalOffice.services";
-import DSOZonePopup from "../../Setup/Zone/DSOZonePopup";
+// src/Pages/Masters/DentalOffice/Create.tsx
+
+import React, { useState, useCallback } from "react";
+import KiduCreateModal, { type Field, type PopupHandlers } from "../../../../KIDU_COMPONENTS/KiduCreateModal";
+import DentalOfficeService from "../../../Services/Masters/DsoDentalOffice.services";
+import type { DentalOffice } from "../../../Types/Masters/DsoDentalOffice.types";
 import { useCurrentUser } from "../../../../Services/AuthServices/CurrentUser.services";
 import { useApiErrorHandler } from "../../../../Services/AuthServices/APIErrorHandler.services";
-import COUNTRIES from "../../../../Configs/Country";
-import CITIES from "../../../../Configs/City";
-import toast from "react-hot-toast";
+import DSOZonePopup from "../../Setup/Zone/DSOZonePopup";
+import type { DSOZone } from "../../../Types/Setup/DsoZone.types";
 
-// ── Header fields ─────────────────────────────────────────────────────────────
-const headerFields: TabbedFormField[] = [
-  { name: "officeCode", label: "Office Code", type: "text", required: true, placeholder: "Enter office code", colWidth: 3, maxLength: 50 },
-  { name: "officeName", label: "Office Name", type: "text", required: true, placeholder: "Enter office name", colWidth: 4, maxLength: 100 },
-  { name: "email", label: "Email", type: "email", required: true, placeholder: "Enter email", colWidth: 4, maxLength: 150 },
-  { name: "mobileNum", label: "Mobile Number", type: "number", required: true, placeholder: "Enter mobile number", colWidth: 3, maxLength: 20 },
-  { name: "postCode", label: "Post Code", type: "number", required: true, placeholder: "Enter post code", colWidth: 4, maxLength: 20 },
-  { 
-    name: "country", 
-    label: "Country", 
-    type: "select", 
-    required: true, 
-    placeholder: "Select country", 
-    colWidth: 4,
-    options: COUNTRIES.map(c => ({ value: c.value, label: c.label }))
+const fields: Field[] = [
+  {
+    name: "officeCode",
+    rules: { type: "text", label: "Office Code", required: true, minLength: 2, maxLength: 50, colWidth: 6 },
   },
-  { 
-    name: "city", 
-    label: "City", 
-    type: "select", 
-    required: true, 
-    placeholder: "Select City", 
-    colWidth: 4,
-    options: CITIES.map(c => ({ value: c.value, label: c.label }))
+  {
+    name: "officeName",
+    rules: { type: "text", label: "Office Name", required: true, minLength: 3, maxLength: 100, colWidth: 6 },
   },
-  { name: "dsoZoneId", label: "Zone", type: "popup", required: true, placeholder: "Select zone", colWidth: 4 },
-  { name: "address", label: "Address", type: "textarea", required: true, placeholder: "Enter address", colWidth: 4, maxLength: 255 },
-  { name: "info", label: "Additional Info", type: "textarea", required: false, placeholder: "Enter additional info", colWidth: 4, maxLength: 500 },
-  // isActive is handled by the header toggle, not as a field
+  {
+    name: "postCode",
+    rules: { type: "text", label: "Post Code", required: true, maxLength: 20, colWidth: 4 },
+  },
+  {
+    name: "mobileNum",
+    rules: { type: "text", label: "Mobile Number", required: true, maxLength: 15, pattern: /^[0-9]+$/, colWidth: 4 },
+  },
+  {
+    name: "email",
+    rules: { type: "email", label: "Email", required: true, maxLength: 100, colWidth: 4 },
+  },
+  {
+    name: "city",
+    rules: { type: "text", label: "City", required: true, maxLength: 50, colWidth: 4 },
+  },
+  {
+    name: "country",
+    rules: { type: "text", label: "Country", required: true, maxLength: 50, colWidth: 4 },
+  },
+   {
+    name: "dsoZoneId",
+    rules: { type: "popup", label: "DSO Zone", required: true, colWidth: 4 },
+  },
+  {
+    name: "address",
+    rules: { type: "textarea", label: "Address", required: true, maxLength: 200, colWidth: 6 },
+  },
+  {
+    name: "alternateAddress",
+    rules: { type: "textarea", label: "Alternate Address", required: false, maxLength: 200, colWidth: 6 },
+  },
+  {
+    name: "mapUrl",
+    rules: { type: "url", label: "Map URL", required: false, maxLength: 500, colWidth: 12 },
+  },
+  {
+    name: "info",
+    rules: { type: "textarea", label: "Additional Info", required: false, maxLength: 500, colWidth: 12 },
+  },
+  {
+    name: "isActive",
+    rules: { type: "toggle", label: "Active", colWidth: 6 },
+  },
 ];
 
 // ── Props ─────────────────────────────────────────────────────────────────────
+
 interface Props {
   show: boolean;
   onHide: () => void;
@@ -51,154 +73,123 @@ interface Props {
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
-const DSODentalOfficeCreateModal: React.FC<Props> = ({ 
+
+const DentalOfficeCreateModal: React.FC<Props> = ({ 
   show, 
   onHide, 
-  onSuccess 
+  onSuccess, 
 }) => {
   const { requireDSOMasterId } = useCurrentUser();
   const { handleApiError, assertApiSuccess } = useApiErrorHandler();
+  
+  // State for popup
+  const [showZonePopup, setShowZonePopup] = useState(false);
+  const [selectedZone, setSelectedZone] = useState<{ id: number; name: string } | null>(null);
 
-  // State for zone popup
-  const [selectedZone, setSelectedZone] = useState<any | null>(null);
-  const [zonePopupOpen, setZonePopupOpen] = useState(false);
-
-  // ── Tab definitions ────────────────────────────────────────────────────────
-  // Since all fields are in header, we don't need any tabs
-  const baseTabs: TabConfig[] = [
-    {
-      key: "Location",
-      label:"Location",
-      addButtonLabel: "Add Location",
-      columns: [
-        {
-          key:"Map Url",
-          label:"Map Url",
-          type:"popup",
-          placeholder:"Select Map"
-        }
-      ]
+  // Popup handlers for DSO Zone
+  const popupHandlers: PopupHandlers = {
+    dsoZoneId: {
+      value: selectedZone?.name || "",
+      onOpen: () => setShowZonePopup(true),
+      onClear: () => setSelectedZone(null),
     },
-     {
-      key: "Address",
-      label:"Change Address",
-      addButtonLabel: "Add Address",
-      columns: [
-        {
-          key:"Location",
-          label:"Location",
-          type:"popup",
-          placeholder:"Select Location"
-        }
-      ]
-    }
-  ];
+  };
+
+  // Handle zone selection from popup
+  const handleZoneSelect = useCallback((zone: DSOZone) => {
+    setSelectedZone({
+      id: zone.id!,
+      name: zone.name!,
+    });
+    setShowZonePopup(false);
+  }, []);
 
   // ── Submit handler ────────────────────────────────────────────────────────
-  const handleSubmit = async (data: {
-    headerData: Record<string, any>;
-    tabData: Record<string, Record<string, any>[]>;
-  }) => {
-    const { headerData } = data;
-
-    console.log("Header Data:", headerData);
-    console.log("Selected Zone:", selectedZone);
-
-    // Validate zone selection
-    if (!selectedZone?.id) {
-      toast.error("Please select a zone");
-      throw new Error("No zone selected");
+  const handleSubmit = async (formData: Record<string, any>) => {
+    // Validate that zone is selected (though popup field handles required state)
+    if (!selectedZone) {
+      throw new Error("Please select a DSO Zone");
     }
 
-    // 1. Get DSOMasterId from token
+    // 1. Get DSOMasterId from token (throws + shows error if missing)
     let dsOMasterId: number;
     try {
       dsOMasterId = requireDSOMasterId();
-      console.log("DSO Master ID:", dsOMasterId);
     } catch (err) {
-      console.error("Failed to get DSO Master ID:", err);
       await handleApiError(err, "session");
       return;
     }
 
     // 2. Build payload
-    const payload: Partial<DSODentalOffice> = {
-      officeCode: headerData.officeCode,
-      officeName: headerData.officeName,
-      email: headerData.email ?? "",
-      mobileNum: headerData.mobileNum ?? "",
-      postCode: headerData.postCode ?? "",
-      country: headerData.country ?? "",
-      city: headerData.city ?? "",
-      dsoZoneId: selectedZone?.id ? Number(selectedZone.id) : undefined,
-      address: headerData.address ?? "",
-      info: headerData.info ?? "",
+    const payload: Partial<DentalOffice> = {
+      officeCode: formData.officeCode,
+      officeName: formData.officeName,
+      postCode: formData.postCode,
+      mobileNum: formData.mobileNum,
+      email: formData.email,
+      city: formData.city,
+      country: formData.country,
+      address: formData.address,
+      alternateAddress: formData.alternateAddress || "",
+      mapUrl: formData.mapUrl || "",
+      dsoZoneId: selectedZone.id,
+      info: formData.info || "",
       dsoMasterId: dsOMasterId,
-      isActive: headerData.isActive ?? true,
+      isActive: formData.isActive ?? true,
     };
-
-    console.log("Submitting payload:", payload);
 
     // 3. Call API
     let result: any;
     try {
-      result = await DSODentalOfficeService.create(payload);
-      console.log("API Response:", result);
+      result = await DentalOfficeService.create(payload);
     } catch (err) {
-      console.error("Error in API call:", err);
       await handleApiError(err, "network");
       return;
     }
 
     // 4. Assert success
-    if (result && result.isSucess) {
-      await assertApiSuccess(result, "Failed to create DSO Dental Office.");
-    } else {
-      console.error("Full error details:", result);
-      throw new Error(result?.customMessage || result?.error || "Failed to create dental office");
-    }
+    await assertApiSuccess(result, "Failed to create Dental Office.");
+    
+    // Clear selected zone after successful submission
+    setSelectedZone(null);
   };
 
-  // ── Reset on close ────────────────────────────────────────────────────────
-  const handleHide = () => {
+  const handleModalHide = () => {
+    // Reset state when modal closes
     setSelectedZone(null);
     onHide();
   };
 
-  // ── Handle successful creation ────────────────────────────────────────────
   const handleSuccess = () => {
-    console.log("Creation successful, calling onSuccess");
+    // Reset state after success
     setSelectedZone(null);
     onSuccess();
   };
 
   return (
     <>
-      <KiduTabbedFormCreateModal
+      <KiduCreateModal
         show={show}
-        onHide={handleHide}
-        title="Create Practice"
-        headerFields={headerFields}
-        tabs={baseTabs}
+        onHide={handleModalHide}
+        title="Create Dental Office"
+        subtitle="Add a new dental office"
+        fields={fields}
+        popupHandlers={popupHandlers}
         onSubmit={handleSubmit}
-        submitButtonText="Create Practice"
-        themeColor="#ef0d50"
-        successMessage="Practice created successfully!"
+        successMessage="Dental Office created successfully!"
         onSuccess={handleSuccess}
+        size="xl"
       />
 
+      {/* DSO Zone Popup */}
       <DSOZonePopup
-        show={zonePopupOpen}
-        onClose={() => setZonePopupOpen(false)}
-        onSelect={(zone) => {
-          console.log("Selected zone:", zone);
-          setSelectedZone(zone);
-          setZonePopupOpen(false);
-        }}
+        show={showZonePopup}
+        onClose={() => setShowZonePopup(false)}
+        onSelect={handleZoneSelect}
         showAddButton={true}
       />
     </>
   );
 };
 
-export default DSODentalOfficeCreateModal;
+export default DentalOfficeCreateModal;

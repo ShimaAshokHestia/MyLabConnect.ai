@@ -3,6 +3,8 @@
    Shared TypeScript types for MyLab Connect Dashboard
    ============================================================ */
 
+import type { CaseDetailData } from "../KIDU_COMPONENTS/KiduCaseDetailModal";
+
 // ── Login / Role types ──────────────────────────────────────
 export type LoginRole =
   | 'doctor'
@@ -59,6 +61,8 @@ export interface CaseRecord {
   date: string;
   status: CaseStatus;
   isRush?: boolean;
+   // ── New: enriches the detail modal ──
+  caseDetailData?: Partial<CaseDetailData>;
 }
 
 // ── Dashboard page API response shape ────────────────────────

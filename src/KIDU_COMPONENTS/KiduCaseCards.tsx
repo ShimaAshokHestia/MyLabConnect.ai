@@ -281,8 +281,9 @@ const CaseCard: React.FC<CaseCardProps> = (props) => {
     if (mode === 'lab') {
       return (
         <>
-          <ActionBtn type="status" label="Update Status"
-            onBtnClick={(e) => { stopProp(e); onStatusClick?.(); }}>
+          <ActionBtn type="status" label="Update Status" onBtnClick={handleStatusBtnClick}
+          // onBtnClick={(e) => { stopProp(e); onStatusClick?.(); }}
+          >
             <IconStatus />
           </ActionBtn>
           <ActionBtn type="help" label="Help"
@@ -301,8 +302,8 @@ const CaseCard: React.FC<CaseCardProps> = (props) => {
             <IconChat />
           </ActionBtn>
           <ActionBtn type="status" label="Status" onBtnClick={handleStatusBtnClick}
-            // onBtnClick={(e) => { stopProp(e); onStatusClick?.(); }}
-            >
+          // onBtnClick={(e) => { stopProp(e); onStatusClick?.(); }}
+          >
             <IconStatus />
           </ActionBtn>
           <ActionBtn type="help" label="Help"

@@ -362,10 +362,10 @@ const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
               title="Doctor Information"
             >
               <div className="cdm-info-grid">
-                <div className="cdm-info-row">
+                {/* <div className="cdm-info-row">
                   <span className="cdm-info-label">Doctor ID</span>
                   <span className="cdm-info-value cdm-info-value--mono">{data.doctorId || '—'}</span>
-                </div>
+                </div> */}
                 <div className="cdm-info-row">
                   <span className="cdm-info-label">Doctor Name</span>
                   <span className="cdm-info-value cdm-info-value--bold">{data.doctorName || '—'}</span>

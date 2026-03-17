@@ -42,38 +42,47 @@ function isRecent(createdAt?: string): boolean {
 // DB column = LabMasterId  →  JSON may come back as any of these variants
 function getLabMasterId(c: any): number | null {
   const val =
-    c?.labMasterId   ??   // camelCase  (most .NET JSON serializers)
-    c?.LabMasterId   ??   // PascalCase (some legacy endpoints)
-    c?.labMasterID   ??   // mixed case
-    c?.LABMasterId   ??   // all-caps prefix
+    c?.labMasterId ??   // camelCase  (most .NET JSON serializers)
+    c?.LabMasterId ??   // PascalCase (some legacy endpoints)
+    c?.labMasterID ??   // mixed case
+    c?.LABMasterId ??   // all-caps prefix
     null;
   return val !== null ? Number(val) : null;
 }
 
 function toCard(c: CaseRegistrationDTO, tab: CaseStatus): CaseRecord {
   return {
-    id:          c.caseNo || String(c.id),
+    id: c.caseNo || String(c.id),
     patientName: `${c.patientFirstName ?? ""} ${c.patientLastName ?? ""}`.trim(),
-    patientId:   c.patientId,
-    caseType:    "Analog Case",
-    doctorName:  c.doctorName?.trim() || `Doctor #${c.dSODoctorId}`,
+    patientId: c.patientId,
+    caseType: "Analog Case",
+    doctorName: c.doctorName?.trim() || `Doctor #${c.dSODoctorId}`,
 
     // ── Show PRACTICE name, not lab name ────────────────────────────
     labName:
-      (c as any).practiceName?.trim()        ||
-      (c as any).dentalOfficeName?.trim()    ||
-      (c as any).officeName?.trim()          ||
+      (c as any).practiceName?.trim() ||
+      (c as any).dentalOfficeName?.trim() ||
+      (c as any).officeName?.trim() ||
       (c as any).dSODentalOfficeName?.trim() ||
-      (c as any).practiceNameStr?.trim()     ||
+      (c as any).practiceNameStr?.trim() ||
       "—",
 
     date: c.dueDate
       ? new Date(c.dueDate).toLocaleDateString("en-GB", {
-          day: "2-digit", month: "2-digit", year: "numeric",
-        })
+        day: "2-digit", month: "2-digit", year: "numeric",
+      })
       : "—",
-    status:  tab,
-    isRush:  false,
+    status: tab,
+    isRush: false,
+    // ── Carry full API data for the detail modal ─────────────────
+    caseDetailData: {
+      practiceName: (c as any).officeName?.trim() || (c as any).dentalOfficeName?.trim() || undefined,
+      doctorId: (c as any).dsoDoctorId ? String((c as any).dsoDoctorId) : undefined,
+      address: (c as any).shipTo?.trim() || undefined,
+      statusNote: (c as any).caseStatusName?.trim() || undefined,
+      caseNotes: (c as any).caseNotes ?? undefined,
+      iosRemarks: (c as any).iosRemarks ?? undefined,
+    },
   };
 }
 
@@ -98,18 +107,18 @@ export function useDashboardCases({
   labMasterId,
 }: UseDashboardCasesParams): UseDashboardCasesResult {
 
-  const [data, setData]       = useState<DashboardPageData>(emptyData(role));
+  const [data, setData] = useState<DashboardPageData>(emptyData(role));
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const result = await CaseService.getPaginatedList({
-        pageNumber:  1,
-        pageSize:    500,
-        getAll:      true,
+        pageNumber: 1,
+        pageSize: 500,
+        getAll: true,
         showDeleted: false,
         ...(dSODoctorId ? { dSODoctorId } : {}),
         ...(dSOMasterId ? { dSOMasterId } : {}),
@@ -153,12 +162,12 @@ export function useDashboardCases({
       }
 
       const buckets: DashboardPageData["cases"] = {
-        rejected:   [],
-        hold:       [],
-        transit:    [],
+        rejected: [],
+        hold: [],
+        transit: [],
         production: [],
-        submitted:  [],
-        recent:     [],
+        submitted: [],
+        recent: [],
       };
 
       for (const c of all) {
@@ -170,12 +179,12 @@ export function useDashboardCases({
       setData({
         role,
         tabCounts: {
-          rejected:   buckets.rejected.length,
-          hold:       buckets.hold.length,
-          transit:    buckets.transit.length,
+          rejected: buckets.rejected.length,
+          hold: buckets.hold.length,
+          transit: buckets.transit.length,
           production: buckets.production.length,
-          submitted:  buckets.submitted.length,
-          recent:     buckets.recent.length,
+          submitted: buckets.submitted.length,
+          recent: buckets.recent.length,
         },
         cases: buckets,
       });
@@ -195,6 +204,6 @@ function emptyData(role: LoginRole): DashboardPageData {
   return {
     role,
     tabCounts: { rejected: 0, hold: 0, transit: 0, production: 0, submitted: 0, recent: 0 },
-    cases:     { rejected: [], hold: [], transit: [], production: [], submitted: [], recent: [] },
+    cases: { rejected: [], hold: [], transit: [], production: [], submitted: [], recent: [] },
   };
 }

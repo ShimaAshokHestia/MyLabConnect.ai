@@ -33,11 +33,11 @@ export interface CaseDashboardProps {
 // ─────────────────────────────────────────────────────────────
 
 const ROLE_STATUSBAR: Record<LoginRole, { prescription: boolean; pickup: boolean }> = {
-  admin:      { prescription: false, pickup: false },
-  dso:        { prescription: false, pickup: false },
-  lab:        { prescription: false, pickup: false },
-  doctor:     { prescription: true,  pickup: true  },
-  practice:   { prescription: false, pickup: true  },
+  admin: { prescription: false, pickup: false },
+  dso: { prescription: false, pickup: false },
+  lab: { prescription: false, pickup: false },
+  doctor: { prescription: true, pickup: true },
+  practice: { prescription: false, pickup: true },
   // include integrator to satisfy the LoginRole union
   integrator: { prescription: false, pickup: false },
 };
@@ -69,9 +69,9 @@ const SkeletonCard = () => (
 // ─────────────────────────────────────────────────────────────
 
 const CaseDashboard: React.FC<CaseDashboardProps> = ({ role, data, loading = false }) => {
-  const config     = ROLE_CONFIG[role];
+  const config = ROLE_CONFIG[role];
   const barButtons = ROLE_STATUSBAR[role];
-  const navigate   = useNavigate();
+  const navigate = useNavigate();
 
   // Initialise with role's default tab
   const [activeTab, setActiveTab] = useState<StatusKey>(config.defaultTab);
@@ -105,19 +105,19 @@ const CaseDashboard: React.FC<CaseDashboardProps> = ({ role, data, loading = fal
   const allCases = data.cases[activeTab] ?? [];
   const currentCases = searchValue.trim()
     ? allCases.filter((c) => {
-        const q = searchValue.toLowerCase();
-        return (
-          c.patientName?.toLowerCase().includes(q) ||
-          c.id?.toLowerCase().includes(q) ||
-          c.doctorName?.toLowerCase().includes(q) ||
-          c.labName?.toLowerCase().includes(q)
-        );
-      })
+      const q = searchValue.toLowerCase();
+      return (
+        c.patientName?.toLowerCase().includes(q) ||
+        c.id?.toLowerCase().includes(q) ||
+        c.doctorName?.toLowerCase().includes(q) ||
+        c.labName?.toLowerCase().includes(q)
+      );
+    })
     : allCases;
 
   // ── Tab label for heading ──
   const tabLabel = TAB_LABELS[activeTab];
-  const tabIcon  = TAB_ICONS[activeTab];
+  const tabIcon = TAB_ICONS[activeTab];
 
   return (
     <main className="dash-page-body">
@@ -179,6 +179,8 @@ const CaseDashboard: React.FC<CaseDashboardProps> = ({ role, data, loading = fal
                   isRush={c.isRush}
                   mode={config.cardMode}
                   animationDelay={i * 0.04}
+                  // ── Pass through the enriched modal data ──
+                  caseDetailData={c.caseDetailData}   // ← ADD THIS LINE
                   onClick={() => console.log('Open case:', c.id)}
                   onStatusClick={() => console.log('Status:', c.id)}
                   onSupportClick={() => console.log('Support:', c.id)}

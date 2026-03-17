@@ -18,7 +18,7 @@ const fields: Field[] = [
       label: "Service Name",
       required: true,
       minLength: 3,
-      maxLength: 100,
+      maxLength: 200,
       colWidth: 12,
     },
   },

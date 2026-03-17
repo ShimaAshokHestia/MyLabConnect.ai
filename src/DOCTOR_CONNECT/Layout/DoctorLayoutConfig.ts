@@ -4,8 +4,6 @@ import {
     Home,
     FileText,
     ClipboardList,
-    Clock,
-    CheckCircle2,
     User,
     Key,
     FilePlus,
@@ -28,17 +26,23 @@ export const doctorMenuItems: MenuItem[] = [
     {
         title: 'Home',
         icon: Home,
-        children: [
-            { title: 'Dashboard', url: '/doctor-connect', icon: Home, },
-            { title: 'My Cases', url: '/doctor-connect/cases/active', icon: ClipboardList, badge: 5 },
-            { title: 'In Progress', url: '/doctor-connect/cases/progress', icon: Clock, badge: 3 },
-            { title: 'Completed', url: '/doctor-connect/cases/completed', icon: CheckCircle2, },
-        ],
+        url: '/doctor-connect',
+        // children: [
+        //     { title: 'Dashboard', url: '/doctor-connect', icon: Home, },
+        //     { title: 'My Cases', url: '/doctor-connect/cases/active', icon: ClipboardList, badge: 5 },
+        //     { title: 'In Progress', url: '/doctor-connect/cases/progress', icon: Clock, badge: 3 },
+        //     { title: 'Completed', url: '/doctor-connect/cases/completed', icon: CheckCircle2, },
+        // ],
     },
     {
         title: 'Prescription',
-        url: '/doctor-connect/prescription-list',
+        url: '/doctor-connect/add-new-case',
         icon: FilePlus,
+    },
+    {
+        title: 'My Cases',
+        url: '/doctor-connect/cases/active',
+        icon: ClipboardList,
     },
     {
         title: 'Draft Cases',
@@ -47,7 +51,7 @@ export const doctorMenuItems: MenuItem[] = [
     },
     {
         title: 'Pickup',
-        url: '/doctor-connect/pickup-list',
+        url: '/doctor-connect/add-new-pickup',
         icon: Truck,
     },
     {
@@ -66,12 +70,12 @@ export const doctorMenuItems: MenuItem[] = [
             { title: 'Daily Scan QC Summary', url: '/doctor-connect/report/dailyScanQCSummary-list', icon: Activity, },
         ],
     },
-     {
+    {
         title: 'Marketplace',
         url: '/doctor-connect/marketplace',
         icon: ShoppingCart,
     },
-     {
+    {
         title: 'Invoices',
         url: '/doctor-connect/invoices-list',
         icon: Receipt,

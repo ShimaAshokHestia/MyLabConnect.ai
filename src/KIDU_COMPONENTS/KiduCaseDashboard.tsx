@@ -23,6 +23,7 @@ export interface CaseDashboardProps {
   data: DashboardPageData;
   /** Loading state while API is in-flight */
   loading?: boolean;
+   onProfileClick?: () => void;
 }
 
 // ─────────────────────────────────────────────────────────────

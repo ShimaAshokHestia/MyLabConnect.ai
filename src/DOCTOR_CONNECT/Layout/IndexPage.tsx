@@ -3,14 +3,15 @@
 // Doctor dashboard — shows only cases created by the logged-in doctor.
 // Scoped via dSODoctorId (read from JWT, no extra API call).
 
-import React from "react";
+import React, { useState } from "react";
 import CaseDashboard from "../../KIDU_COMPONENTS/KiduCaseDashboard";
 import AuthService from "../../Services/AuthServices/Auth.services";
 import { useDashboardCases } from "../Types/Common/UseDashBoard.types";
+import ProfileModal from "../Components/ProfileModal";
 
 const DoctorIndexPage: React.FC = () => {
   const user = AuthService.getUser();
-
+ const [showProfile, setShowProfile] = useState(false);
   const { data, loading, error, refresh } = useDashboardCases({
     role:        "doctor",
     dSODoctorId: user?.dsoDoctorId ?? null,
@@ -52,7 +53,17 @@ const DoctorIndexPage: React.FC = () => {
     );
   }
 
-  return <CaseDashboard role="doctor" data={data} loading={loading} />;
+  return (
+  <>
+  <CaseDashboard role="doctor" data={data} loading={loading}  onProfileClick={() => setShowProfile(true)}/>
+
+   <ProfileModal
+        show={showProfile}
+        onClose={() => setShowProfile(false)}
+      />
+  
+  </>
+  )
 };
 
 export default DoctorIndexPage;

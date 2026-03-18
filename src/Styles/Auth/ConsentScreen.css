@@ -20,7 +20,7 @@
    ============================================ */
 
 .consent-panel {
-  /* background: linear-gradient(145deg, var(--theme-primary) 0%, #c00a40 100%); */
+  background: linear-gradient(145deg, var(--theme-primary) 0%, #c00a41 100%);
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-end;

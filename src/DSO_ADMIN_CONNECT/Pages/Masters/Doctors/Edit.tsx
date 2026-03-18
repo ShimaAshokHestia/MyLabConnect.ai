@@ -1,3 +1,5 @@
+// src/Pages/Masters/DSODoctor/Edit.tsx
+
 import React, { useState, useEffect } from "react";
 import KiduTabbedFormEditModal, {
   type TabConfig,
@@ -6,11 +8,11 @@ import KiduTabbedFormEditModal, {
 import DSODoctorService from "../../../Services/Masters/DsoDoctor.services";
 import { useCurrentUser } from "../../../../Services/AuthServices/CurrentUser.services";
 import { useApiErrorHandler } from "../../../../Services/AuthServices/APIErrorHandler.services";
-import DSODentalOfficePopup from "../Dental Office/DSODentalOfficePopup";
 import toast from "react-hot-toast";
+import DSOZonePopup from "../../Setup/Zone/DSOZonePopup";
+import LabMasterPopup from "../../Masters/Lab/DSOLabMasterPopup"; // You'll need to create this
 
 // ── Header fields ─────────────────────────────────────────────────────────────
-// Matching the create page exactly
 const headerFields: TabbedFormField[] = [
   { name: "doctorCode", label: "Doctor Code", type: "text", required: true, placeholder: "Enter doctor code", colWidth: 3, maxLength: 200 },
   { name: "firstName", label: "First Name", type: "text", required: true, placeholder: "Enter first name", colWidth: 4, maxLength: 200 },
@@ -28,7 +30,7 @@ interface Props {
   show: boolean;
   onHide: () => void;
   onSuccess: () => void;
-  recordId: number | null;
+  recordId: number;
   dsoMasterId?: number;
 }
 
@@ -40,17 +42,14 @@ const DSODoctorEditModal: React.FC<Props> = ({
   recordId,
   dsoMasterId: externalDsoMasterId 
 }) => {
-  const [initialHeaderData, setInitialHeaderData] = useState<Record<string, any>>({});
-  const [initialTabData, setInitialTabData] = useState<Record<string, Record<string, any>[]>>({ 
-    practices: [] 
-  });
-  const [loading, setLoading] = useState(false);
-
   const { requireDSOMasterId } = useCurrentUser();
   const { handleApiError, assertApiSuccess } = useApiErrorHandler();
+  
+  const [loading, setLoading] = useState(false);
+  const [initialHeaderData, setInitialHeaderData] = useState<Record<string, any>>({});
+  const [initialTabData, setInitialTabData] = useState<Record<string, Record<string, any>[]>>({});
 
-  // ── Tab definitions with popup for practice selection ─────────────────────
-  // Matching the create page exactly - same columns structure
+  // ── Tab definitions with popup for practice and lab selection ─────────────
   const baseTabs: TabConfig[] = [
     {
       key: "practices",
@@ -58,27 +57,27 @@ const DSODoctorEditModal: React.FC<Props> = ({
       addButtonLabel: "Add Practice",
       columns: [
         { 
-          key: "practiceId", 
+          key: "Practice", 
           label: "Practice", 
           type: "popup",
           required: true,
           placeholder: "Select a practice",
           popupConfig: {
-            component: DSODentalOfficePopup,
+            component: DSOZonePopup, // Replace with your DentalOfficePopup component
             props: {
               dsoMasterId: externalDsoMasterId,
-              showAddButton: true
             },
-            mapValue: (selected: any) => ({
-              value: String(selected.id),
-              display: `${selected.officeCode} - ${selected.officeName}`
-            })
+            mapValue: (selected: any) => ({ 
+              value: selected.id, 
+              display: selected.officeName || selected.name 
+            }),
           }
         },
+        
       ],
     },
-     {
-      key: "Lab",
+    {
+      key: "lab",
       label: "Lab",
       addButtonLabel: "Add Lab",
       columns: [
@@ -87,115 +86,129 @@ const DSODoctorEditModal: React.FC<Props> = ({
           label: "Lab", 
           type: "popup",
           required: true,
-          placeholder: "Select a practice",
-         
+          placeholder: "Select a lab",
+          popupConfig: {
+            component: LabMasterPopup,
+            props: {
+              dsoMasterId: externalDsoMasterId,
+            },
+            mapValue: (selected: any) => ({ 
+              value: selected.id, 
+              display: selected.labName || selected.name 
+            }),
+          }
+        },
+        {
+          key: "labDescription",
+          label: "Description",
+          type: "text",
+          required: false,
+          placeholder: "Enter lab description",
         },
       ],
     },
   ];
 
-  // ── Fetch existing record when modal opens ────────────────────────────────
+  // ── Fetch existing data ────────────────────────────────────────────────────
   useEffect(() => {
-    if (!show || !recordId) return;
-
-    const fetchData = async () => {
+    const fetchDoctorData = async () => {
+      if (!show || !recordId) return;
+      
+      setLoading(true);
       try {
-        setLoading(true);
         console.log("Fetching doctor data for ID:", recordId);
-        
         const response = await DSODoctorService.getById(recordId);
-        console.log("Doctor data response:", response);
+        console.log("Fetched doctor data:", response);
         
-        await assertApiSuccess(response, "Failed to load doctor data.");
+        if (response?.isSucess && response.value) {
+          const data = response.value;
+          
+          // 1. Build header data
+          const headerData = {
+            doctorCode: data.doctorCode || "",
+            firstName: data.firstName || "",
+            lastName: data.lastName || "",
+            email: data.email || "",
+            phoneNumber: data.phoneNumber || "",
+            licenseNo: data.licenseNo || "",
+            info: data.info || "",
+            address: data.address || "",
+            isActive: data.isActive ?? true,
+          };
+          console.log("Header data:", headerData);
+          setInitialHeaderData(headerData);
 
-        const data = response.value;
-        console.log("Doctor data:", data);
+          // 2. Build practices tab data
+          const practices = (data.dsoDentalDoctors || []).map((item: any) => ({
+            Practice: item.dsoDentalOfficeId,
+            PracticeDisplay: item.dsoDentalOfficeName || `Office #${item.dsoDentalOfficeId}`,
+            isPrimary: item.isPrimary || false,
+          }));
+          console.log("Practices data:", practices);
 
-        // Set header data - matching create page structure
-        setInitialHeaderData({
-          doctorCode: data.doctorCode ?? "",
-          firstName: data.firstName ?? "",
-          lastName: data.lastName ?? "",
-          email: data.email ?? "",
-          phoneNumber: data.phoneNumber ?? "",
-          licenseNo: data.licenseNo ?? "",
-          info: data.info ?? "",
-          address: data.address ?? "",
-          isActive: data.isActive ?? true,
-        });
+          // 3. Build lab mappings tab data
+          const labs = (data.labMappings || []).map((item: any) => ({
+            Lab: item.labMasterId,
+            LabDisplay: item.labName || `Lab #${item.labMasterId}`,
+            labDescription: item.labDescription || "",
+          }));
+          console.log("Labs data:", labs);
 
-        // Map practices data - matching create page expectations
-        let practiceRows: Record<string, any>[] = [];
-        
-        if (Array.isArray(data.dsoDentalDoctors) && data.dsoDentalDoctors.length > 0) {
-          practiceRows = data.dsoDentalDoctors.map((p: any) => {
-            const practiceId = p.dSODentalOfficeId ? String(p.dSODentalOfficeId) : "";
-            
-            return { 
-              practiceId: practiceId,
-              // Important: This should match what the popup expects (fieldName + "Display")
-              practiceIdDisplay: p.dentalOfficeName || p.officeName || `Practice #${practiceId}`,
-              // If your create page expects these fields, include them:
-              // isPrimary: p.isPrimary ?? false,
-              // isActive: p.isActive ?? true,
-              id: p.id ?? 0
-            };
+          // 4. Set tab data
+          setInitialTabData({
+            practices: practices.length > 0 ? practices : [{ Practice: "", isPrimary: false }],
+            lab: labs.length > 0 ? labs : [{ Lab: "", labDescription: "" }],
           });
         } else {
-          // Add an empty row so the practice field shows immediately
-          practiceRows = [{ 
-            practiceId: "",
-            practiceIdDisplay: "",
-            // isPrimary: false,
-            // isActive: true,
-            id: 0
-          }];
+          toast.error("Failed to load doctor data");
+          onHide();
         }
-
-        console.log("Mapped practice rows:", practiceRows);
-        setInitialTabData({ practices: practiceRows });
-        
-      } catch (err: any) {
-        console.error("Error fetching doctor data:", err);
+      } catch (error) {
+        console.error("Error fetching doctor data:", error);
+        toast.error("Error loading doctor data");
         onHide();
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    fetchDoctorData();
   }, [show, recordId]);
-
-  // ── Reset when modal closes ───────────────────────────────────────────────
-  useEffect(() => {
-    if (!show) {
-      setInitialHeaderData({});
-      setInitialTabData({ practices: [] });
-    }
-  }, [show]);
 
   // ── Submit handler ────────────────────────────────────────────────────────
   const handleSubmit = async (data: {
     headerData: Record<string, any>;
     tabData: Record<string, Record<string, any>[]>;
   }) => {
-    if (!recordId) return;
-    
     const { headerData, tabData } = data;
 
-    console.log("Header Data:", headerData);
-    console.log("Tab Data:", tabData);
+    console.log("Edit Header Data:", headerData);
+    console.log("Edit Tab Data:", tabData);
 
-    // Validate at least one practice is selected - matching create page
+    // Get practices from tabData
     const practiceRows = tabData.practices ?? [];
+    
+    // Filter valid practices (those with Practice value)
     const validPractices = practiceRows.filter(
-      (row) => row.practiceId && String(row.practiceId).trim() !== ""
+      (row) => row.Practice && String(row.Practice).trim() !== ""
     );
+
+    console.log("Valid practices for update:", validPractices);
 
     if (validPractices.length === 0) {
       toast.error("Please add at least one practice");
       throw new Error("No practices added");
     }
+
+    // Get labs from tabData
+    const labRows = tabData.lab ?? [];
+    
+    // Filter valid labs (those with Lab value)
+    const validLabs = labRows.filter(
+      (row) => row.Lab && String(row.Lab).trim() !== ""
+    );
+
+    console.log("Valid labs for update:", validLabs);
 
     // 1. Get DSOMasterId from token or props
     let dsoMasterId: number;
@@ -208,14 +221,24 @@ const DSODoctorEditModal: React.FC<Props> = ({
       return;
     }
 
-    // 2. Build payload - matching create page structure exactly
+    // 2. Build payload - map practices to dsoDentalDoctors array
     const practices = validPractices.map((row) => ({
-      id: row.id ?? 0, // Keep existing ID for updates
-      dSODentalOfficeId: Number(row.practiceId),
-      dSODoctorId: recordId,
-      // If your create page expects these fields, include them:
-      // isPrimary: row.isPrimary ?? false,
-      // isActive: row.isActive ?? true,
+      id: 0, // New items will have ID 0, existing ones will be matched by dsoDentalOfficeId
+      dsoDentalOfficeId: Number(row.Practice),
+      dsoDoctorId: recordId,
+      isPrimary: row.isPrimary ?? false,
+      isActive: true,
+      isDeleted: false,
+    }));
+
+    // 3. Build payload - map labs to labMappings array
+    const labMappings = validLabs.map((row) => ({
+      id: 0, // New items will have ID 0
+      labMasterId: Number(row.Lab),
+      dsoDoctorId: recordId,
+      labName: row.labDescription || "", // You might want to fetch actual lab name
+      labDescription: row.labDescription || "",
+      isActive: true,
       isDeleted: false,
     }));
 
@@ -230,26 +253,26 @@ const DSODoctorEditModal: React.FC<Props> = ({
       licenseNo: headerData.licenseNo ?? "",
       info: headerData.info ?? "",
       address: headerData.address ?? "",
-      isActive: headerData.isActive ?? true, // This comes from the header toggle
-      isDeleted: false,
+      isActive: headerData.isActive ?? true,
       dsoMasterId: dsoMasterId,
       dsoDentalDoctors: practices,
+      labMappings: labMappings,
     };
 
-    console.log("Submit payload:", payload);
+    console.log("Submitting update payload:", payload);
 
-    // 3. Call API
+    // 4. Call API
     let result: any;
     try {
       result = await DSODoctorService.update(recordId, payload);
-      console.log("API Response:", result);
+      console.log("API Update Response:", result);
     } catch (err) {
       console.error("Error in API call:", err);
       await handleApiError(err, "network");
       return;
     }
 
-    // 4. Assert success
+    // 5. Assert success
     if (result && result.isSucess) {
       await assertApiSuccess(result, "Failed to update DSO Doctor.");
     } else {
@@ -258,36 +281,11 @@ const DSODoctorEditModal: React.FC<Props> = ({
     }
   };
 
-  // ── Loading overlay ───────────────────────────────────────────────────────
+  // Loading state
   if (loading) {
     return (
-      <div style={{ 
-        position: "fixed", 
-        inset: 0, 
-        background: "rgba(0,0,0,0.45)", 
-        zIndex: 1055, 
-        display: "flex", 
-        alignItems: "center", 
-        justifyContent: "center" 
-      }}>
-        <div style={{ 
-          color: "#fff", 
-          fontSize: "0.9rem", 
-          display: "flex", 
-          alignItems: "center", 
-          gap: 10 
-        }}>
-          <span style={{ 
-            width: 18, 
-            height: 18, 
-            border: "2px solid rgba(255,255,255,0.35)", 
-            borderTopColor: "#fff", 
-            borderRadius: "50%", 
-            display: "inline-block", 
-            animation: "spin 0.65s linear infinite" 
-          }} />
-          Loading doctor data...
-        </div>
+      <div className="ktf-modal-loading">
+        <div className="ktf-spinner" /> Loading...
       </div>
     );
   }
@@ -299,12 +297,12 @@ const DSODoctorEditModal: React.FC<Props> = ({
       title="Edit Doctor"
       headerFields={headerFields}
       tabs={baseTabs}
-      onSubmit={handleSubmit}
-      submitButtonText="Update Doctor"
       initialHeaderData={initialHeaderData}
       initialTabData={initialTabData}
+      onSubmit={handleSubmit}
+      submitButtonText="Update Doctor"
       themeColor="#ef0d50"
-      successMessage="Doctor updated successfully!"
+      successMessage="DSO Doctor updated successfully!"
       onSuccess={onSuccess}
     />
   );

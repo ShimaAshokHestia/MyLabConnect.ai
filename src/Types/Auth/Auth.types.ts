@@ -5,7 +5,6 @@ export interface LoginRequest {
   userName: string;
   password: string;
 }
-
 export interface RegisterRequest {
   userName: string;
   userEmail: string;
@@ -13,47 +12,45 @@ export interface RegisterRequest {
   address?: string;
   password: string;
 }
-
 export interface ForgotPasswordRequest {
   email: string;
 }
-
 export interface ResetPasswordRequest {
   token: string;
   email: string;
   newPassword: string;
 }
-
 export interface ChangePasswordRequest {
   currentPassword: string;
   newPassword: string;
 }
-
 export interface VerifyOtpRequest {
   otpCode: string;
 }
-
 export interface ChangeDefaultPasswordRequest {
   newPassword: string;
 }
 
-// ─── UserTypeName — must match DB UserTypes exactly ───────────────
-export type UserTypeName =
-  | 'DSO'
-  | 'Lab'
-  | 'Doctor'
-  | 'Practice'
-  | 'Integrator'
-  | 'AppAdmin';
+// ─── UserTypeName ─────────────────────────────────────────────────
+// Kept as `string` intentionally — DB values vary in casing and spacing
+// (e.g. "doctor", "app admin", "dso"). All validation is done at runtime
+// via isValidUserTypeName() which is case-insensitive.
+export type UserTypeName = string;
 
-// ─── Portal route map ─────────────────────────────────────────────
-export const PORTAL_ROUTES: Record<UserTypeName, string> = {
-  AppAdmin:   '/appadmin-connect',
-  DSO:        '/dsoadmin-connect',
-  Lab:        '/lab-connect',
-  Practice:   '/practice-connect',
-  Doctor:     '/doctor-connect',
-  Integrator: '/integrator-connect',
+// ─── Portal route map — keyed by lowercase DB value ──────────────
+export const PORTAL_ROUTES_MAP: Record<string, string> = {
+  'dso':              '/dsoadmin-connect',
+  'dso admin':        '/dsoadmin-connect',
+  'lab':              '/lab-connect',
+  'lab technician':   '/lab-connect',
+  'doctor':           '/doctor-connect',
+  'dentist':          '/doctor-connect',
+  'practice':         '/practice-connect',
+  'practice manager': '/practice-connect',
+  'integrator':       '/integrator-connect',
+  'app admin':        '/appadmin-connect',
+  'appadmin':         '/appadmin-connect',   // legacy DB value before migration
+  'super admin':      '/appadmin-connect',
 };
 
 // ─── AuthUser — mirrors backend UserDTO ──────────────────────────
@@ -80,22 +77,24 @@ export interface AuthUser {
   dsoName?: string;
   labMasterId?: number | null;
   labName?: string;
-  // ── Doctor-specific: resolved from JWT claim "dsoDoctorId" ──────
   dsoDoctorId?: number | null;
+  doctorID?: number | null;
 }
 
 // ─── Auth states returned by backend ─────────────────────────────
-export type AuthState = 'SUCCESS' | 'REQUIRES_2FA' | 'REQUIRES_PWD_CHANGE';
+export type AuthState =
+  | 'SUCCESS'
+  | 'REQUIRES_2FA'
+  | 'REQUIRES_PWD_CHANGE'
+  | 'REQUIRES_CONSENT';
 
-// ─── Backend AuthResponseDTO shape ───────────────────────────────
+// ─── Backend response shapes ──────────────────────────────────────
 export interface AuthResponseDTO {
   authState: AuthState;
   token: string | null;
   resendAvailableInSeconds?: number | null;
   redirectPortal?: string | null;
 }
-
-// ─── Generic backend wrapper — preserves backend typo "isSucess" ──
 export interface CustomApiResponse<T = any> {
   statusCode: number;
   error: string | null;
@@ -103,12 +102,9 @@ export interface CustomApiResponse<T = any> {
   isSucess: boolean;
   value: T | null;
 }
+export type LoginApiResponse  = CustomApiResponse<AuthResponseDTO>;
+export type MeApiResponse     = CustomApiResponse<AuthUser>;
 
-// ─── Specific response types ─────────────────────────────────────
-export type LoginApiResponse = CustomApiResponse<AuthResponseDTO>;
-export type MeApiResponse = CustomApiResponse<AuthUser>;
-
-// ─── Legacy shape kept for register (still returns token+user) ────
 export interface RegisterResponseValue {
   token: string;
   expiresAt: string;
@@ -116,18 +112,20 @@ export interface RegisterResponseValue {
 }
 export type RegisterApiResponse = CustomApiResponse<RegisterResponseValue>;
 
-// ─── Helpers ──────────────────────────────────────────────────────
+// ─── Runtime helpers ──────────────────────────────────────────────
+
+/** Case-insensitive. Handles legacy "appadmin" and new "app admin". */
 export function isValidUserTypeName(name: string | null | undefined): name is UserTypeName {
   if (!name) return false;
-  return ['DSO', 'Lab', 'Doctor', 'Practice', 'Integrator', 'AppAdmin'].includes(name);
+  return (name.toLowerCase().trim()) in PORTAL_ROUTES_MAP;
 }
 
+/** Returns the dashboard route for a given userTypeName (case-insensitive). */
 export function getDashboardRouteByType(userTypeName: string): string {
-  if (!isValidUserTypeName(userTypeName)) return '/';
-  return PORTAL_ROUTES[userTypeName];
+  return PORTAL_ROUTES_MAP[userTypeName?.toLowerCase().trim()] ?? '/';
 }
 
-// ─── Portal name → route (matches backend DeterminePortal) ───────
+/** Maps backend RedirectPortal name → frontend route. */
 const PORTAL_NAME_MAP: Record<string, string> = {
   AdminConnect:     '/appadmin-connect',
   DSOConnect:       '/dsoadmin-connect',

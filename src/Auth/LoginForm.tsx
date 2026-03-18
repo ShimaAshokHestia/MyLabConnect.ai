@@ -13,20 +13,19 @@ const MAX_ATTEMPTS = 5;
 
 interface LoginFormProps {
   onForgotPassword?: () => void;
-  /** Called when backend returns REQUIRES_2FA — parent shows OTP modal */
   onRequires2FA?: (userEmail: string, resendAvailableInSeconds: number) => void;
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({ onForgotPassword, onRequires2FA }) => {
   const navigate = useNavigate();
 
-  const [userName, setUserName]         = useState('');
-  const [password, setPassword]         = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading]       = useState(false);
-  const [focusedField, setFocusedField] = useState<string | null>(null);
-  const [submitted, setSubmitted]       = useState(false);
-  const [errors, setErrors]             = useState({ userName: '', password: '' });
+  const [userName, setUserName]               = useState('');
+  const [password, setPassword]               = useState('');
+  const [showPassword, setShowPassword]       = useState(false);
+  const [isLoading, setIsLoading]             = useState(false);
+  const [focusedField, setFocusedField]       = useState<string | null>(null);
+  const [submitted, setSubmitted]             = useState(false);
+  const [errors, setErrors]                   = useState({ userName: '', password: '' });
   const [failedAttempts, setFailedAttempts]   = useState(0);
   const [isAccountLocked, setIsAccountLocked] = useState(false);
 
@@ -42,8 +41,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onForgotPassword, onRequires2FA }
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitted(true);
-    if (!validate()) return;
-    if (isAccountLocked) return;
+    if (!validate() || isAccountLocked) return;
 
     setIsLoading(true);
     try {
@@ -61,6 +59,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onForgotPassword, onRequires2FA }
         };
 
         switch (dto.authState) {
+
           case 'SUCCESS': {
             const user = AuthService.getUser();
             toast.success(`Welcome${user?.userName ? `, ${user.userName}` : ''}!`);
@@ -74,12 +73,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ onForgotPassword, onRequires2FA }
             break;
           }
 
+          case 'REQUIRES_CONSENT': {
+            toast('Please read and accept the consent form to continue.', { icon: '📋' });
+            setTimeout(() => navigate('/consent', { replace: true }), 600);
+            break;
+          }
+
           case 'REQUIRES_2FA': {
             const waitSeconds = dto.resendAvailableInSeconds ?? 180;
-            // Decode temp token to get user email for the modal subtitle
             const tempPayload = decodeJwtPayload(dto.token ?? '');
-            const userEmail = tempPayload?.email ?? userName.trim();
-            // Show OTP modal on the login page (no navigation)
+            const userEmail   = tempPayload?.email ?? userName.trim();
             onRequires2FA?.(userEmail, waitSeconds);
             break;
           }
@@ -105,11 +108,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onForgotPassword, onRequires2FA }
           toast.error('Too many failed attempts. Your account is now locked. Please use Forgot Password.');
         } else {
           const remaining = MAX_ATTEMPTS - newCount;
-          if (remaining <= 2) {
-            toast.error(`${message} — ${remaining} attempt${remaining === 1 ? '' : 's'} remaining before lockout.`);
-          } else {
-            toast.error(message);
-          }
+          toast.error(
+            remaining <= 2
+              ? `${message} — ${remaining} attempt${remaining === 1 ? '' : 's'} remaining before lockout.`
+              : message
+          );
         }
       }
     } catch (err: any) {
@@ -230,7 +233,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onForgotPassword, onRequires2FA }
   );
 };
 
-// ── Helper: decode JWT payload (same as Auth.services) ────────────
 function decodeJwtPayload(token: string): Record<string, any> | null {
   try {
     const parts = token.split('.');

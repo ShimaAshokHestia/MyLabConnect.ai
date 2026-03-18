@@ -43,92 +43,13 @@ let _cache: AuthCache = {
   userType: null, expiresAt: null, portal: null,
 };
 
-// ─── JWT Decoder ──────────────────────────────────────────────────
-function decodeJwtPayload(token: string): Record<string, any> | null {
-  try {
-    const parts = token.split('.');
-    if (parts.length !== 3) return null;
-    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    const json = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    );
-    return JSON.parse(json);
-  } catch {
-    return null;
-  }
-}
-
-// ─── Safe claim extractor ─────────────────────────────────────────
-// The JWT has BOTH JwtRegisteredClaimNames.Email AND a custom "email" claim,
-// both with the same key "email". When decoded, duplicate keys become an array.
-// This helper ALWAYS returns the first string value safely — never an array.
-function claim(p: Record<string, any>, key: string): string {
-  const val = p[key];
-  if (Array.isArray(val)) return String(val[0] ?? '');
-  if (val === null || val === undefined) return '';
-  return String(val);
-}
-
-// ─── Build AuthUser from JWT claims ───────────────────────────────
-function buildUserFromToken(token: string): AuthUser | null {
-  const p = decodeJwtPayload(token);
-  if (!p) return null;
-
-  const id           = parseInt(claim(p, 'uid') || claim(p, 'sub') || '0', 10);
-  const userTypeName = claim(p, 'userTypeName');
-
-  if (!id || !isValidUserTypeName(userTypeName)) return null;
-
-  const dsoMasterIdRaw  = claim(p, 'dsoMasterId');
-  const labMasterIdRaw  = claim(p, 'labMasterId');
-  // ── Read dsoDoctorId directly from JWT claim ─────────────────────
-  const dsoDoctorIdRaw  = claim(p, 'dsoDoctorId');
-  const userEmail       = claim(p, 'email');
-
-  return {
-    id,
-    userName:          claim(p, 'username'),
-    userEmail,
-    phoneNumber:       claim(p, 'phone'),
-    address:           '',
-    islocked:          claim(p, 'isLocked') === 'True',
-    companyId:         parseInt(claim(p, 'companyId')  || '0', 10),
-    companyName:       '',
-    userTypeId:        parseInt(claim(p, 'userTypeId') || '0', 10),
-    userTypeName,
-    lastlogin:         '',
-    lastloginString:   '',
-    createAtString:    '',
-    createdAt:         '',
-    updatedAt:         '',
-    isDeleted:         false,
-    isActive:          true,
-    isDefaultPassword: false,
-    dsoMasterId:       dsoMasterIdRaw  ? parseInt(dsoMasterIdRaw,  10) : null,
-    dsoName:           claim(p, 'dsoName'),
-    labMasterId:       labMasterIdRaw  ? parseInt(labMasterIdRaw,  10) : null,
-    labName:           claim(p, 'labName'),
-    // ── dsoDoctorId: "79" in your JWT screenshot ────────────────────
-    dsoDoctorId:       dsoDoctorIdRaw  ? parseInt(dsoDoctorIdRaw,  10) : null,
-  };
-}
-
-// ─── Sanitise a stored AuthUser ───────────────────────────────────
-function sanitiseUser(user: AuthUser | null): AuthUser | null {
-  if (!user) return null;
-  const email = user.userEmail;
-  if (Array.isArray(email)) {
-    return { ...user, userEmail: String(email[0] ?? '') };
-  }
-  return user;
-}
-
 // ─── Persist helpers ──────────────────────────────────────────────
+
 async function persistFullSession(token: string, user: AuthUser, portal: string | null) {
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+  // Update in-memory cache FIRST — synchronous, always reflects latest state
+  _cache = { token, tempToken: null, user, userType: user.userTypeName, expiresAt, portal };
+  // Then persist to encrypted storage
   await Promise.all([
     KiduSecureStorage.setItem(KEYS.TOKEN,      token),
     KiduSecureStorage.setItem(KEYS.USER,       user),
@@ -137,20 +58,50 @@ async function persistFullSession(token: string, user: AuthUser, portal: string 
     KiduSecureStorage.setItem(KEYS.PORTAL,     portal ?? ''),
   ]);
   KiduSecureStorage.removeItem(KEYS.TEMP_TOKEN);
-  _cache = { token, tempToken: null, user, userType: user.userTypeName, expiresAt, portal };
 }
 
 async function persistTempToken(token: string) {
-  await KiduSecureStorage.setItem(KEYS.TEMP_TOKEN, token);
+  // Update in-memory cache FIRST so hasTempToken() returns true immediately
+  // without waiting for the async encrypted storage write to complete.
+  // This prevents race conditions where a component mounts and checks
+  // hasTempToken() before the storage write has resolved.
   _cache.tempToken = token;
+  _cache.token = null; // clear any full token when entering a temp-token flow
+  await KiduSecureStorage.setItem(KEYS.TEMP_TOKEN, token);
+  KiduSecureStorage.removeItem(KEYS.TOKEN);
 }
 
-// ─── Complete a SUCCESS login from a full-access token ────────────
-async function completeSessionFromToken(token: string, portal: string | null): Promise<boolean> {
-  const user = buildUserFromToken(token);
-  if (!user) return false;
-  await persistFullSession(token, user, portal);
-  return true;
+// ─── Fetch /me and complete session ──────────────────────────────
+async function completeSessionFromMe(token: string, portal: string | null): Promise<boolean> {
+  try {
+    // Put token in cache so getToken() returns it for the /me Authorization header
+    _cache.token = token;
+
+    const meResponse = await HttpService.callApi<any>(
+      API_ENDPOINTS.AUTH.ME,
+      'GET',
+      undefined,
+      false
+    );
+
+    if (!meResponse?.isSucess || !meResponse.value) {
+      _cache.token = null;
+      return false;
+    }
+
+    const user = meResponse.value as AuthUser;
+
+    if (!user || !isValidUserTypeName(user.userTypeName)) {
+      _cache.token = null;
+      return false;
+    }
+
+    await persistFullSession(token, user, portal);
+    return true;
+  } catch {
+    _cache.token = null;
+    return false;
+  }
 }
 
 // ─── AuthService ──────────────────────────────────────────────────
@@ -166,7 +117,7 @@ class AuthService {
         KiduSecureStorage.getItem<string>(KEYS.EXPIRES_AT),
         KiduSecureStorage.getItem<string>(KEYS.PORTAL),
       ]);
-      _cache = { token, tempToken, user: sanitiseUser(user), userType, expiresAt, portal };
+      _cache = { token, tempToken, user, userType, expiresAt, portal };
     } catch {
       _cache = { token: null, tempToken: null, user: null, userType: null, expiresAt: null, portal: null };
     }
@@ -189,20 +140,24 @@ class AuthService {
       };
 
       if (dto.authState === 'SUCCESS' && dto.token) {
-        const ok = await completeSessionFromToken(dto.token, dto.redirectPortal ?? null);
+        const ok = await completeSessionFromMe(dto.token, dto.redirectPortal ?? null);
         if (!ok) {
           return {
             ...response,
             isSucess: false,
-            error: 'Login succeeded but user profile could not be read. Please contact support.',
+            error: 'Login succeeded but user profile could not be loaded. Please try again.',
             value: null,
           };
         }
       } else if (
-        (dto.authState === 'REQUIRES_2FA' || dto.authState === 'REQUIRES_PWD_CHANGE') &&
-        dto.token
+        dto.authState === 'REQUIRES_2FA'      ||
+        dto.authState === 'REQUIRES_PWD_CHANGE' ||
+        dto.authState === 'REQUIRES_CONSENT'
       ) {
-        await persistTempToken(dto.token);
+        // persistTempToken updates _cache.tempToken synchronously BEFORE
+        // the navigate() call in LoginForm, so hasTempToken() is true
+        // the moment the target component mounts.
+        if (dto.token) await persistTempToken(dto.token);
       }
     }
 
@@ -224,7 +179,7 @@ class AuthService {
         redirectPortal: string | null;
       };
       if (dto.authState === 'SUCCESS' && dto.token) {
-      await  completeSessionFromToken(dto.token, dto.redirectPortal ?? null);
+        await completeSessionFromMe(dto.token, dto.redirectPortal ?? null);
       }
     }
 
@@ -255,7 +210,7 @@ class AuthService {
         redirectPortal: string | null;
       };
       if (dto.authState === 'SUCCESS' && dto.token) {
-        completeSessionFromToken(dto.token, dto.redirectPortal ?? null);
+        await completeSessionFromMe(dto.token, dto.redirectPortal ?? null);
       }
     }
 
@@ -273,7 +228,7 @@ class AuthService {
     if (response.isSucess && response.value) {
       const val = response.value as unknown as { token: string; user: AuthUser };
       if (val?.token) {
-        completeSessionFromToken(val.token, null);
+        await completeSessionFromMe(val.token, null);
       }
     }
 

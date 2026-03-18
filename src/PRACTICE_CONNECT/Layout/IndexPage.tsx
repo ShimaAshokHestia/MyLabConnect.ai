@@ -1,56 +1,66 @@
-/* ============================================================
-   pages/PracticeIndexPage.tsx
-   Index page for PRACTICE login.
+// src/PRACTICE_CONNECT/Pages/Home/PracticeIndexPage.tsx
+//
+// Practice dashboard — shows ONLY cases belonging to the logged-in practice
+// (dental office). Scoped via dSODentalOfficeId read from JWT.
 
-   Tabs visible: Scan Rejected | Case on Hold | In Transit |
-                 In Production | Submitted | Recent
-   Card mode: practice → Chat + Support buttons
-              Rush cases get pulsing border + RUSH tag
-   Shows: Prescription button + Pickup button in label bar
-   ============================================================ */
-
-import React, { useEffect, useState } from 'react';
-import type { DashboardPageData } from '../../Types/IndexPage.types';
-import { fetchDashboardData } from '../../Configs/Dummydata';
-import CaseDashboard from '../../KIDU_COMPONENTS/KiduCaseDashboard';
-
+import React from "react";
+import CaseDashboard from "../../KIDU_COMPONENTS/KiduCaseDashboard";
+import AuthService from "../../Services/AuthServices/Auth.services";
+import { useDashboardCases } from "../../DOCTOR_CONNECT/Types/Common/UseDashBoard.types";
 
 const PracticeIndexPage: React.FC = () => {
-  const [data, setData]       = useState<DashboardPageData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState<string | null>(null);
+  const user = AuthService.getUser();
 
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
+  // dSODentalOfficeId identifies which practice/dental office this user manages.
+  // Try all casing variants the JWT might use.
+  const dSODentalOfficeId =
+    user?.dSODentalOfficeId ??
+    user?.dsoDentalOfficeId ??
+    user?.dentalOfficeId    ??
+    null;
 
-    // ── Replace with real API call:
-    // fetch('/api/v1/dashboard?role=practice').then(r => r.json()).then(setData)
-    fetchDashboardData('practice')
-      .then(setData)
-      .catch(() => setError('Failed to load dashboard. Please try again.'))
-      .finally(() => setLoading(false));
-  }, []);
+  const { data, loading, error, refresh } = useDashboardCases({
+    role:             "practice",
+    dSODentalOfficeId: dSODentalOfficeId,   // ← only this practice's cases
+    // also pass dSOMasterId for API-level index optimization
+    dSOMasterId:      user?.dsoMasterId ?? null,
+  });
 
   if (error) {
     return (
-      <div style={{ padding: 40, textAlign: 'center', color: '#ef4444', fontFamily: 'Outfit,sans-serif' }}>
-        {error}
+      <div
+        style={{
+          padding: 40,
+          textAlign: "center",
+          color: "#ef4444",
+          fontFamily: "Outfit, sans-serif",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 12,
+        }}
+      >
+        <span>{error}</span>
+        <button
+          onClick={refresh}
+          style={{
+            padding: "8px 20px",
+            borderRadius: 8,
+            border: "1.5px solid #ef4444",
+            background: "transparent",
+            color: "#ef4444",
+            cursor: "pointer",
+            fontWeight: 600,
+            fontSize: "0.85rem",
+          }}
+        >
+          Retry
+        </button>
       </div>
     );
   }
 
-  return (
-    <CaseDashboard
-      role="practice"
-      data={data ?? {
-        role: 'practice',
-        tabCounts: { rejected: 0, hold: 0, transit: 0, production: 0, submitted: 0, recent: 0 },
-        cases:     { rejected: [], hold: [], transit: [], production: [], submitted: [], recent: [] },
-      }}
-      loading={loading}
-    />
-  );
+  return <CaseDashboard role="practice" data={data} loading={loading} />;
 };
 
 export default PracticeIndexPage;

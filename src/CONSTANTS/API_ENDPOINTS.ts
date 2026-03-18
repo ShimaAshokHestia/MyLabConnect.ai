@@ -14,6 +14,7 @@ export const API_ENDPOINTS = {
     VERIFY_OTP: `${API_BASE_URL}/Auth/verify-otp`,
     RESEND_OTP: `${API_BASE_URL}/Auth/resend-otp`,
     CHANGE_DEFAULT_PASSWORD: `${API_BASE_URL}/Auth/change-default-password`,
+    ACCEPT_CONSENT: `${API_BASE_URL}/Auth/accept-consent-form`,
   },
   AUDIT_LOG: {
     GET_BY_TABLE_AND_ID: (tableName: string, recordId: number) =>

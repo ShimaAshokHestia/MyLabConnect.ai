@@ -5,6 +5,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from '../Auth/ProtectedRoute';
 import LoginPage from '../Auth/LoginPage';
 import ForceChangePassword from '../Auth/ForceChangePassword';
+import ConsentScreen from '../Auth/ConsentScreen';
 
 import { dsoadminConnectRoutes }   from '../DSO_ADMIN_CONNECT/Routes/Route';
 import { labConnectRoutes }        from '../LAB_CONNECT/Routes/Route';
@@ -24,69 +25,68 @@ const Unauthorized: React.FC = () => (
 const AppRoutes: React.FC = () => (
   <Routes>
 
-    {/* ── Public: Login (also handles 2FA modal inline) ───────────── */}
+    {/* ── Public ──────────────────────────────────────────────────── */}
     <Route path="/" element={<LoginPage />} />
 
-    {/* ── AC2: Forced password change ─────────────────────────────── */}
-    {/* Not wrapped in ProtectedRoute — only has a temp token here.   */}
-    {/* Guarded internally by hasTempToken() check in the component.  */}
+    {/* ── Temp-token flows (guarded inside each component) ────────── */}
     <Route path="/force-change-password" element={<ForceChangePassword />} />
+    <Route path="/consent"               element={<ConsentScreen />} />
 
-    {/* ── AppAdmin Portal ─────────────────────────────────────────── */}
+    {/* ── AppAdmin Portal — DB: 'appadmin', 'app admin', 'super admin' */}
     <Route
       path="/appadmin-connect/*"
       element={
-        <ProtectedRoute allowedUserTypes={['AppAdmin']}>
+        <ProtectedRoute allowedUserTypes={['appadmin', 'app admin', 'super admin']}>
           <Routes>{adminConnectRoutes}</Routes>
         </ProtectedRoute>
       }
     />
 
-    {/* ── DSO Portal ──────────────────────────────────────────────── */}
+    {/* ── DSO Portal — DB: 'dso', 'dso admin' ────────────────────── */}
     <Route
       path="/dsoadmin-connect/*"
       element={
-        <ProtectedRoute allowedUserTypes={['DSO']}>
+        <ProtectedRoute allowedUserTypes={['dso', 'dso admin']}>
           <Routes>{dsoadminConnectRoutes}</Routes>
         </ProtectedRoute>
       }
     />
 
-    {/* ── Lab Portal ──────────────────────────────────────────────── */}
+    {/* ── Lab Portal — DB: 'lab', 'lab technician' ────────────────── */}
     <Route
       path="/lab-connect/*"
       element={
-        <ProtectedRoute allowedUserTypes={['Lab']}>
+        <ProtectedRoute allowedUserTypes={['lab', 'lab technician']}>
           <Routes>{labConnectRoutes}</Routes>
         </ProtectedRoute>
       }
     />
 
-    {/* ── Practice Portal ─────────────────────────────────────────── */}
+    {/* ── Practice Portal — DB: 'practice', 'practice manager' ────── */}
     <Route
       path="/practice-connect/*"
       element={
-        <ProtectedRoute allowedUserTypes={['Practice']}>
+        <ProtectedRoute allowedUserTypes={['practice', 'practice manager']}>
           <Routes>{practiceConnectRoutes}</Routes>
         </ProtectedRoute>
       }
     />
 
-    {/* ── Doctor Portal ───────────────────────────────────────────── */}
+    {/* ── Doctor Portal — DB: 'doctor', 'dentist' ─────────────────── */}
     <Route
       path="/doctor-connect/*"
       element={
-        <ProtectedRoute allowedUserTypes={['Doctor']}>
+        <ProtectedRoute allowedUserTypes={['doctor', 'dentist']}>
           <Routes>{doctorConnectRoutes}</Routes>
         </ProtectedRoute>
       }
     />
 
-    {/* ── Integrator Portal ───────────────────────────────────────── */}
+    {/* ── Integrator Portal — DB: 'integrator' ────────────────────── */}
     <Route
       path="/integrator-connect/*"
       element={
-        <ProtectedRoute allowedUserTypes={['Integrator']}>
+        <ProtectedRoute allowedUserTypes={['integrator']}>
           <Routes>{integratorConnectRoutes}</Routes>
         </ProtectedRoute>
       }

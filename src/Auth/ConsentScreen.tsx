@@ -83,26 +83,27 @@ const consentSections: ConsentSection[] = [
   },
 ];
 
-// Must match key names in Auth.services.ts KEYS constant
+// Must match KEYS and SESSION_SENTINEL in Auth.services.ts exactly
 const SK = {
-  TOKEN: 'jwt_token',
+  TOKEN:      'jwt_token',
   TEMP_TOKEN: 'jwt_temp_token',
-  USER: 'auth_user',
-  USER_TYPE: 'user_type_name',
+  USER:       'auth_user',
+  USER_TYPE:  'user_type_name',
   EXPIRES_AT: 'token_expires_at',
-  PORTAL: 'redirect_portal',
+  PORTAL:     'redirect_portal',
 };
+const SESSION_SENTINEL = 'mlc_session_active';
 
 const ConsentScreen: React.FC = () => {
   const navigate = useNavigate();
-  const { theme } = useTheme(); // ← read active theme for data-bs-theme binding
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (!AuthService.hasTempToken()) navigate('/', { replace: true });
   }, [navigate]);
 
   const [scrolledToBottom, setScrolledToBottom] = useState(false);
-  const [agreed, setAgreed] = useState(false);
+  const [agreed, setAgreed]             = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -126,7 +127,6 @@ const ConsentScreen: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // POST /api/Auth/accept-consent-form — temp Consent_Pending token attached by HttpService
       const response = await HttpService.callApi<any>(
         API_ENDPOINTS.AUTH.ACCEPT_CONSENT,
         'POST',
@@ -154,11 +154,16 @@ const ConsentScreen: React.FC = () => {
       }
 
       if (dto.authState === 'SUCCESS') {
-        // 1. Store full token temporarily so HttpService sends it with /me
+        // 1. Store token temporarily so /me request is authenticated
         await KiduSecureStorage.setItem(SK.TEMP_TOKEN, dto.token);
 
-        // 2. Call /me to get the full user profile
-        const meResponse = await HttpService.callApi<any>(API_ENDPOINTS.AUTH.ME, 'GET', undefined, false);
+        // 2. Call /me to get full user profile from server
+        const meResponse = await HttpService.callApi<any>(
+          API_ENDPOINTS.AUTH.ME,
+          'GET',
+          undefined,
+          false
+        );
 
         if (!meResponse?.isSucess || !meResponse.value) {
           toast.error('Could not load user profile. Please log in again.');
@@ -176,27 +181,37 @@ const ConsentScreen: React.FC = () => {
           return;
         }
 
-        // 3. Persist full session
+        // 3. Persist full session to encrypted storage
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
         await Promise.all([
-          KiduSecureStorage.setItem(SK.TOKEN, dto.token),
-          KiduSecureStorage.setItem(SK.USER, user),
-          KiduSecureStorage.setItem(SK.USER_TYPE, user.userTypeName),
+          KiduSecureStorage.setItem(SK.TOKEN,      dto.token),
+          KiduSecureStorage.setItem(SK.USER,       user),
+          KiduSecureStorage.setItem(SK.USER_TYPE,  user.userTypeName),
           KiduSecureStorage.setItem(SK.EXPIRES_AT, expiresAt),
-          KiduSecureStorage.setItem(SK.PORTAL, dto.redirectPortal ?? ''),
+          KiduSecureStorage.setItem(SK.PORTAL,     dto.redirectPortal ?? ''),
         ]);
         KiduSecureStorage.removeItem(SK.TEMP_TOKEN);
 
-        // 4. Reload AuthService in-memory cache
+        // 4. ── CRITICAL: Set sentinel BEFORE AuthService.init() ──────────
+        //    Auth.services.init() checks sessionStorage for 'mlc_session_active'.
+        //    If missing, it treats the session as closed and clears all storage,
+        //    making isAuthenticated() return false and causing ProtectedRoute
+        //    to redirect back to login. Must be set here because this component
+        //    writes to storage directly, bypassing Auth.services.persistFullSession
+        //    which normally sets it.
+        sessionStorage.setItem(SESSION_SENTINEL, '1');
+
+        // 5. Reload AuthService in-memory cache from storage
         await AuthService.init();
 
         toast.success('Welcome! Redirecting to your portal…');
         setTimeout(() => navigate(AuthService.getDashboardRoute(), { replace: true }), 800);
 
       } else if (dto.authState === 'REQUIRES_2FA') {
-        // Consent done but 2FA still pending — store new MFA temp token and go to login for OTP
+        // Consent done, 2FA still pending — replace with new MFA temp token
         await KiduSecureStorage.setItem(SK.TEMP_TOKEN, dto.token);
         KiduSecureStorage.removeItem(SK.TOKEN);
+        sessionStorage.setItem(SESSION_SENTINEL, '1');
         await AuthService.init();
         toast('Consent accepted. Please complete 2FA verification.', { icon: '🔐' });
         setTimeout(() => navigate('/', { replace: true }), 600);
@@ -222,18 +237,15 @@ const ConsentScreen: React.FC = () => {
       centered
       backdrop="static"
       keyboard={false}
-      dialogClassName="consent-modal-dialog"   /* ← widened via CSS */
-      contentClassName="consent-modal-content" /* ← theme-aware card styling */
-      data-bs-theme={theme}                    /* ← Bootstrap dark/light sync */
+      dialogClassName="consent-modal-dialog"
+      contentClassName="consent-modal-content"
+      data-bs-theme={theme}
     >
       {/* ── Header ── */}
-      {/* CHANGE: Replaced full left-panel with a compact header row */}
       <Modal.Header className="consent-modal-header">
         <div className="consent-modal-logo">
           <KiduLogo />
         </div>
-
-        {/* Step pills (kept from original, now horizontal in header) */}
         <div className="consent-step-pills">
           {['Login', 'Consent', 'Dashboard'].map((step, i) => (
             <div key={step} className={`cmp-step ${i === 1 ? 'active' : i < 1 ? 'done' : ''}`}>
@@ -247,7 +259,6 @@ const ConsentScreen: React.FC = () => {
       {/* ── Body ── */}
       <Modal.Body className="consent-modal-body">
 
-        {/* Title block */}
         <div className="cmb-heading">
           <div className="cmb-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -260,7 +271,6 @@ const ConsentScreen: React.FC = () => {
           </div>
         </div>
 
-        {/* Scroll hint (unchanged logic, re-styled) */}
         {!scrolledToBottom && (
           <div className="cmb-scroll-hint">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -270,16 +280,11 @@ const ConsentScreen: React.FC = () => {
           </div>
         )}
 
-        {/* Scrollable content area */}
-        <div
-          ref={scrollRef}
-          className={`cmb-scroll-area ${scrolledToBottom ? 'scrolled' : ''}`}
-        >
+        <div ref={scrollRef} className={`cmb-scroll-area ${scrolledToBottom ? 'scrolled' : ''}`}>
           <p className="cmb-intro">
             Welcome to <strong>{'{my}'}labconnect.ai</strong> — your dental care platform. Before you access the portal, please review the following terms regarding how we collect, store, and use your information. Accessing the platform constitutes your agreement to these terms.
           </p>
 
-          {/* Accordion sections (logic unchanged) */}
           {consentSections.map(section => (
             <div
               key={section.id}
@@ -301,7 +306,6 @@ const ConsentScreen: React.FC = () => {
             </div>
           ))}
 
-          {/* Footer note (unchanged) */}
           <div className="cmb-footer-note">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
@@ -310,7 +314,6 @@ const ConsentScreen: React.FC = () => {
           </div>
         </div>
 
-        {/* Checkbox (logic unchanged) */}
         <div className={`cmb-checkbox-wrap ${scrolledToBottom ? 'visible' : ''}`}>
           <Form.Check
             type="checkbox"
@@ -327,7 +330,6 @@ const ConsentScreen: React.FC = () => {
               </span>
             }
           />
-          {/* Scroll warning (unchanged) */}
           {!scrolledToBottom && (
             <p className="cmb-scroll-warn">Please scroll through all sections to enable the agree button.</p>
           )}
@@ -335,7 +337,6 @@ const ConsentScreen: React.FC = () => {
       </Modal.Body>
 
       {/* ── Footer ── */}
-      {/* CHANGE: Decline + Agree moved to Modal.Footer for conventional modal layout */}
       <Modal.Footer className="consent-modal-footer">
         <Button
           variant="outline-secondary"

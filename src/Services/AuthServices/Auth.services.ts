@@ -28,6 +28,8 @@ const KEYS = {
   PORTAL:      'redirect_portal',
 } as const;
 
+const SESSION_SENTINEL = 'mlc_session_active';
+
 // ─── In-memory cache ──────────────────────────────────────────────
 interface AuthCache {
   token:     string | null;
@@ -47,9 +49,9 @@ let _cache: AuthCache = {
 
 async function persistFullSession(token: string, user: AuthUser, portal: string | null) {
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-  // Update in-memory cache FIRST — synchronous, always reflects latest state
+  // Update cache synchronously first — any code after this sees new state immediately
   _cache = { token, tempToken: null, user, userType: user.userTypeName, expiresAt, portal };
-  // Then persist to encrypted storage
+  sessionStorage.setItem(SESSION_SENTINEL, '1');
   await Promise.all([
     KiduSecureStorage.setItem(KEYS.TOKEN,      token),
     KiduSecureStorage.setItem(KEYS.USER,       user),
@@ -61,12 +63,10 @@ async function persistFullSession(token: string, user: AuthUser, portal: string 
 }
 
 async function persistTempToken(token: string) {
-  // Update in-memory cache FIRST so hasTempToken() returns true immediately
-  // without waiting for the async encrypted storage write to complete.
-  // This prevents race conditions where a component mounts and checks
-  // hasTempToken() before the storage write has resolved.
+  // Update cache synchronously FIRST so hasTempToken() returns true immediately
+  // before navigate() fires and the target component mounts.
   _cache.tempToken = token;
-  _cache.token = null; // clear any full token when entering a temp-token flow
+  _cache.token     = null;
   await KiduSecureStorage.setItem(KEYS.TEMP_TOKEN, token);
   KiduSecureStorage.removeItem(KEYS.TOKEN);
 }
@@ -74,7 +74,6 @@ async function persistTempToken(token: string) {
 // ─── Fetch /me and complete session ──────────────────────────────
 async function completeSessionFromMe(token: string, portal: string | null): Promise<boolean> {
   try {
-    // Put token in cache so getToken() returns it for the /me Authorization header
     _cache.token = token;
 
     const meResponse = await HttpService.callApi<any>(
@@ -90,7 +89,6 @@ async function completeSessionFromMe(token: string, portal: string | null): Prom
     }
 
     const user = meResponse.value as AuthUser;
-
     if (!user || !isValidUserTypeName(user.userTypeName)) {
       _cache.token = null;
       return false;
@@ -104,11 +102,63 @@ async function completeSessionFromMe(token: string, portal: string | null): Prom
   }
 }
 
+// ─── Handle any auth chain response ──────────────────────────────
+// Shared logic for processing authState responses from any endpoint
+// that participates in the login chain (login, changeDefaultPassword,
+// verifyOtp). Returns the original response unchanged — callers use
+// the authState to decide navigation.
+async function processAuthChainResponse(
+  response: any,
+  successErrorMsg: string
+): Promise<any> {
+  if (!response.isSucess || !response.value) return response;
+
+  const dto = response.value as {
+    authState: string;
+    token: string | null;
+    redirectPortal: string | null;
+    resendAvailableInSeconds?: number | null;
+  };
+
+  if (dto.authState === 'SUCCESS' && dto.token) {
+    const ok = await completeSessionFromMe(dto.token, dto.redirectPortal ?? null);
+    if (!ok) {
+      return {
+        ...response,
+        isSucess: false,
+        error: successErrorMsg,
+        value: null,
+      };
+    }
+  } else if (
+    dto.authState === 'REQUIRES_2FA'        ||
+    dto.authState === 'REQUIRES_PWD_CHANGE' ||
+    dto.authState === 'REQUIRES_CONSENT'      // ← THIS is the key fix
+  ) {
+    // Always replace the current temp token with the new one returned
+    // by the backend. Each gate issues a new purpose-scoped token.
+    // e.g. PasswordReset → Consent_Pending → MFA_Pending
+    // If we don't replace it, the old token (wrong purpose) gets sent
+    // to the next endpoint and the backend returns "Invalid token purpose."
+    if (dto.token) await persistTempToken(dto.token);
+  }
+
+  return response;
+}
+
 // ─── AuthService ──────────────────────────────────────────────────
 class AuthService {
 
   static async init(): Promise<void> {
     try {
+      const sentinelPresent = !!sessionStorage.getItem(SESSION_SENTINEL);
+
+      if (!sentinelPresent) {
+        Object.values(KEYS).forEach(k => KiduSecureStorage.removeItem(k));
+        _cache = { token: null, tempToken: null, user: null, userType: null, expiresAt: null, portal: null };
+        return;
+      }
+
       const [token, tempToken, user, userType, expiresAt, portal] = await Promise.all([
         KiduSecureStorage.getItem<string>(KEYS.TOKEN),
         KiduSecureStorage.getItem<string>(KEYS.TEMP_TOKEN),
@@ -117,6 +167,7 @@ class AuthService {
         KiduSecureStorage.getItem<string>(KEYS.EXPIRES_AT),
         KiduSecureStorage.getItem<string>(KEYS.PORTAL),
       ]);
+
       _cache = { token, tempToken, user, userType, expiresAt, portal };
     } catch {
       _cache = { token: null, tempToken: null, user: null, userType: null, expiresAt: null, portal: null };
@@ -130,38 +181,10 @@ class AuthService {
       credentials,
       true
     );
-
-    if (response.isSucess && response.value) {
-      const dto = response.value as unknown as {
-        authState: string;
-        token: string | null;
-        redirectPortal: string | null;
-        resendAvailableInSeconds?: number | null;
-      };
-
-      if (dto.authState === 'SUCCESS' && dto.token) {
-        const ok = await completeSessionFromMe(dto.token, dto.redirectPortal ?? null);
-        if (!ok) {
-          return {
-            ...response,
-            isSucess: false,
-            error: 'Login succeeded but user profile could not be loaded. Please try again.',
-            value: null,
-          };
-        }
-      } else if (
-        dto.authState === 'REQUIRES_2FA'      ||
-        dto.authState === 'REQUIRES_PWD_CHANGE' ||
-        dto.authState === 'REQUIRES_CONSENT'
-      ) {
-        // persistTempToken updates _cache.tempToken synchronously BEFORE
-        // the navigate() call in LoginForm, so hasTempToken() is true
-        // the moment the target component mounts.
-        if (dto.token) await persistTempToken(dto.token);
-      }
-    }
-
-    return response;
+    return processAuthChainResponse(
+      response,
+      'Login succeeded but user profile could not be loaded. Please try again.'
+    );
   }
 
   static async verifyOtp(data: VerifyOtpRequest): Promise<LoginApiResponse> {
@@ -171,19 +194,10 @@ class AuthService {
       data,
       false
     );
-
-    if (response.isSucess && response.value) {
-      const dto = response.value as unknown as {
-        authState: string;
-        token: string | null;
-        redirectPortal: string | null;
-      };
-      if (dto.authState === 'SUCCESS' && dto.token) {
-        await completeSessionFromMe(dto.token, dto.redirectPortal ?? null);
-      }
-    }
-
-    return response;
+    return processAuthChainResponse(
+      response,
+      'OTP verified but user profile could not be loaded. Please try again.'
+    );
   }
 
   static async resendOtp(): Promise<LoginApiResponse> {
@@ -202,19 +216,14 @@ class AuthService {
       data,
       false
     );
-
-    if (response.isSucess && response.value) {
-      const dto = response.value as unknown as {
-        authState: string;
-        token: string | null;
-        redirectPortal: string | null;
-      };
-      if (dto.authState === 'SUCCESS' && dto.token) {
-        await completeSessionFromMe(dto.token, dto.redirectPortal ?? null);
-      }
-    }
-
-    return response;
+    // processAuthChainResponse handles all three cases:
+    // SUCCESS       → call /me, complete session
+    // REQUIRES_CONSENT → replace PasswordReset token with new Consent_Pending token ← THE FIX
+    // REQUIRES_2FA  → replace with new MFA_Pending token
+    return processAuthChainResponse(
+      response,
+      'Password changed but user profile could not be loaded. Please try again.'
+    );
   }
 
   static async register(data: RegisterRequest): Promise<RegisterApiResponse> {
@@ -227,9 +236,7 @@ class AuthService {
 
     if (response.isSucess && response.value) {
       const val = response.value as unknown as { token: string; user: AuthUser };
-      if (val?.token) {
-        await completeSessionFromMe(val.token, null);
-      }
+      if (val?.token) await completeSessionFromMe(val.token, null);
     }
 
     return response;
@@ -249,6 +256,7 @@ class AuthService {
 
   static logout(): void {
     _cache = { token: null, tempToken: null, user: null, userType: null, expiresAt: null, portal: null };
+    sessionStorage.removeItem(SESSION_SENTINEL);
     Object.values(KEYS).forEach(key => KiduSecureStorage.removeItem(key));
   }
 

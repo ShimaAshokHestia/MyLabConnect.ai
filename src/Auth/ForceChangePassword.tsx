@@ -1,11 +1,10 @@
 // src/Auth/ForceChangePassword.tsx
 //
-// ─── AC2: Forced Password Change Page ────────────────────────────────────────
-// Shown after login when authState = "REQUIRES_PWD_CHANGE".
-// Calls POST /Auth/change-default-password (not /Auth/change-password).
-// On success backend returns a full token + redirectPortal — we call /me
-// to load user, then navigate to their dashboard.
-// ─────────────────────────────────────────────────────────────────────────────
+// After submitting new password, backend returns one of:
+//   REQUIRES_CONSENT  → navigate to /consent  (new user, hasn't accepted yet)
+//   REQUIRES_2FA      → store temp token, go to / for OTP modal
+//   SUCCESS           → call /me, complete session, go to dashboard
+// Never send user back to /login — the auth chain continues forward.
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -33,7 +32,7 @@ function calcStrength(pw: string): { score: number; level: StrengthLevel } {
 }
 
 interface Fields { newPass: string; confirm: string; }
-const INITIAL_FIELDS: Fields = { newPass: '', confirm: '' };
+const INITIAL: Fields = { newPass: '', confirm: '' };
 
 // ─── Icons ────────────────────────────────────────────────────────
 const EyeIcon = () => (
@@ -62,16 +61,13 @@ const ErrorIcon = () => (
 const ForceChangePassword: React.FC = () => {
   const navigate = useNavigate();
 
-  // Guard: must have a temp token to be on this page
   useEffect(() => {
-    if (!AuthService.hasTempToken()) {
-      navigate('/', { replace: true });
-    }
+    if (!AuthService.hasTempToken()) navigate('/', { replace: true });
   }, [navigate]);
 
-  const [fields, setFields]     = useState<Fields>(INITIAL_FIELDS);
-  const [errors, setErrors]     = useState<Fields>({ newPass: '', confirm: '' });
-  const [visible, setVisible]   = useState({ newPass: false, confirm: false });
+  const [fields, setFields]       = useState<Fields>(INITIAL);
+  const [errors, setErrors]       = useState<Fields>({ newPass: '', confirm: '' });
+  const [visible, setVisible]     = useState({ newPass: false, confirm: false });
   const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (key: keyof Fields) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,7 +91,7 @@ const ForceChangePassword: React.FC = () => {
     });
     if (!r.isValid) e.newPass = r.message ?? '';
     else if (!/[a-z]/.test(fields.newPass)) e.newPass = 'Must contain at least one lowercase letter';
-    if (!fields.confirm)                   e.confirm = 'Please confirm your new password';
+    if (!fields.confirm)                    e.confirm = 'Please confirm your new password';
     else if (fields.newPass !== fields.confirm) e.confirm = 'Passwords do not match';
     setErrors(e);
     return !e.newPass && !e.confirm;
@@ -104,19 +100,60 @@ const ForceChangePassword: React.FC = () => {
   const handleSubmit = async () => {
     if (!validateAll()) return;
     setSubmitting(true);
+
     try {
-      // POST /Auth/change-default-password with temp PasswordReset token
       const response = await AuthService.changeDefaultPassword({ newPassword: fields.newPass });
 
-      if (response.isSucess) {
-        // Auth.services has already called /me and stored user/token
-        toast.success('Password updated! Redirecting to your portal…');
-        setTimeout(() => navigate(AuthService.getDashboardRoute(), { replace: true }), 800);
-      } else {
+      if (!response.isSucess) {
         const msg = response.error || response.customMessage || 'Failed to change password.';
         toast.error(msg);
         setErrors(p => ({ ...p, newPass: msg }));
+        return;
       }
+
+      // Backend returns the NEXT step in the auth chain directly.
+      // We must handle it here — never send the user back to /login.
+      const dto = response.value as unknown as {
+        authState: string;
+        token: string | null;
+        redirectPortal: string | null;
+        resendAvailableInSeconds?: number | null;
+      };
+
+      switch (dto?.authState) {
+
+        case 'SUCCESS': {
+          // All gates cleared — session is already complete via Auth.services
+          // (changeDefaultPassword calls completeSessionFromMe internally)
+          const user = AuthService.getUser();
+          toast.success(`Password updated! Welcome${user?.userName ? `, ${user.userName}` : ''}!`);
+          setTimeout(() => navigate(AuthService.getDashboardRoute(), { replace: true }), 800);
+          break;
+        }
+
+        case 'REQUIRES_CONSENT': {
+          // Password changed but user hasn't accepted consent yet
+          // Token is already stored as temp by Auth.services.changeDefaultPassword
+          toast('Password updated! Please accept the consent form to continue.', { icon: '📋' });
+          setTimeout(() => navigate('/consent', { replace: true }), 600);
+          break;
+        }
+
+        case 'REQUIRES_2FA': {
+          // Password changed, consent already approved, but 2FA pending
+          // Token is already stored as temp by Auth.services.changeDefaultPassword
+          toast('Password updated! Please complete 2FA verification.', { icon: '🔐' });
+          // Navigate to login page where OTP modal will appear automatically
+          setTimeout(() => navigate('/', { replace: true }), 600);
+          break;
+        }
+
+        default:
+          toast.error('Unexpected response. Please log in again.');
+          AuthService.logout();
+          navigate('/', { replace: true });
+      }
+
     } catch (err: any) {
       toast.error(err?.message || 'An error occurred. Please try again.');
     } finally {
@@ -143,12 +180,10 @@ const ForceChangePassword: React.FC = () => {
         background: 'var(--theme-bg-paper)', borderRadius: '20px',
         boxShadow: '0 8px 40px rgba(0,0,0,0.10)', padding: '40px 36px',
       }}>
-        {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <KiduLogo />
         </div>
 
-        {/* Header */}
         <div style={{ marginBottom: '28px', textAlign: 'center' }}>
           <div style={{
             width: 52, height: 52, borderRadius: '50%',
@@ -161,7 +196,7 @@ const ForceChangePassword: React.FC = () => {
               <path d="M7 11V7a5 5 0 0110 0v4" />
             </svg>
           </div>
-          <h5 style={{ fontWeight: 700, marginBottom: 6,color: 'var(--theme-text-primary)' }}>Set Your New Password</h5>
+          <h5 style={{ fontWeight: 700, marginBottom: 6, color: 'var(--theme-text-primary)' }}>Set Your New Password</h5>
           <p style={{ fontSize: '0.83rem', color: 'var(--theme-text-secondary, #6b7280)', margin: 0 }}>
             Your account was created with a temporary password.
             Please set a secure password to continue.
@@ -170,7 +205,7 @@ const ForceChangePassword: React.FC = () => {
 
         {/* New Password */}
         <div style={{ marginBottom: '16px' }}>
-          <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: 6, color: 'var(--theme-text-primary)'}}>
+          <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: 6, color: 'var(--theme-text-primary)' }}>
             New Password <span style={{ color: 'var(--theme-danger, #ef4444)' }}>*</span>
           </label>
           <div style={{ position: 'relative' }}>
@@ -185,7 +220,7 @@ const ForceChangePassword: React.FC = () => {
                 border: `1.5px solid ${errors.newPass ? 'var(--theme-danger, #ef4444)' : 'var(--theme-border)'}`,
                 borderRadius: '10px', fontSize: '0.88rem', outline: 'none',
                 background: 'var(--theme-bg-input, var(--theme-bg-hover))',
-                color:  'var(--theme-text-primary)', boxSizing: 'border-box',
+                color: 'var(--theme-text-primary)', boxSizing: 'border-box',
               }}
             />
             <button type="button" onClick={() => setVisible(p => ({ ...p, newPass: !p.newPass }))}
@@ -199,7 +234,6 @@ const ForceChangePassword: React.FC = () => {
             </div>
           )}
 
-          {/* Strength meter */}
           {fields.newPass && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
               <div style={{ display: 'flex', gap: 4, flex: 1 }}>
@@ -222,7 +256,6 @@ const ForceChangePassword: React.FC = () => {
             </div>
           )}
 
-          {/* Requirements */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 12px', marginTop: 10 }}>
             {reqs.map(r => (
               <div key={r.id} style={{
@@ -245,7 +278,7 @@ const ForceChangePassword: React.FC = () => {
 
         {/* Confirm Password */}
         <div style={{ marginBottom: '24px' }}>
-          <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: 6 , color: 'var(--theme-text-primary)'}}>
+          <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: 6, color: 'var(--theme-text-primary)' }}>
             Confirm Password <span style={{ color: 'var(--theme-danger, #ef4444)' }}>*</span>
           </label>
           <div style={{ position: 'relative' }}>
@@ -269,13 +302,12 @@ const ForceChangePassword: React.FC = () => {
             </button>
           </div>
           {errors.confirm && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 5, fontSize: '0.75rem', color:'var(--theme-danger, #ef4444)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 5, fontSize: '0.75rem', color: 'var(--theme-danger, #ef4444)' }}>
               <ErrorIcon />{errors.confirm}
             </div>
           )}
         </div>
 
-        {/* Submit */}
         <Button
           onClick={handleSubmit}
           disabled={submitting}

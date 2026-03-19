@@ -6,7 +6,6 @@ import KiduTabbedFormViewModal, {
 import DSODoctorService from "../../../Services/Masters/DsoDoctor.services";
 
 // ── Header fields ─────────────────────────────────────────────────────────────
-// Matching the create/edit page field structure
 const headerFields: ViewHeaderField[] = [
   { name: "doctorCode", label: "Doctor Code", colWidth: 3 },
   { name: "firstName", label: "First Name", colWidth: 4 },
@@ -16,23 +15,23 @@ const headerFields: ViewHeaderField[] = [
   { name: "licenseNo", label: "License No", colWidth: 3 },
   { name: "info", label: "Specialty / Info", colWidth: 4 },
   { name: "address", label: "Address", colWidth: 6 },
-  // isActive is handled in the header toggle, so we don't need it here
 ];
 
 // ── Tab definitions ───────────────────────────────────────────────────────────
 const tabs: ViewTabConfig[] = [
   {
-    key: "practices",
+    key: "practices",           // must match the key returned by mapTabData
     label: "Practices",
     columns: [
-      { key: "practiceName", label: "Practice", displayKey: "practiceDisplay" },
+      { key: "practiceName", label: "Practice" },
     ],
   },
-   {
-    key: "Lab",
+  {
+    key: "lab",                 // lowercase — must match the key returned by mapTabData
     label: "Lab",
     columns: [
-      { key: "labName", label: "Lab", displayKey: "practiceDisplay" },
+      { key: "labName", label: "Lab" },
+      { key: "labDescription", label: "Description" },
     ],
   },
 ];
@@ -51,7 +50,6 @@ const DSODoctorViewModal: React.FC<Props> = ({ show, onHide, recordId }) => {
       show={show}
       onHide={onHide}
       title="View Doctor"
-      //subtitle="Doctor details"
       headerFields={headerFields}
       tabs={tabs}
       recordId={recordId}
@@ -60,25 +58,31 @@ const DSODoctorViewModal: React.FC<Props> = ({ show, onHide, recordId }) => {
       badgeText="Read Only"
       themeColor="#ef0d50"
       mapTabData={(data) => {
-        console.log("Mapping data for view:", data); // Debug log
-        
-        // Map practices from dsoDentalDoctors array
-        const practices = Array.isArray(data.dsoDentalDoctors) && data.dsoDentalDoctors.length > 0
-          ? data.dsoDentalDoctors.map((p: any) => ({
-              practiceId: p.dSODentalOfficeId ?? "",
-              practiceDisplay: p.dentalOfficeName || p.officeName || `Practice #${p.dSODentalOfficeId}`,
-              practiceName: p.dentalOfficeName || p.officeName || "",
-              isPrimary: p.isPrimary ?? false,
-              isActive: p.isActive ?? true,
+        // ── Practices ─────────────────────────────────────────────────────
+        const practices = Array.isArray(data.dsoDentalDoctors)
+          ? data.dsoDentalDoctors
+            .filter((p: any) => !p.isDeleted)
+            .map((p: any) => ({
+              practiceName:
+                p.dentalOfficeName ??
+                p.officeName ??
+                p.dsoDentalOfficeName ??
+                `Practice #${p.dsoDentalOfficeId ?? p.dSODentalOfficeId}`,
             }))
           : [];
 
-        return {
-          practices: practices,
-        };
+        // ── Labs ──────────────────────────────────────────────────────────
+        const lab = Array.isArray(data.labMappings)
+          ? data.labMappings
+            .filter((l: any) => !l.isDeleted)
+            .map((l: any) => ({
+              labName: l.labName ?? `Lab #${l.labMasterId}`,
+              labDescription: l.labDescription ?? "",
+            }))
+          : [];
+
+        return { practices, lab };
       }}
-      // Add a custom formatter or ensure isActive is passed correctly
-      // The view modal already handles isActive through the header toggle
     />
   );
 };

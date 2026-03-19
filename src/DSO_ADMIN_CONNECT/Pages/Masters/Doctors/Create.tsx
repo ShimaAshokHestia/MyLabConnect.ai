@@ -118,6 +118,13 @@ const DSODoctorCreateModal: React.FC<Props> = ({
             showAddButton: false,
           }
         },
+         {
+          key: "labDescription",
+          label: "Description",
+          type: "text",
+          required: false,
+          placeholder: "Enter lab description",
+        },
       ],
     },
   ];

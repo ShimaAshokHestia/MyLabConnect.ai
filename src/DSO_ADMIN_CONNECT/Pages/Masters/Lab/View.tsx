@@ -17,14 +17,14 @@ const AUTHENTICATION_TYPE_MAP: Record<number, string> = {
 // Note: isActive is intentionally excluded from fields — KiduViewModal
 // automatically renders it in the modal header as a read-only toggle.
 const fields: ViewField[] = [
-  { name: "labCode",            label: "Lab Code",            colWidth: 6 },
-  { name: "labName",            label: "Lab Name",            colWidth: 6 },
-  { name: "displayName",        label: "Display Name",        colWidth: 6 },
-  { name: "email",              label: "Email",               colWidth: 6 },
+  { name: "labCode", label: "Lab Code", colWidth: 6 },
+  { name: "labName", label: "Lab Name", colWidth: 6 },
+  { name: "displayName", label: "Display Name", colWidth: 6 },
+  { name: "email", label: "Email", colWidth: 6 },
   { name: "authenticationType", label: "Authentication Type", colWidth: 6 },
-  { name: "labGroupId",         label: "Lab Group",           colWidth: 6 },
-  { name: "logoforRX",          label: "Logo for RX",         colWidth: 6 },
-  { name: "lmsSystem",          label: "LMS System",          colWidth: 6 },
+  { name: "labGroupId", label: "Lab Group", colWidth: 6 },
+  { name: "logoforRX", label: "Logo for RX", colWidth: 6 },
+  { name: "lmsSystem", label: "LMS System", colWidth: 6 },
 ];
 
 const LabMasterViewModal: React.FC<Props> = ({ show, onHide, recordId }) => {

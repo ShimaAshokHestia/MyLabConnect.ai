@@ -12,7 +12,7 @@ const DoctorIndexPage: React.FC = () => {
   const user = AuthService.getUser();
   const { data, loading, error, refresh } = useDashboardCases({
     role:        "doctor",
-    dSODoctorId: user?.dsoDoctorId ?? null,
+    dSODoctorId: user?.doctorId ?? user?.dsoDoctorId ?? user?.doctorID ?? null,
     // also pass dSOMasterId so the API can use the most selective index
     dSOMasterId: user?.dsoMasterId ?? null,
   });

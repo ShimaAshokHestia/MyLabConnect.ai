@@ -5,6 +5,9 @@ export interface DSOmaster {
   id?: number;
   name?: string;
   description?: string;
+  email?: string;
+  phoneNumber?: number;
+  address?: string;
 
   // Audit Fields
   createdAt?: string;

@@ -79,6 +79,7 @@ export interface AuthUser {
   labName?: string;
   dsoDoctorId?: number | null;
   doctorID?: number | null;
+  doctorId?: number | null;
 }
 
 // ─── Auth states returned by backend ─────────────────────────────

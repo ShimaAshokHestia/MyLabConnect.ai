@@ -152,7 +152,7 @@ const AddNewCase: React.FC = () => {
         const user = AuthService.getUser();
 
         // dsoDoctorId is embedded in the JWT as claim "dsoDoctorId" (e.g. "79")
-        const doctorId = user?.dsoDoctorId ?? null;
+        const doctorId = user?.doctorId ?? user?.dsoDoctorId ?? user?.doctorID ?? null;
         const dsoMasterId = user?.dsoMasterId ?? null;
 
         if (!doctorId) {

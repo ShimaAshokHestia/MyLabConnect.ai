@@ -237,6 +237,7 @@ const KiduProfileModal: React.FC<KiduProfileModalProps> = ({
                     alignItems: "center",
                     justifyContent: "center",
                     flexShrink: 0,
+                    marginTop: "2px",
                   }}
                 >
                   <Building2 size={17} style={{ color: "var(--theme-primary)" }} />

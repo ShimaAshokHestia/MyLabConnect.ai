@@ -13,6 +13,8 @@ import CaseCard from './KiduCaseCards';
 import type { StatusItem } from './KiduCaseStatusbar';
 import type { DashboardPageData, LoginRole, StatusKey } from '../Types/IndexPage.types';
 import { ROLE_CONFIG, TAB_ICONS, TAB_LABELS } from '../Configs/RoleConfig';
+import type { ProductionStage } from '../LAB_CONNECT/Components/ProductionStatusTabs';
+import ProductionStageTabs from '../LAB_CONNECT/Components/ProductionStatusTabs';
 
 // ─────────────────────────────────────────────────────────────
 // Props
@@ -23,7 +25,7 @@ export interface CaseDashboardProps {
   data: DashboardPageData;
   /** Loading state while API is in-flight */
   loading?: boolean;
-   onProfileClick?: () => void;
+  onProfileClick?: () => void;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -79,6 +81,9 @@ const CaseDashboard: React.FC<CaseDashboardProps> = ({ role, data, loading = fal
   const [gridTransitioning, setGridTransitioning] = useState(false);
   const [searchValue, setSearchValue] = useState('');
 
+  // ADDED: production sub-stage state — only meaningful when role=lab & tab=production
+  const [productionStage, setProductionStage] = useState<ProductionStage>('model');
+
   // ── Build StatusBar items from visible tabs + API counts ──
   const statusItems: StatusItem[] = config.visible.map((key) => ({
     key,
@@ -120,6 +125,19 @@ const CaseDashboard: React.FC<CaseDashboardProps> = ({ role, data, loading = fal
   const tabLabel = TAB_LABELS[activeTab];
   const tabIcon = TAB_ICONS[activeTab];
 
+  // ADDED: derive production stage counts from tabCounts with safe fallbacks.
+  // The parent API may expose these as sub-keys; if not available we default to 0.
+  // No API call — reads from the same `data` prop already passed in.
+  const productionCounts = {
+    model: (data.tabCounts as any)?.productionModel ?? 0,
+    design: (data.tabCounts as any)?.productionDesign ?? 0,
+    manufacturing: (data.tabCounts as any)?.productionManufacturing ?? 0,
+    qc: (data.tabCounts as any)?.productionQc ?? 0,
+  };
+
+  // ADDED: condition for showing production sub-tabs
+  const showProductionTabs = role === 'lab' && activeTab === 'production';
+
   return (
     <main className="dash-page-body">
 
@@ -135,11 +153,31 @@ const CaseDashboard: React.FC<CaseDashboardProps> = ({ role, data, loading = fal
         onSearchChange={handleSearchChange}
       />
 
+      {/*
+        ADDED: Production pipeline sub-tabs.
+        Renders only when: role === 'lab' AND activeTab === 'production'.
+        Sits between the main StatusBar and the cards label bar.
+      */}
+      {showProductionTabs && (
+        <ProductionStageTabs
+          activeStage={productionStage}
+          onStageSelect={setProductionStage}
+          counts={productionCounts}
+        />
+      )}
+
       {/* ── Label bar ── */}
       <div className="dash-label-bar">
         <span className="dash-view-label">
           <span className="dash-view-icon" aria-hidden="true">{tabIcon}</span>
           {tabLabel}
+
+          {/* ADDED: show active stage name in the label bar when in production view */}
+          {showProductionTabs && (
+            <span className="dash-production-stage-tag">
+              {productionStage.charAt(0).toUpperCase() + productionStage.slice(1)}
+            </span>
+          )}
         </span>
         <div className="dash-label-actions">
           {!loading && (

@@ -1,7 +1,7 @@
 // src/Auth/ConsentScreen.tsx
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Container, Row, Col, Button, Form } from 'react-bootstrap';
+import { Button, Form, Modal } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import '../Styles/Auth/ConsentScreen.css';
@@ -11,6 +11,7 @@ import AuthService from '../Services/AuthServices/Auth.services';
 import KiduSecureStorage from '../Services/Common/KiduSecureStorage';
 import { API_ENDPOINTS } from '../CONSTANTS/API_ENDPOINTS';
 import { isValidUserTypeName } from '../Types/Auth/Auth.types';
+import { useTheme } from '../ThemeProvider/ThemeProvider';
 
 interface ConsentSection {
   id: string;
@@ -84,23 +85,24 @@ const consentSections: ConsentSection[] = [
 
 // Must match key names in Auth.services.ts KEYS constant
 const SK = {
-  TOKEN:      'jwt_token',
+  TOKEN: 'jwt_token',
   TEMP_TOKEN: 'jwt_temp_token',
-  USER:       'auth_user',
-  USER_TYPE:  'user_type_name',
+  USER: 'auth_user',
+  USER_TYPE: 'user_type_name',
   EXPIRES_AT: 'token_expires_at',
-  PORTAL:     'redirect_portal',
+  PORTAL: 'redirect_portal',
 };
 
 const ConsentScreen: React.FC = () => {
   const navigate = useNavigate();
+  const { theme } = useTheme(); // ← read active theme for data-bs-theme binding
 
   useEffect(() => {
     if (!AuthService.hasTempToken()) navigate('/', { replace: true });
   }, [navigate]);
 
   const [scrolledToBottom, setScrolledToBottom] = useState(false);
-  const [agreed, setAgreed]             = useState(false);
+  const [agreed, setAgreed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -177,11 +179,11 @@ const ConsentScreen: React.FC = () => {
         // 3. Persist full session
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
         await Promise.all([
-          KiduSecureStorage.setItem(SK.TOKEN,      dto.token),
-          KiduSecureStorage.setItem(SK.USER,       user),
-          KiduSecureStorage.setItem(SK.USER_TYPE,  user.userTypeName),
+          KiduSecureStorage.setItem(SK.TOKEN, dto.token),
+          KiduSecureStorage.setItem(SK.USER, user),
+          KiduSecureStorage.setItem(SK.USER_TYPE, user.userTypeName),
           KiduSecureStorage.setItem(SK.EXPIRES_AT, expiresAt),
-          KiduSecureStorage.setItem(SK.PORTAL,     dto.redirectPortal ?? ''),
+          KiduSecureStorage.setItem(SK.PORTAL, dto.redirectPortal ?? ''),
         ]);
         KiduSecureStorage.removeItem(SK.TEMP_TOKEN);
 
@@ -215,144 +217,154 @@ const ConsentScreen: React.FC = () => {
   const canSubmit = agreed && scrolledToBottom;
 
   return (
-    <div className="consent-wrapper">
-      <Container fluid className="p-0 h-100">
-        <Row className="g-0 consent-row">
+    <Modal
+      show
+      centered
+      backdrop="static"
+      keyboard={false}
+      dialogClassName="consent-modal-dialog"   /* ← widened via CSS */
+      contentClassName="consent-modal-content" /* ← theme-aware card styling */
+      data-bs-theme={theme}                    /* ← Bootstrap dark/light sync */
+    >
+      {/* ── Header ── */}
+      {/* CHANGE: Replaced full left-panel with a compact header row */}
+      <Modal.Header className="consent-modal-header">
+        <div className="consent-modal-logo">
+          <KiduLogo />
+        </div>
 
-          <Col lg={5} className="d-none d-lg-flex consent-panel">
-            <div className="consent-panel-inner">
-              <div className="consent-panel-logo"><KiduLogo /></div>
-              <div className="consent-panel-text animate-fade-in">
-                <h3 className="panel-heading">Your privacy,<br />our responsibility.</h3>
-                <p className="panel-subtext">Take a moment to understand how we handle your information before you proceed.</p>
-              </div>
-              <div className="consent-panel-badge">
-                <span className="badge-icon">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                    <polyline points="9 12 11 14 15 10" />
-                  </svg>
-                </span>
-                <span>HIPAA Compliant &amp; Encrypted</span>
-              </div>
-              <div className="panel-steps">
-                {['Login', 'Consent', 'Dashboard'].map((step, i) => (
-                  <div key={step} className={`step-pill ${i === 1 ? 'active' : i < 1 ? 'done' : ''}`}>
-                    <span className="step-dot" /><span className="step-label">{step}</span>
-                  </div>
-                ))}
-              </div>
+        {/* Step pills (kept from original, now horizontal in header) */}
+        <div className="consent-step-pills">
+          {['Login', 'Consent', 'Dashboard'].map((step, i) => (
+            <div key={step} className={`cmp-step ${i === 1 ? 'active' : i < 1 ? 'done' : ''}`}>
+              <span className="cmp-dot" />
+              <span className="cmp-label">{step}</span>
             </div>
-          </Col>
+          ))}
+        </div>
+      </Modal.Header>
 
-          <Col lg={7} className="d-flex align-items-center justify-content-center consent-form-col">
-            <div className="consent-card animate-fade-in">
+      {/* ── Body ── */}
+      <Modal.Body className="consent-modal-body">
 
-              <div className="d-lg-none text-center mb-4"><KiduLogo /></div>
+        {/* Title block */}
+        <div className="cmb-heading">
+          <div className="cmb-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+          </div>
+          <div>
+            <h5 className="cmb-title">Terms &amp; Consent</h5>
+            <p className="cmb-subtitle">Please read carefully before proceeding</p>
+          </div>
+        </div>
 
-              <div className="consent-header">
-                <div className="consent-icon-wrap">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="consent-title">Terms &amp; Consent</h2>
-                  <p className="consent-subtitle">Please read carefully before proceeding</p>
-                </div>
-              </div>
+        {/* Scroll hint (unchanged logic, re-styled) */}
+        {!scrolledToBottom && (
+          <div className="cmb-scroll-hint">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+            Scroll through all sections to continue
+          </div>
+        )}
 
-              {!scrolledToBottom && (
-                <div className="scroll-hint">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        {/* Scrollable content area */}
+        <div
+          ref={scrollRef}
+          className={`cmb-scroll-area ${scrolledToBottom ? 'scrolled' : ''}`}
+        >
+          <p className="cmb-intro">
+            Welcome to <strong>{'{my}'}labconnect.ai</strong> — your dental care platform. Before you access the portal, please review the following terms regarding how we collect, store, and use your information. Accessing the platform constitutes your agreement to these terms.
+          </p>
+
+          {/* Accordion sections (logic unchanged) */}
+          {consentSections.map(section => (
+            <div
+              key={section.id}
+              className={`cmb-section ${activeSection === section.id ? 'expanded' : ''}`}
+              onClick={() => setActiveSection(prev => prev === section.id ? null : section.id)}
+            >
+              <div className="cmbs-header">
+                <span className="cmbs-icon">{section.icon}</span>
+                <span className="cmbs-title">{section.title}</span>
+                <span className="cmbs-chevron">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="6 9 12 15 18 9" />
                   </svg>
-                  Scroll to read all sections
-                </div>
-              )}
-
-              <div ref={scrollRef} className={`consent-scroll-area ${scrolledToBottom ? 'scrolled' : ''}`}>
-                <p className="consent-intro">
-                  Welcome to <strong>{'{my}'}labconnect.ai</strong> — your dental care platform. Before you access the portal, please review the following terms regarding how we collect, store, and use your information. Accessing the platform constitutes your agreement to these terms.
-                </p>
-
-                {consentSections.map(section => (
-                  <div
-                    key={section.id}
-                    className={`consent-section-item ${activeSection === section.id ? 'expanded' : ''}`}
-                    onClick={() => setActiveSection(prev => prev === section.id ? null : section.id)}
-                  >
-                    <div className="section-header">
-                      <span className="section-icon">{section.icon}</span>
-                      <span className="section-title">{section.title}</span>
-                      <span className="section-chevron">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="6 9 12 15 18 9" />
-                        </svg>
-                      </span>
-                    </div>
-                    <div className="section-body"><p>{section.content}</p></div>
-                  </div>
-                ))}
-
-                <div className="consent-footer-note">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
-                  </svg>
-                  These terms were last updated on <strong>1 March 2026</strong>. By agreeing, you confirm you are at least 18 years old or have parental/guardian consent.
-                </div>
+                </span>
               </div>
-
-              <div className={`consent-actions ${scrolledToBottom ? 'visible' : ''}`}>
-                <Form.Check
-                  type="checkbox"
-                  id="consent-agree"
-                  className="consent-checkbox"
-                  checked={agreed}
-                  onChange={e => setAgreed(e.target.checked)}
-                  disabled={!scrolledToBottom}
-                  label={
-                    <span className="checkbox-label">
-                      I have read and agree to the{' '}
-                      <a href="#terms" className="consent-link" onClick={e => e.stopPropagation()}>Terms of Service</a>
-                      {' '}and{' '}
-                      <a href="#privacy" className="consent-link" onClick={e => e.stopPropagation()}>Privacy Policy</a>
-                    </span>
-                  }
-                />
-
-                <div className="consent-buttons">
-                  <Button
-                    variant="outline-secondary"
-                    className="btn-decline"
-                    onClick={() => { AuthService.logout(); navigate('/', { replace: true }); }}
-                  >
-                    Decline
-                  </Button>
-                  <Button className="btn-agree" disabled={!canSubmit || isSubmitting} onClick={handleAgree}>
-                    {isSubmitting ? (
-                      <><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />Processing…</>
-                    ) : (
-                      <>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="me-2">
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                        I Agree &amp; Continue
-                      </>
-                    )}
-                  </Button>
-                </div>
-
-                {!scrolledToBottom && (
-                  <p className="scroll-warning">Please scroll through all sections to enable the agree button.</p>
-                )}
+              <div className="cmbs-body">
+                <p>{section.content}</p>
               </div>
-
             </div>
-          </Col>
-        </Row>
-      </Container>
-    </div>
+          ))}
+
+          {/* Footer note (unchanged) */}
+          <div className="cmb-footer-note">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            These terms were last updated on <strong>1 March 2026</strong>. By agreeing, you confirm you are at least 18 years old or have parental/guardian consent.
+          </div>
+        </div>
+
+        {/* Checkbox (logic unchanged) */}
+        <div className={`cmb-checkbox-wrap ${scrolledToBottom ? 'visible' : ''}`}>
+          <Form.Check
+            type="checkbox"
+            id="consent-agree"
+            checked={agreed}
+            onChange={e => setAgreed(e.target.checked)}
+            disabled={!scrolledToBottom}
+            label={
+              <span className="cmb-check-label">
+                I have read and agree to the{' '}
+                <a href="#terms" className="cmb-link" onClick={e => e.stopPropagation()}>Terms of Service</a>
+                {' '}and{' '}
+                <a href="#privacy" className="cmb-link" onClick={e => e.stopPropagation()}>Privacy Policy</a>
+              </span>
+            }
+          />
+          {/* Scroll warning (unchanged) */}
+          {!scrolledToBottom && (
+            <p className="cmb-scroll-warn">Please scroll through all sections to enable the agree button.</p>
+          )}
+        </div>
+      </Modal.Body>
+
+      {/* ── Footer ── */}
+      {/* CHANGE: Decline + Agree moved to Modal.Footer for conventional modal layout */}
+      <Modal.Footer className="consent-modal-footer">
+        <Button
+          variant="outline-secondary"
+          className="cmf-btn-decline"
+          onClick={() => { AuthService.logout(); navigate('/', { replace: true }); }}
+        >
+          Decline
+        </Button>
+        <Button
+          className="cmf-btn-agree"
+          disabled={!canSubmit || isSubmitting}
+          onClick={handleAgree}
+        >
+          {isSubmitting ? (
+            <>
+              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
+              Processing…
+            </>
+          ) : (
+            <>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="me-2">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              I Agree &amp; Continue
+            </>
+          )}
+        </Button>
+      </Modal.Footer>
+    </Modal>
   );
 };
 

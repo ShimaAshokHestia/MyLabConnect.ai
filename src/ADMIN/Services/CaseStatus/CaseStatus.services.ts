@@ -11,32 +11,41 @@ export default class CaseStatusService {
 
   static async getPaginatedList(params: TableRequestParams): Promise<TableResponse<CaseStatus>> {
 
-    const payload = {
-      pageNumber: params.pageNumber,
-      pageSize: params.pageSize,
-      searchTerm: params.searchTerm ?? "",
-      sortBy: params.sortBy ?? "",
-      sortDescending: params.sortDescending ?? false,
-      showDeleted: false,
+  const payload = {
+    pageNumber: params.pageNumber,
+    pageSize: params.pageSize,
+    searchTerm: params.searchTerm ?? "",
+    sortBy: params.sortBy ?? "",
+    sortDescending: params.sortDescending ?? false,
+    showDeleted: false,
+    caseStatusName: params["caseStatusName"] ?? "",
+  };
 
-      // Column filters
-      caseStatusName: params["caseStatusName"] ?? "",
-    };
+  const response = await HttpService.callApi<any>(
+    API_ENDPOINTS.CASE_REGISTRATION.CASE_STATUS_MASTER.GET_PAGINATED,
+    "POST",
+    payload
+  );
 
-    const response = await HttpService.callApi<any>(
-      API_ENDPOINTS.CASE_REGISTRATION.CASE_STATUS_MASTER.GET_PAGINATED,
-      "POST",
-      payload
-    );
+  const result = response?.value ?? response;
+  const data = result.data ?? result.items ?? [];
 
-    const result = response?.value ?? response;
-
+  // ── Paginated endpoint returning empty — fall back to GET_ALL ─────────────
+  if (data.length === 0 && (result.totalRecords === 0 || result.total === 0)) {
+    const allData = await CaseStatusService.getAll();
     return {
-      data: result.data ?? result.items ?? [],
-      total: result.totalRecords ?? result.total ?? 0,
-      totalPages: result.totalPages,
+      data: allData,
+      total: allData.length,
+      totalPages: 1,
     };
   }
+
+  return {
+    data,
+    total: result.totalRecords ?? result.total ?? 0,
+    totalPages: result.totalPages,
+  };
+}
 
   static async getAll(): Promise<CaseStatus[]> {
     const response = await HttpService.callApi<any>(

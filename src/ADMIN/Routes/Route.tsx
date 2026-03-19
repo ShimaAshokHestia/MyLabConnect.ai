@@ -10,6 +10,7 @@ import UserTypeList from '../Pages/User Management/User Type/List';
 import CompanyList from '../Pages/Company/List';
 import FinancialYearList from '../Pages/Settings/Financial Year/List';
 import AdminIndexPage from '../Layout/IndexPage';
+import CaseStatusList from '../Pages/Settings/CaseStatusMaster/List';
 
 // ── Add page imports here as you build them ────────────────────────
 // import DSOmasterList from '../Pages/Master/List';
@@ -39,7 +40,8 @@ export const adminConnectRoutes = (
 
     {/* Settings */}
     <Route path="settings/financialYear-list" element={<FinancialYearList/>} />
-
+    <Route path="settings/caseStatus-list" element={<CaseStatusList/>} />
+    
     {/* Catch-all */}
     <Route path="*" element={<Navigate to="/appadmin-connect" replace />} />
   </Route>

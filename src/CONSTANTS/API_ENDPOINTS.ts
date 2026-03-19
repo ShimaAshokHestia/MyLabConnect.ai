@@ -275,6 +275,16 @@ export const API_ENDPOINTS = {
     DELETE: (id: number) => `${API_BASE_URL}/CaseRegistrationMaster/${id}`,
     GET_PAGINATED: `${API_BASE_URL}/CaseRegistrationMaster/getall-paginated`,
 
+    //--Case Status Master-------//
+    CASE_STATUS_MASTER: {
+      GET_ALL: `${API_BASE_URL}/CaseStatusMaster`,
+      CREATE: `${API_BASE_URL}/CaseStatusMaster`, 
+      GET_BY_ID: (id: number) => `${API_BASE_URL}/CaseStatusMaster/${id}`,
+      UPDATE: (id: number) => `${API_BASE_URL}/CaseStatusMaster/${id}`,
+      DELETE: (id: number) => `${API_BASE_URL}/CaseStatusMaster/${id}`,
+      GET_PAGINATED: `${API_BASE_URL}/CaseStatusMaster/getall-paginated`,
+    },
+
     // ── Sub-resource endpoints (map to controller action routes) ─────────────
     CHANGE_STATUS: (id: number) =>
       `${API_BASE_URL}/CaseRegistrationMaster/${id}/status`,

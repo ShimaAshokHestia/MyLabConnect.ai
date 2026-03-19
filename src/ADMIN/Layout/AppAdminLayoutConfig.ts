@@ -64,7 +64,7 @@ export const appAdminMenuItems: MenuItem[] = [
     icon: Settings,
     children: [
       { title: 'Financial Year', url: '/appadmin-connect/settings/financialYear-list', icon: CalendarRange },
-       { title: 'Case Status', url: '/appadmin-connect/settings/caseStatus-list', icon: CalendarRange },
+      { title: 'Case Status', url: '/appadmin-connect/settings/caseStatus-list', icon: CalendarRange },
     ],
   },
 ];

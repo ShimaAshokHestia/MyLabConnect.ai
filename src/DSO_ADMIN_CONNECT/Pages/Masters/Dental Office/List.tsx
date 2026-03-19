@@ -130,7 +130,7 @@ const DentalOfficeList: React.FC = () => {
         showColumnToggle={true}
         defaultRowsPerPage={10}
         highlightOnHover={true}
-        auditLogTableName="dso_dental_office"
+        auditLogTableName="DSO_DentalOffice"
       />
 
       <DentalOfficeCreateModal

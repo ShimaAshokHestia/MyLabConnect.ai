@@ -15,6 +15,8 @@ const headerFields: ViewHeaderField[] = [
   { name: "licenseNo", label: "License No", colWidth: 3 },
   { name: "info", label: "Specialty / Info", colWidth: 4 },
   { name: "address", label: "Address", colWidth: 6 },
+  { name: "triosDoctorId", label: "Trios Doctor Id", colWidth: 6 },
+  { name: "triosEmailId", label: "Trios Email Id", colWidth: 6 },
 ];
 
 // ── Tab definitions ───────────────────────────────────────────────────────────

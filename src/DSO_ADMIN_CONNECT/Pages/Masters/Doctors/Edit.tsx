@@ -18,10 +18,13 @@ const headerFields: TabbedFormField[] = [
   { name: "firstName", label: "First Name", type: "text", required: true, placeholder: "Enter first name", colWidth: 4, maxLength: 200 },
   { name: "lastName", label: "Last Name", type: "text", required: true, placeholder: "Enter last name", colWidth: 4, maxLength: 200 },
   { name: "email", label: "Email", type: "email", required: false, placeholder: "Enter email address", colWidth: 4, maxLength: 100 },
+   { name: "triosDoctorId", label: "Trios Doctor Id", type: "text", required: false, placeholder: "Enter trios doctor id", colWidth: 4, maxLength: 200 },
+  { name: "triosEmailId", label: "Trios Email Id", type: "text", required: false, placeholder: "Enter trios email id", colWidth: 5, maxLength: 200 },
   { name: "phoneNumber", label: "Phone Number", type: "number", required: false, placeholder: "Enter phone number", colWidth: 4, maxLength: 100 },
   { name: "licenseNo", label: "License No", type: "text", required: true, placeholder: "Enter license number", colWidth: 3, maxLength: 200 },
   { name: "info", label: "Specialty / Info", type: "text", required: false, placeholder: "Enter specialty or additional info", colWidth: 4, maxLength: 500 },
   { name: "address", label: "Address", type: "text", required: false, placeholder: "Enter address", colWidth: 6, maxLength: 500 },
+ 
   // isActive is handled by the header toggle, not as a field
 ];
 
@@ -35,16 +38,16 @@ interface Props {
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
-const DSODoctorEditModal: React.FC<Props> = ({ 
-  show, 
-  onHide, 
-  onSuccess, 
+const DSODoctorEditModal: React.FC<Props> = ({
+  show,
+  onHide,
+  onSuccess,
   recordId,
-  dsoMasterId: externalDsoMasterId 
+  dsoMasterId: externalDsoMasterId
 }) => {
   const { requireDSOMasterId } = useCurrentUser();
   const { handleApiError, assertApiSuccess } = useApiErrorHandler();
-  
+
   const [loading, setLoading] = useState(false);
   const [initialHeaderData, setInitialHeaderData] = useState<Record<string, any>>({});
   const [initialTabData, setInitialTabData] = useState<Record<string, Record<string, any>[]>>({});
@@ -56,9 +59,9 @@ const DSODoctorEditModal: React.FC<Props> = ({
       label: "Practices",
       addButtonLabel: "Add Practice",
       columns: [
-        { 
-          key: "Practice", 
-          label: "Practice", 
+        {
+          key: "Practice",
+          label: "Practice",
           type: "popup",
           required: true,
           placeholder: "Select a practice",
@@ -67,13 +70,13 @@ const DSODoctorEditModal: React.FC<Props> = ({
             props: {
               dsoMasterId: externalDsoMasterId,
             },
-            mapValue: (selected: any) => ({ 
-              value: selected.id, 
-              display: selected.officeName || selected.name 
+            mapValue: (selected: any) => ({
+              value: selected.id,
+              display: selected.officeName || selected.name
             }),
           }
         },
-        
+
       ],
     },
     {
@@ -81,9 +84,9 @@ const DSODoctorEditModal: React.FC<Props> = ({
       label: "Lab",
       addButtonLabel: "Add Lab",
       columns: [
-        { 
-          key: "Lab", 
-          label: "Lab", 
+        {
+          key: "Lab",
+          label: "Lab",
           type: "popup",
           required: true,
           placeholder: "Select a lab",
@@ -92,9 +95,9 @@ const DSODoctorEditModal: React.FC<Props> = ({
             props: {
               dsoMasterId: externalDsoMasterId,
             },
-            mapValue: (selected: any) => ({ 
-              value: selected.id, 
-              display: selected.labName || selected.name 
+            mapValue: (selected: any) => ({
+              value: selected.id,
+              display: selected.labName || selected.name
             }),
           }
         },
@@ -113,16 +116,16 @@ const DSODoctorEditModal: React.FC<Props> = ({
   useEffect(() => {
     const fetchDoctorData = async () => {
       if (!show || !recordId) return;
-      
+
       setLoading(true);
       try {
         console.log("Fetching doctor data for ID:", recordId);
         const response = await DSODoctorService.getById(recordId);
         console.log("Fetched doctor data:", response);
-        
+
         if (response?.isSucess && response.value) {
           const data = response.value;
-          
+
           // 1. Build header data
           const headerData = {
             doctorCode: data.doctorCode || "",
@@ -187,7 +190,7 @@ const DSODoctorEditModal: React.FC<Props> = ({
 
     // Get practices from tabData
     const practiceRows = tabData.practices ?? [];
-    
+
     // Filter valid practices (those with Practice value)
     const validPractices = practiceRows.filter(
       (row) => row.Practice && String(row.Practice).trim() !== ""
@@ -202,7 +205,7 @@ const DSODoctorEditModal: React.FC<Props> = ({
 
     // Get labs from tabData
     const labRows = tabData.lab ?? [];
-    
+
     // Filter valid labs (those with Lab value)
     const validLabs = labRows.filter(
       (row) => row.Lab && String(row.Lab).trim() !== ""
@@ -249,6 +252,8 @@ const DSODoctorEditModal: React.FC<Props> = ({
       lastName: headerData.lastName ?? "",
       fullName: `${headerData.firstName ?? ""} ${headerData.lastName ?? ""}`.trim(),
       email: headerData.email ?? "",
+      triosDoctorId: headerData.triosDoctorId || "",
+      triosEmailId: headerData.triosEmailId || "",
       phoneNumber: headerData.phoneNumber ?? "",
       licenseNo: headerData.licenseNo ?? "",
       info: headerData.info ?? "",

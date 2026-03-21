@@ -41,7 +41,10 @@ export interface LabMaster {
   logoforRX: string;
   lmsSystem: string;
   labGroupId: number;
-  
+  phone?: string;
+  address?: string;
+  triosId?: string;
+  triosLabCode?: string;
   // Audit fields
   createdAt: string; // ISO date string
   updatedAt: string | null;

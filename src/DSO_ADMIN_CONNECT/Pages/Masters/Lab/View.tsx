@@ -21,10 +21,14 @@ const fields: ViewField[] = [
   { name: "labName", label: "Lab Name", colWidth: 6 },
   { name: "displayName", label: "Display Name", colWidth: 6 },
   { name: "email", label: "Email", colWidth: 6 },
+  { name: "phone", label: "Phone", colWidth: 6 },
+  { name: "address", label: "Address", colWidth: 6 },
   { name: "authenticationType", label: "Authentication Type", colWidth: 6 },
   { name: "labGroupId", label: "Lab Group", colWidth: 6 },
   { name: "logoforRX", label: "Logo for RX", colWidth: 6 },
   { name: "lmsSystem", label: "LMS System", colWidth: 6 },
+  { name: "triosId", label: "Trios Id", colWidth: 6 },
+  { name: "triosLabCode", label: "Trios Lab code", colWidth: 6 },
 ];
 
 const LabMasterViewModal: React.FC<Props> = ({ show, onHide, recordId }) => {

@@ -61,6 +61,28 @@ const fields: Field[] = [
       colWidth: 6 
     } 
   },
+   { 
+    name: "phone", 
+    rules: { 
+      type: "number", 
+      label: "Phone", 
+      required: false, 
+      minLength: 3, 
+      maxLength: 100, 
+      colWidth: 6 
+    } 
+  },
+  { 
+    name: "address", 
+    rules: { 
+      type: "text", 
+      label: "Address", 
+      required: false, 
+      minLength: 3, 
+      maxLength: 200, 
+      colWidth: 6 
+    } 
+  },
   { 
     name: "labGroupId", 
     rules: { 
@@ -106,6 +128,28 @@ const fields: Field[] = [
     rules: { 
       type: "toggle", 
       label: "Active", 
+      colWidth: 6 
+    } 
+  },
+   { 
+    name: "triosId", 
+    rules: { 
+      type: "number", 
+      label: "Trios Id", 
+      required: false, 
+      minLength: 1, 
+      maxLength: 100, 
+      colWidth: 6 
+    } 
+  },
+  { 
+    name: "triosLabCode", 
+    rules: { 
+      type: "text", 
+      label: "Trios Lab code", 
+      required: false, 
+      minLength: 3, 
+      maxLength: 200, 
       colWidth: 6 
     } 
   },
@@ -167,11 +211,15 @@ const LabMasterCreateModal: React.FC<Props> = ({ show, onHide, onSuccess }) => {
       labName: formData.labName,
       displayName: formData.displayName || undefined,
       email: formData.email || undefined,
+      phone: formData.phone || undefined,
+      address: formData.address || undefined,
       labGroupId: formData.labGroupId ? Number(formData.labGroupId) : undefined,
       authenticationType: formData.authenticationType ? Number(formData.authenticationType) : 1,
       logoforRX: formData.logoforRX || undefined,
       lmsSystem: formData.lmsSystem || undefined,
       isActive: formData.isActive ?? true,
+      triosId: formData.triosId || undefined,
+      triosLabCode: formData.triosLabCode || undefined,
       dsoLabMappings: [
         {
           dsoMasterId: dsoMasterId,

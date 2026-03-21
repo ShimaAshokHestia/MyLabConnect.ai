@@ -94,6 +94,8 @@ export interface DSODoctor {
   licenseNo?: string;
   doctorCode?: string;
   info?: string;
+  triosDoctorId?:string;
+  triosEmailId?:string;
   
   // DSO Master Relationship
   dsoMasterId?: number;

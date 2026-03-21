@@ -16,7 +16,7 @@ export interface TabbedFormField {
   required?: boolean;
   placeholder?: string;
   options?: { value: string | number; label: string }[];
-  colWidth?: 3 | 4 | 6 | 8 | 10 | 12;
+  colWidth?: 3 | 5 | 4 | 6 | 8 | 10 | 12;
   maxLength?: number;
   minLength?: number;
   defaultValue?: any;

@@ -17,8 +17,11 @@ const headerFields: TabbedFormField[] = [
   { name: "email", label: "Email", type: "email", required: false, placeholder: "Enter email address", colWidth: 4, maxLength: 100 },
   { name: "phoneNumber", label: "Phone Number", type: "number", required: false, placeholder: "Enter phone number", colWidth: 4, maxLength: 100 },
   { name: "licenseNo", label: "License No", type: "text", required: true, placeholder: "Enter license number", colWidth: 3, maxLength: 200 },
+   { name: "triosDoctorId", label: "Trios Doctor Id", type: "text", required: false, placeholder: "Enter address", colWidth: 4, maxLength: 200 },
+    { name: "triosEmailId", label: "Trios Email Id", type: "text", required: false, placeholder: "Enter address", colWidth: 5, maxLength: 200 },
   { name: "info", label: "Specialty / Info", type: "text", required: false, placeholder: "Enter specialty or additional info", colWidth: 4, maxLength: 500 },
   { name: "address", label: "Address", type: "text", required: false, placeholder: "Enter address", colWidth: 6, maxLength: 500 },
+  
   // isActive is handled by the header toggle, not as a field
 ];
 
@@ -215,6 +218,8 @@ const DSODoctorCreateModal: React.FC<Props> = ({
       address: headerData.address ?? "",
       isActive: headerData.isActive ?? true,
       isDeleted: false,
+      triosDoctorId:headerData.triosDoctorId ?? "",
+      triosEmailId:headerData.triosEmailId ?? "",
       dsoMasterId: dsoMasterId,
       dsoDentalDoctors: practices,
       labMappings: labMappings, // Add lab mappings to payload

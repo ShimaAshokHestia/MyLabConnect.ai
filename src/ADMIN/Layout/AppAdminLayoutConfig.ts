@@ -16,6 +16,7 @@ import AuthService from '../../Services/AuthServices/Auth.services';
 export const appAdminMenuItems: MenuItem[] = [
   { title: 'Dashboard', url: '/appadmin-connect', icon: Home },
   { title: 'Analytics', url: '/appadmin-connect/analytics', icon: BarChart3 },
+   { title: 'Trios Analytics', url: '/appadmin-connect/trios-dashboard', icon: BarChart3 },
   {
     title: 'Masters',
     icon: Microscope,

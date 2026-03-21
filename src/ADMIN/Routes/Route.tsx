@@ -11,6 +11,7 @@ import CompanyList from '../Pages/Company/List';
 import FinancialYearList from '../Pages/Settings/Financial Year/List';
 import AdminIndexPage from '../Layout/IndexPage';
 import CaseStatusList from '../Pages/Settings/CaseStatusMaster/List';
+import PipelineMonitorDashboard from '../Pages/Dashboards/trios-dashboard';
 
 // ── Add page imports here as you build them ────────────────────────
 // import DSOmasterList from '../Pages/Master/List';
@@ -33,8 +34,9 @@ export const adminConnectRoutes = (
 
     {/* Reports */}
     <Route path="analytics"                element={<div><h5>Analytics</h5></div>} />
-    <Route path="masters/master-list" element={<DSOmasterList/>}/>
-    <Route path="reports/case-summary"     element={<div><h5>Case Summary</h5></div>} />
+    <Route path="trios-dashboard"           element={<PipelineMonitorDashboard />} />
+    <Route path="masters/master-list"       element={<DSOmasterList/>}/>
+    <Route path="reports/case-summary"      element={<div><h5>Case Summary</h5></div>} />
     <Route path="reports/revenue-summary"  element={<div><h5>Revenue Summary</h5></div>} />
     <Route path="reports/support-tickets"  element={<div><h5>Support Tickets</h5></div>} />
 

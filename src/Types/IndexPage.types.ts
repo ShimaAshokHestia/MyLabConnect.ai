@@ -58,10 +58,12 @@ export interface CaseRecord {
   caseType: string;
   doctorName: string;
   labName: string;
+  dsoName?: string;
+  practiceName?: string;
   date: string;
   status: CaseStatus;
   isRush?: boolean;
-   // ── New: enriches the detail modal ──
+  // ── New: enriches the detail modal ──
   caseDetailData?: Partial<CaseDetailData>;
 }
 

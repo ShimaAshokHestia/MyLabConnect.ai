@@ -50,7 +50,7 @@ const LabIndexPage: React.FC = () => {
     );
   }
 
-  return <CaseDashboard role="lab" data={data} loading={loading} />;
+  return <CaseDashboard role="lab" data={data} loading={loading} hideLabName={true} hideDsoName={true}/>;
 };
 
 export default LabIndexPage;

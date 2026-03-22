@@ -53,7 +53,7 @@ const DoctorIndexPage: React.FC = () => {
 
   return (
   <>
-  <CaseDashboard role="doctor" data={data} loading={loading}/>
+  <CaseDashboard role="doctor" data={data} loading={loading} hideDoctorName={true} hideDsoName={true}/>
   
   </>
   )

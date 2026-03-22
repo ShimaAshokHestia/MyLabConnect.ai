@@ -49,12 +49,16 @@ export interface CaseCardProps {
   labName: string;
   /** Practice / dental office name shown below the lab row */
   practiceName?: string;
+  dsoName?: string;
   /**
    * When true the doctor name row is hidden.
    * Pass this when rendering cards in the doctor's own portal
    * (the doctor already knows they are the doctor).
    */
   hideDoctorName?: boolean;
+  hidePracticeName?: boolean;
+  hideDsoName?: boolean;
+  hideLabName?: boolean;
   date: string;
   status: CaseStatus;
   isRush?: boolean;
@@ -92,6 +96,12 @@ const IconBuilding = () => (
 const IconPractice = () => (
   <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
     <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />
+  </svg>
+);
+const IconDso = () => (
+  <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" />
+    <path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" />
   </svg>
 );
 const IconCalendar = () => (
@@ -235,7 +245,11 @@ const CaseCard: React.FC<CaseCardProps> = (props) => {
     doctorName,
     labName,
     practiceName,
+    dsoName,
     hideDoctorName = false,
+    hidePracticeName = false,
+    hideDsoName = false,
+    hideLabName = false,
     date,
     status,
     isRush = false,
@@ -409,9 +423,16 @@ const CaseCard: React.FC<CaseCardProps> = (props) => {
           <div className="case-card__meta">
             <div className="case-card__meta-row">
               <span className="case-card__meta-icon"><IconCopy /></span>
-              <span className="case-card__meta-text case-card__meta-text--mono">{caseId}</span>
+              <span className="case-card__meta-text case-card__meta-text--mono text-danger">{caseId}</span>
             </div>
-
+            {/* ── DSO row: hidden when hideDsoName=true ── */}
+            {/* CHANGED: guards on both the hide flag AND presence of value */}
+            {!hideDsoName && dsoName && (
+              <div className="case-card__meta-row">
+                <span className="case-card__meta-icon"><IconDso /></span>
+                <span className="case-card__meta-text case-card__meta-text--bold text-primary">DSO - {dsoName}</span>
+              </div>
+            )}
             {/* ── Doctor row: hidden when hideDoctorName=true (e.g. doctor portal) ── */}
             {!hideDoctorName && (
               <div className="case-card__meta-row">
@@ -424,19 +445,24 @@ const CaseCard: React.FC<CaseCardProps> = (props) => {
               </div>
             )}
 
-            {/* ── Lab row ── */}
-            <div className="case-card__meta-row">
-              <span className="case-card__meta-icon"><IconBuilding /></span>
-              <span className="case-card__meta-text">{labName}</span>
-            </div>
-
-            {/* ── Practice / dental office row — only rendered when provided ── */}
-            {practiceName && (
+            {/* ── Practice row: hidden when hidePracticeName=true ── */}
+            {/* CHANGED: guards on both the hide flag AND presence of value */}
+            {!hidePracticeName && practiceName && (
               <div className="case-card__meta-row">
                 <span className="case-card__meta-icon"><IconPractice /></span>
-                <span className="case-card__meta-text">{practiceName}</span>
+                <span className="case-card__meta-text case-card__meta-text--bold">{practiceName}</span>
               </div>
             )}
+
+            {/* ── Lab row: hidden when hideLabName=true ── */}
+            {/* CHANGED: now gated by hideLabName flag */}
+            {!hideLabName && (
+              <div className="case-card__meta-row">
+                <span className="case-card__meta-icon"><IconBuilding /></span>
+                <span className="case-card__meta-text case-card__meta-text--bold">{labName}</span>
+              </div>
+            )}
+
           </div>
 
           <div className="case-card__footer">

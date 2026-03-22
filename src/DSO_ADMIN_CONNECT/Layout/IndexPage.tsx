@@ -51,7 +51,7 @@ const DsoIndexPage: React.FC = () => {
     );
   }
 
-  return <CaseDashboard role="dso" data={data} loading={loading} />;
+  return <CaseDashboard role="dso" data={data} loading={loading} hideDsoName={true}/>;
 };
 
 export default DsoIndexPage;

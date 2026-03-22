@@ -4,7 +4,6 @@ import {
   DollarSign, HelpCircle, Microscope, CalendarRange,
   LucideMicroscope,
   Package,
-  Syringe,
   Box,
   Building,
 } from 'lucide-react';

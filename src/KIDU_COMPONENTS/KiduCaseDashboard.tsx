@@ -26,6 +26,11 @@ export interface CaseDashboardProps {
   /** Loading state while API is in-flight */
   loading?: boolean;
   onProfileClick?: () => void;
+   // CHANGED: added hide props — passed straight through to each CaseCard
+  hideDoctorName?: boolean;
+  hidePracticeName?: boolean;
+  hideDsoName?: boolean;
+  hideLabName?: boolean;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -71,7 +76,10 @@ const SkeletonCard = () => (
 // CaseDashboard Component
 // ─────────────────────────────────────────────────────────────
 
-const CaseDashboard: React.FC<CaseDashboardProps> = ({ role, data, loading = false }) => {
+const CaseDashboard: React.FC<CaseDashboardProps> = ({ role, data, loading = false , hideDoctorName = false,
+  hidePracticeName = false,
+  hideDsoName = false,
+  hideLabName = false,}) => {
   const config = ROLE_CONFIG[role];
   const barButtons = ROLE_STATUSBAR[role];
   const navigate = useNavigate();
@@ -213,6 +221,8 @@ const CaseDashboard: React.FC<CaseDashboardProps> = ({ role, data, loading = fal
                   caseType={c.caseType}
                   doctorName={c.doctorName}
                   labName={c.labName}
+                  practiceName={c.practiceName}   // CHANGED: was missing
+                  dsoName={c.dsoName}
                   date={c.date}
                   status={c.status}
                   isRush={c.isRush}
@@ -220,6 +230,10 @@ const CaseDashboard: React.FC<CaseDashboardProps> = ({ role, data, loading = fal
                   animationDelay={i * 0.04}
                   // ── Pass through the enriched modal data ──
                   caseDetailData={c.caseDetailData}   // ← ADD THIS LINE
+                  hideDoctorName={hideDoctorName}
+                  hidePracticeName={hidePracticeName}
+                  hideDsoName={hideDsoName}
+                  hideLabName={hideLabName}
                   onClick={() => console.log('Open case:', c.id)}
                   onStatusClick={() => console.log('Status:', c.id)}
                   onSupportClick={() => console.log('Support:', c.id)}

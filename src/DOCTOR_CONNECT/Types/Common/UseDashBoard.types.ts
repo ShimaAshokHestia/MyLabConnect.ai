@@ -50,6 +50,55 @@ function getLabMasterId(c: any): number | null {
   return val !== null ? Number(val) : null;
 }
 
+// CHANGED: extract dsoDentalOfficeId regardless of casing
+function getDSODentalOfficeId(c: any): number | null {
+  const val =
+    c?.dsoDentalOfficeId ??
+    c?.DSODentalOfficeId ??
+    c?.dSODentalOfficeId ??
+    c?.dentalOfficeId ??
+    null;
+  return val !== null ? Number(val) : null;
+}
+
+// function toCard(c: CaseRegistrationDTO, tab: CaseStatus): CaseRecord {
+//   return {
+//     id: c.caseNo || String(c.id),
+//     patientName: `${c.patientFirstName ?? ""} ${c.patientLastName ?? ""}`.trim(),
+//     patientId: c.patientId,
+//     caseType: "Analog Case",
+//     doctorName: c.doctorName?.trim() || `Doctor #${c.dSODoctorId}`,
+
+//     // ── Show PRACTICE name, not lab name ────────────────────────────
+//     labName:
+//       (c as any).practiceName?.trim() ||
+//       (c as any).dentalOfficeName?.trim() ||
+//       (c as any).officeName?.trim() ||
+//       (c as any).dSODentalOfficeName?.trim() ||
+//       (c as any).practiceNameStr?.trim() ||
+//       "—",
+
+//     date: c.dueDate
+//       ? new Date(c.dueDate).toLocaleDateString("en-GB", {
+//         day: "2-digit", month: "2-digit", year: "numeric",
+//       })
+//       : "—",
+//     status: tab,
+//     isRush: false,
+//     // ── Carry full API data for the detail modal ─────────────────
+//     caseDetailData: {
+//       practiceName: (c as any).officeName?.trim() || (c as any).dentalOfficeName?.trim() || undefined,
+//       doctorId: (c as any).dsoDoctorId ? String((c as any).dsoDoctorId) : undefined,
+//       address: (c as any).shipTo?.trim() || undefined,
+//       statusNote: (c as any).caseStatusName?.trim() || undefined,
+//       caseNotes: (c as any).caseNotes ?? undefined,
+//       iosRemarks: (c as any).iosRemarks ?? undefined,
+//     },
+//   };
+// }
+
+// useDashboardCases.ts — only toCard() changes, nothing else
+
 function toCard(c: CaseRegistrationDTO, tab: CaseStatus): CaseRecord {
   return {
     id: c.caseNo || String(c.id),
@@ -58,24 +107,24 @@ function toCard(c: CaseRegistrationDTO, tab: CaseStatus): CaseRecord {
     caseType: "Analog Case",
     doctorName: c.doctorName?.trim() || `Doctor #${c.dSODoctorId}`,
 
-    // ── Show PRACTICE name, not lab name ────────────────────────────
-    labName:
-      (c as any).practiceName?.trim() ||
-      (c as any).dentalOfficeName?.trim() ||
-      (c as any).officeName?.trim() ||
-      (c as any).dSODentalOfficeName?.trim() ||
-      (c as any).practiceNameStr?.trim() ||
-      "—",
+    // ── Actual lab name from API ─────────────────────────────────
+    labName: (c as any).labName?.trim() || "—",
+
+    // ── CHANGED: practiceName promoted to top-level so CaseCard renders it ──
+    practiceName: (c as any).officeName?.trim() || (c as any).dentalOfficeName?.trim() || undefined,
+
+    // ── CHANGED: dsoName confirmed from API field ─────────────────
+    dsoName: (c as any).dsoName?.trim() || undefined,
 
     date: c.dueDate
       ? new Date(c.dueDate).toLocaleDateString("en-GB", {
-        day: "2-digit", month: "2-digit", year: "numeric",
-      })
+          day: "2-digit", month: "2-digit", year: "numeric",
+        })
       : "—",
     status: tab,
     isRush: false,
-    // ── Carry full API data for the detail modal ─────────────────
     caseDetailData: {
+      // kept here too for the detail modal
       practiceName: (c as any).officeName?.trim() || (c as any).dentalOfficeName?.trim() || undefined,
       doctorId: (c as any).dsoDoctorId ? String((c as any).dsoDoctorId) : undefined,
       address: (c as any).shipTo?.trim() || undefined,
@@ -91,6 +140,7 @@ export interface UseDashboardCasesParams {
   dSODoctorId?: number | null;
   dSOMasterId?: number | null;
   labMasterId?: number | null;
+   dSODentalOfficeId?: number | null;
 }
 
 export interface UseDashboardCasesResult {
@@ -105,6 +155,7 @@ export function useDashboardCases({
   dSODoctorId,
   dSOMasterId,
   labMasterId,
+   dSODentalOfficeId,
 }: UseDashboardCasesParams): UseDashboardCasesResult {
 
   const [data, setData] = useState<DashboardPageData>(emptyData(role));
@@ -123,6 +174,7 @@ export function useDashboardCases({
         ...(dSODoctorId ? { dSODoctorId } : {}),
         ...(dSOMasterId ? { dSOMasterId } : {}),
         ...(labMasterId ? { labMasterId } : {}),
+         ...(dSODentalOfficeId  ? { dSODentalOfficeId }  : {}),
       });
 
       let all: CaseRegistrationDTO[] = result.data ?? [];
@@ -161,6 +213,22 @@ export function useDashboardCases({
         });
       }
 
+      // CHANGED: practice filter — scope to this dental office only
+      if (dSODentalOfficeId) {
+        const targetOfficeId = Number(dSODentalOfficeId);
+        all = all.filter((c) => {
+          const id = getDSODentalOfficeId(c);
+          if (id === null) {
+            console.warn(
+              "[useDashboardCases] dsoDentalOfficeId field not found on case row. Case id:",
+              (c as any).id
+            );
+            return false;
+          }
+          return id === targetOfficeId;
+        });
+      }
+
       const buckets: DashboardPageData["cases"] = {
         rejected: [],
         hold: [],
@@ -193,7 +261,7 @@ export function useDashboardCases({
     } finally {
       setLoading(false);
     }
-  }, [role, dSODoctorId, dSOMasterId, labMasterId]);
+  }, [role, dSODoctorId, dSOMasterId, labMasterId , dSODentalOfficeId]);
 
   useEffect(() => { load(); }, [load]);
 

@@ -80,6 +80,7 @@ export interface AuthUser {
   dsoDoctorId?: number | null;
   doctorID?: number | null;
   doctorId?: number | null;
+   dentalOfficeId?: number | null;
 }
 
 // ─── Auth states returned by backend ─────────────────────────────

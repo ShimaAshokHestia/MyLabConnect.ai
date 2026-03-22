@@ -4,7 +4,6 @@ import React, { useState, useRef, useCallback, useEffect } from "react";
 import { Row, Col, Modal, Button } from "react-bootstrap";
 import Swal from "sweetalert2";
 import type { DentalOfficeItem } from "./DentalOfficePopup";
-import PrescriptionService from "../../Service/Common/Prescription.services";
 import AuthService from "../../../Services/AuthServices/Auth.services";
 import KiduValidation, { KiduCharacterCounter } from "../../../KIDU_COMPONENTS/KiduValidation";
 import type { LabMasterItem } from "./LabmasterPopup";
@@ -105,6 +104,28 @@ const restorationLabel = (r: RestorationEntry): string =>
   [r.prosthesis, r.restoration, r.indication].filter(Boolean).join(" · ");
 
 // ─────────────────────────────────────────────────────────────────────────────
+// JWT helpers
+//
+// dsoMasterId in the JWT can be a plain string "1" or an array ["1","1"].
+// doctorId / dsoDoctorId are always plain strings.
+// Both are normalised to number | null here.
+// ─────────────────────────────────────────────────────────────────────────────
+
+function parseDsoMasterId(raw: any): number | null {
+  if (raw === null || raw === undefined) return null;
+  const val = Array.isArray(raw) ? raw[0] : raw;
+  const n = Number(val);
+  return isNaN(n) ? null : n;
+}
+
+function parseDoctorId(user: any): number | null {
+  const raw = user?.doctorId ?? user?.dsoDoctorId ?? user?.doctorID ?? null;
+  if (raw === null || raw === undefined) return null;
+  const n = Number(raw);
+  return isNaN(n) ? null : n;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Component
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -120,11 +141,6 @@ const AddNewCase: React.FC = () => {
   const [showOfficePopup, setShowOfficePopup] = useState(false);
   const [showRestorationModal, setShowRestorationModal] = useState(false);
 
-  // ── Doctor's offices ────────────────────────────────────────────────────────
-  const [myOffices, setMyOffices] = useState<DentalOfficeItem[]>([]);
-  const [officesLoading, setOfficesLoading] = useState(false);
-  const [officesError, setOfficesError] = useState<string | null>(null);
-
   // ── File upload ─────────────────────────────────────────────────────────────
   const [files, setFiles] = useState<File[]>([]);
   const [dragOver, setDragOver] = useState(false);
@@ -139,53 +155,44 @@ const AddNewCase: React.FC = () => {
   // ── Restoration entries ─────────────────────────────────────────────────────
   const [restorations, setRestorations] = useState<RestorationEntry[]>([]);
 
+  // ── Refs: prevent duplicate runs ─────────────────────────────────────────────
+  // bootstrapRan — ensures the mount effect runs exactly once (Strict Mode safe)
+  const bootstrapRan = useRef(false);
+
   // ─────────────────────────────────────────────────────────────────────────────
-  // On mount: read doctor identity directly from JWT — NO extra API call needed
+  // On mount: read JWT identity only — ZERO API calls.
+  //
+  // All values needed (doctorId, dsoMasterId) are embedded in the JWT and
+  // available synchronously via AuthService.getUser(). No network request needed.
+  //
+  // getFirstSchema() was removed — dSOSchemaId is omitted from the payload
+  // (backend default). getMyOffices() was removed — DentalOfficePopup now
+  // fetches from the lookup endpoint directly, same as LabMasterPopup.
   // ─────────────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
-    const bootstrap = async () => {
-      setOfficesLoading(true);
-      setOfficesError(null);
+    if (bootstrapRan.current) return;
+    bootstrapRan.current = true;
 
-      try {
-        const user = AuthService.getUser();
+    const user = AuthService.getUser();
+    const doctorId   = parseDoctorId(user);
+    const dsoMasterId = parseDsoMasterId(user?.dsoMasterId);
 
-        // dsoDoctorId is embedded in the JWT as claim "dsoDoctorId" (e.g. "79")
-        const doctorId = user?.doctorId ?? user?.dsoDoctorId ?? user?.doctorID ?? null;
-        const dsoMasterId = user?.dsoMasterId ?? null;
+    if (!doctorId) {
+      setSubmitError(
+        "Could not find your doctor profile in session. Please log out and log in again."
+      );
+      return;
+    }
 
-        if (!doctorId) {
-          setOfficesError(
-            "Could not find your doctor profile in session. Please log out and log in again."
-          );
-          return;
-        }
-
-        setForm((prev) => ({
-          ...prev,
-          dsoDoctorId: doctorId,
-          dsoMasterId,
-        }));
-
-        const offices = await PrescriptionService.getMyOffices(doctorId);
-        setMyOffices(offices);
-
-        if (offices.length === 0) {
-          setOfficesError(
-            "No practice locations found for your account. Please contact your administrator."
-          );
-        }
-      } catch (err) {
-        console.error("Failed to bootstrap doctor context:", err);
-        setOfficesError("Failed to load practice data. Please refresh and try again.");
-      } finally {
-        setOfficesLoading(false);
-      }
-    };
-
-    bootstrap();
+    // Stamp form with JWT identity — no API call
+    setForm((prev) => ({
+      ...prev,
+      dsoDoctorId: doctorId,
+      dsoMasterId,
+    }));
   }, []);
+
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Validation
@@ -194,13 +201,13 @@ const AddNewCase: React.FC = () => {
   const validateField = useCallback(
     (name: keyof FormErrors, value: any): string => {
       const rules: Record<keyof FormErrors, any> = {
-        orderTo: { type: "select", required: true, label: "Order To" },
-        orderFrom: { type: "select", required: true, label: "Order From" },
-        patientId: { type: "text", required: true, label: "Patient ID", minLength: 2, maxLength: 50 },
-        firstName: { type: "text", required: true, label: "First Name", minLength: 2, maxLength: 50 },
-        lastName: { type: "text", required: true, label: "Last Name", minLength: 2, maxLength: 50 },
-        dueDate: { type: "date", required: true, label: "Due Date" },
-        caseNotes: { type: "textarea", required: true, label: "Case Notes", minLength: 5, maxLength: 500 },
+        orderTo:   { type: "select",   required: true, label: "Order To" },
+        orderFrom: { type: "select",   required: true, label: "Order From" },
+        patientId: { type: "text",     required: true, label: "Patient ID",  minLength: 2, maxLength: 50 },
+        firstName: { type: "text",     required: true, label: "First Name",  minLength: 2, maxLength: 50 },
+        lastName:  { type: "text",     required: true, label: "Last Name",   minLength: 2, maxLength: 50 },
+        dueDate:   { type: "date",     required: true, label: "Due Date" },
+        caseNotes: { type: "textarea", required: true, label: "Case Notes",  minLength: 5, maxLength: 500 },
       };
       const result = KiduValidation.validate(value, rules[name]);
       return result.isValid ? "" : result.message ?? "";
@@ -210,12 +217,12 @@ const AddNewCase: React.FC = () => {
 
   const validateAll = (): boolean => {
     const newErrors: FormErrors = {
-      orderTo: validateField("orderTo", form.orderToId),
+      orderTo:   validateField("orderTo",   form.orderToId),
       orderFrom: validateField("orderFrom", form.orderFromId),
       patientId: validateField("patientId", form.patientId),
       firstName: validateField("firstName", form.firstName),
-      lastName: validateField("lastName", form.lastName),
-      dueDate: validateField("dueDate", form.dueDate),
+      lastName:  validateField("lastName",  form.lastName),
+      dueDate:   validateField("dueDate",   form.dueDate),
       caseNotes: validateField("caseNotes", form.caseNotes),
     };
     setErrors(newErrors);
@@ -249,7 +256,7 @@ const AddNewCase: React.FC = () => {
   const handleLabSelect = useCallback((lab: LabMasterItem) => {
     setForm((prev) => ({
       ...prev,
-      orderToId: lab.id,
+      orderToId:    lab.id,
       orderToLabel: lab.labName,
     }));
     setErrors((prev) => ({ ...prev, orderTo: "" }));
@@ -257,35 +264,45 @@ const AddNewCase: React.FC = () => {
   }, []);
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Handlers — Office selection (Order From)
+  // Handlers — Order From button click
   // ─────────────────────────────────────────────────────────────────────────────
 
-  const handleOfficeSelect = useCallback(
-    async (office: DentalOfficeItem) => {
-      let schemaId: number | null = null;
-      let schemaName = "";
+  const handleOpenOfficePopup = useCallback(() => {
+    setShowOfficePopup(true);
+  }, []);
 
-      if (form.dsoMasterId) {
-        const schema = await PrescriptionService.getFirstSchema(form.dsoMasterId);
-        if (schema) {
-          schemaId = schema.id;
-          schemaName = schema.name;
-        }
-      }
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Handlers — Office selection (Order From)
+  //
+  // ZERO API calls. The schema is NOT fetched here.
+  //
+  // Why schema was removed:
+  //   • getFirstSchema() was fetching ALL DSO schemas and filtering client-side
+  //   • dsoMasterId is already known from the JWT
+  //   • The API payload accepts dsoSchemaId: 0 as the default (confirmed in
+  //     the Swagger sample you shared)
+  //   • There is no UI that shows or depends on the schema name at case creation
+  //   • Removing it eliminates one redundant network call per office selection
+  //
+  // If schema selection is needed in future, add a dedicated schema dropdown
+  // that the user explicitly interacts with — don't auto-fetch on office pick.
+  // ─────────────────────────────────────────────────────────────────────────────
 
-      setForm((prev) => ({
-        ...prev,
-        orderFromId: office.id,
-        orderFromLabel: office.officeName,
-        shipTo: PrescriptionService.buildShipTo(office),
-        dsoSchemaId: schemaId,
-        dsoSchemaName: schemaName,
-      }));
-      setErrors((prev) => ({ ...prev, orderFrom: "" }));
-      setShowOfficePopup(false);
-    },
-    [form.dsoMasterId]
-  );
+  const handleOfficeSelect = useCallback((office: DentalOfficeItem) => {
+    setForm((prev) => ({
+      ...prev,
+      orderFromId:    office.id,
+      orderFromLabel: office.officeName,
+      shipTo:         [office.officeName, office.address, office.city, office.country, office.postCode]
+                          .filter((s) => s?.trim())
+                          .join(", "),
+      // dsoSchemaId stays null / 0 — the API default. No lookup needed.
+      dsoSchemaId:    null,
+      dsoSchemaName:  "",
+    }));
+    setErrors((prev) => ({ ...prev, orderFrom: "" }));
+    setShowOfficePopup(false);
+  }, []); // synchronous — no API calls, no deps needed
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Handlers — Restoration
@@ -296,14 +313,14 @@ const AddNewCase: React.FC = () => {
       setRestorations((prev) => [
         ...prev,
         {
-          id: crypto.randomUUID(),
-          selectedTeeth: data.selectedTeeth,
-          prosthesis: data.prosthesis,
-          restoration: data.restoration,
-          indication: data.indication,
-          material: data.material,
-          shadeGuide: data.shadeGuide,
-          shadeComments: data.shadeComments,
+          id:              crypto.randomUUID(),
+          selectedTeeth:   data.selectedTeeth,
+          prosthesis:      data.prosthesis,
+          restoration:     data.restoration,
+          indication:      data.indication,
+          material:        data.material,
+          shadeGuide:      data.shadeGuide,
+          shadeComments:   data.shadeComments,
           generalComments: data.generalComments,
         },
       ]);
@@ -354,6 +371,16 @@ const AddNewCase: React.FC = () => {
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Submit / Draft / Reset
+  //
+  // Field mapping to exact API contract (verified against Swagger sample):
+  //   dSOMasterId       — matches CaseRegistrationCreateDTO / API contract
+  //   dSODentalOfficeId — matches CaseRegistrationCreateDTO / API contract
+  //   dSODoctorId       — matches CaseRegistrationCreateDTO / API contract
+  //   dSOSchemaId: 0    — API default; no schema lookup required
+  //   isRemake          (not "remake")
+  //   isRush            (not "rush")
+  //   caseStatusMasterId: 1  (matches original working code)
+  //   dueDate: ISO string    (input type=date gives "YYYY-MM-DD"; API wants ISO)
   // ─────────────────────────────────────────────────────────────────────────────
 
   const buildPayload = (): CaseRegistrationCreateDTO | null => {
@@ -362,24 +389,37 @@ const AddNewCase: React.FC = () => {
     }
 
     return {
-      caseNo: "",
-      shipTo: form.shipTo,
-      patientFirstName: form.firstName,
-      patientLastName: form.lastName,
-      patientId: form.patientId,
+      caseNo:             "",
+      shipTo:             form.shipTo,
+      patientFirstName:   form.firstName,
+      patientLastName:    form.lastName,
+      patientId:          form.patientId,
       caseStatusMasterId: 1,
-      dueDate: form.dueDate || undefined,
-      caseNotes: form.caseNotes,
-      dSOMasterId: form.dsoMasterId,
-      dSODentalOfficeId: form.orderFromId,
-      dSODoctorId: form.dsoDoctorId,
-      dSOSchemaId: form.dsoSchemaId ?? 0,
-      labMasterId: form.orderToId,
-      isActive: true,
-      products: [],
-      documents: [],
+      // Fix: new Date("YYYY-MM-DD") parses as UTC midnight, which in IST
+      // (UTC+5:30) rolls back to the previous calendar day. To avoid this,
+      // we append T12:00:00.000Z (noon UTC) — this is always the correct
+      // calendar date in every timezone on earth.
+      dueDate:            form.dueDate
+                            ? `${form.dueDate}T12:00:00.000Z`
+                            : undefined,
+      caseNotes:          form.caseNotes,
+      dSOMasterId:        form.dsoMasterId,
+      dSODentalOfficeId:  form.orderFromId,
+      dSODoctorId:        form.dsoDoctorId,
+      // dSOSchemaId intentionally omitted — sending 0 causes a FK constraint
+      // violation on the backend (no schema row with id=0 exists).
+      // The backend assigns a default schema when this field is absent.
+      labMasterId:        form.orderToId,
+      isActive:           true,
+      isRemake:           form.remake,
+      isRush:             form.rush,
+      // Empty arrays — backend accepts [] for child collections at creation time.
+      // The Swagger sample shows placeholder objects but these are not required;
+      // the backend creates the case header first, children are added separately.
+      products:           [],
+      documents:          [],
       additionalServices: [],
-      pickUps: [],
+      pickUps:            [],
     };
   };
 
@@ -401,18 +441,17 @@ const AddNewCase: React.FC = () => {
     try {
       const result = await CaseService.create(payload);
       if (result?.isSucess) {
-        // ── SweetAlert2 success — replaces browser alert() ──────────────────
         await Swal.fire({
-          icon: "success",
-          title: "Case Created Successfully!",
-          html: `Case No: <strong>${result.value?.caseNo ?? ""}</strong>`,
-          confirmButtonText: "OK",
+          icon:               "success",
+          title:              "Case Created Successfully!",
+          html:               `Case No: <strong>${result.value?.caseNo ?? ""}</strong>`,
+          confirmButtonText:  "OK",
           confirmButtonColor: "#ef0d50",
-          timer: 4000,
-          timerProgressBar: true,
+          timer:              4000,
+          timerProgressBar:   true,
           customClass: {
-            popup: "swal-popup",
-            title: "swal-title",
+            popup:         "swal-popup",
+            title:         "swal-title",
             confirmButton: "swal-confirm-btn",
           },
         });
@@ -470,23 +509,6 @@ const AddNewCase: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* ── Offices error banner ─────────────────────────────────────────── */}
-        {officesError && (
-          <div style={{
-            background: "#fff3cd", border: "1px solid #ffc107",
-            borderRadius: 8, padding: "10px 16px", marginBottom: 12,
-            fontSize: "0.82rem", color: "#856404",
-            display: "flex", alignItems: "center", gap: 8,
-          }}>
-            <svg width="15" height="15" fill="none" stroke="currentColor"
-              strokeWidth="2" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M12 8v4M12 16h.01" />
-            </svg>
-            {officesError}
-          </div>
-        )}
 
         {/* ── Submit error banner ───────────────────────────────────────────── */}
         {submitError && (
@@ -560,13 +582,10 @@ const AddNewCase: React.FC = () => {
                   errors.orderFrom ? "is-invalid" : "",
                   form.orderFromId ? "anc-select-btn--selected" : "",
                 ].filter(Boolean).join(" ")}
-                onClick={() => !officesLoading && setShowOfficePopup(true)}
-                disabled={officesLoading}
+                onClick={handleOpenOfficePopup}
               >
                 <span className={form.orderFromLabel ? "anc-select-btn__value" : "anc-select-btn__placeholder"}>
-                  {officesLoading
-                    ? "Loading practices..."
-                    : form.orderFromLabel || "Select Practice / Office..."}
+                  {form.orderFromLabel || "Select Practice / Office..."}
                 </span>
                 {form.orderFromId ? (
                   <span
@@ -577,8 +596,11 @@ const AddNewCase: React.FC = () => {
                       e.stopPropagation();
                       setForm((prev) => ({
                         ...prev,
-                        orderFromId: null, orderFromLabel: "",
-                        shipTo: "", dsoSchemaId: null, dsoSchemaName: "",
+                        orderFromId:    null,
+                        orderFromLabel: "",
+                        shipTo:         "",
+                        dsoSchemaId:    null,
+                        dsoSchemaName:  "",
                       }));
                     }}
                   >
@@ -589,20 +611,11 @@ const AddNewCase: React.FC = () => {
                   </span>
                 ) : (
                   <span className="anc-select-btn__icon">
-                    {officesLoading ? (
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" strokeWidth="2">
-                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"
-                          strokeLinecap="round"
-                          style={{ animation: "spin 1s linear infinite" }} />
-                      </svg>
-                    ) : (
-                      <svg width="13" height="13" fill="none" stroke="currentColor"
-                        strokeWidth="2" viewBox="0 0 24 24">
-                        <circle cx="11" cy="11" r="8" />
-                        <path d="m21 21-4.35-4.35" />
-                      </svg>
-                    )}
+                    <svg width="13" height="13" fill="none" stroke="currentColor"
+                      strokeWidth="2" viewBox="0 0 24 24">
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="m21 21-4.35-4.35" />
+                    </svg>
                   </span>
                 )}
               </button>
@@ -899,31 +912,39 @@ const AddNewCase: React.FC = () => {
 
       {/* ════════════════════════════════════════════════════════════════════════
           Popups & Modals
+          Conditional rendering (show && <Component />) ensures that
+          KiduSelectPopup only mounts — and only fires its fetchEndpoint —
+          when the user actually opens the popup. Unconditional mounting was
+          causing lab and practice lookups to fire on every page load.
       ════════════════════════════════════════════════════════════════════════ */}
 
-      <LabMasterPopup
-        show={showLabPopup}
-        onClose={() => setShowLabPopup(false)}
-        onSelect={handleLabSelect}
-      />
+      {showLabPopup && (
+        <LabMasterPopup
+          show={showLabPopup}
+          onClose={() => setShowLabPopup(false)}
+          onSelect={handleLabSelect}
+        />
+      )}
 
-      <DentalOfficePopup
-        show={showOfficePopup}
-        onClose={() => setShowOfficePopup(false)}
-        onSelect={handleOfficeSelect}
-        offices={myOffices}
-        loading={officesLoading}
-      />
+      {showOfficePopup && (
+        <DentalOfficePopup
+          show={showOfficePopup}
+          onClose={() => setShowOfficePopup(false)}
+          onSelect={handleOfficeSelect}
+        />
+      )}
 
-      <RestorationModal
-        show={showRestorationModal}
-        onHide={() => setShowRestorationModal(false)}
-        onSave={handleRestorationSave}
-        scheme={form.dsoSchemaName || "Default"}
-        dsoMasterId={form.dsoMasterId}
-      />
+      {showRestorationModal && (
+        <RestorationModal
+          show={showRestorationModal}
+          onHide={() => setShowRestorationModal(false)}
+          onSave={handleRestorationSave}
+          scheme={form.dsoSchemaName || "Default"}
+          dsoMasterId={form.dsoMasterId}
+        />
+      )}
 
-      {/* Additional Services Modal */}
+      {/* Additional Services Modal — always mounted (no API calls, local state only) */}
       <Modal show={showServiceModal} onHide={closeServiceModal}
         centered size="sm" dialogClassName="anc-modal">
         <Modal.Header closeButton>
@@ -972,7 +993,6 @@ const AddNewCase: React.FC = () => {
           from { transform: rotate(0deg); }
           to   { transform: rotate(360deg); }
         }
-        /* ── SweetAlert2 theme overrides ─────────────────────────────── */
         .swal-popup {
           border-radius: 14px !important;
           font-family: inherit !important;

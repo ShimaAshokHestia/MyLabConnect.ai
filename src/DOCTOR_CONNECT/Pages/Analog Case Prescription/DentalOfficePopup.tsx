@@ -25,7 +25,9 @@ const DentalOfficePopup: React.FC<Props> = ({
   onSelect,
   offices,
   loading = false,
-}) => (
+}) => {
+   if (!show) return null; // ← ADD THIS
+   return (
   <KiduSelectPopup<DentalOfficeItem>
     show={show}
     onClose={onClose}
@@ -65,6 +67,6 @@ const DentalOfficePopup: React.FC<Props> = ({
     multiSelect={false}
     showAddButton={false}
   />
-);
+)};
 
 export default DentalOfficePopup;

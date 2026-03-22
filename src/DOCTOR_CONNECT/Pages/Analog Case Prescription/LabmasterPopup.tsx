@@ -13,7 +13,9 @@ interface Props {
   onSelect: (item: LabMasterItem) => void;
 }
 
-const LabMasterPopup: React.FC<Props> = ({ show, onClose, onSelect }) => (
+const LabMasterPopup: React.FC<Props> = ({ show, onClose, onSelect }) => {
+    if (!show) return null; // ← ADD THIS
+    return (
   <KiduSelectPopup<LabMasterItem>
     show={show}
     onClose={onClose}
@@ -47,6 +49,6 @@ const LabMasterPopup: React.FC<Props> = ({ show, onClose, onSelect }) => (
     multiSelect={false}
     showAddButton={false}
   />
-);
+)}
 
 export default LabMasterPopup;

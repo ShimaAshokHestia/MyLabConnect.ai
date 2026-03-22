@@ -47,6 +47,14 @@ export interface CaseCardProps {
   caseType: CaseType;
   doctorName: string;
   labName: string;
+  /** Practice / dental office name shown below the lab row */
+  practiceName?: string;
+  /**
+   * When true the doctor name row is hidden.
+   * Pass this when rendering cards in the doctor's own portal
+   * (the doctor already knows they are the doctor).
+   */
+  hideDoctorName?: boolean;
   date: string;
   status: CaseStatus;
   isRush?: boolean;
@@ -79,6 +87,11 @@ const IconCopy = () => (
 const IconBuilding = () => (
   <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
     <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16" /><path d="M3 21h18" />
+  </svg>
+);
+const IconPractice = () => (
+  <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />
   </svg>
 );
 const IconCalendar = () => (
@@ -180,7 +193,7 @@ function buildModalData(props: CaseCardProps): CaseDetailData {
     patientId: props.patientId,
     lab: props.labName,
     doctorName: props.doctorName,
-    practiceName: extra.practiceName,
+    practiceName: extra.practiceName ?? props.practiceName,
     doctorId: extra.doctorId,
     address: extra.address,
     status: props.status,
@@ -221,6 +234,8 @@ const CaseCard: React.FC<CaseCardProps> = (props) => {
     caseType,
     doctorName,
     labName,
+    practiceName,
+    hideDoctorName = false,
     date,
     status,
     isRush = false,
@@ -397,20 +412,31 @@ const CaseCard: React.FC<CaseCardProps> = (props) => {
               <span className="case-card__meta-text case-card__meta-text--mono">{caseId}</span>
             </div>
 
-            {/* ── Doctor row: FaUserDoctor icon + Dr. prefix ── */}
-            <div className="case-card__meta-row">
-              <span className="case-card__meta-icon">
-                <FaUserDoctor size={11} aria-hidden="true" />
-              </span>
-              <span className="case-card__meta-text case-card__meta-text--bold">
-                {doctorName ? `Dr. ${doctorName}` : '—'}
-              </span>
-            </div>
+            {/* ── Doctor row: hidden when hideDoctorName=true (e.g. doctor portal) ── */}
+            {!hideDoctorName && (
+              <div className="case-card__meta-row">
+                <span className="case-card__meta-icon">
+                  <FaUserDoctor size={11} aria-hidden="true" />
+                </span>
+                <span className="case-card__meta-text case-card__meta-text--bold">
+                  {doctorName ? `Dr. ${doctorName}` : '—'}
+                </span>
+              </div>
+            )}
 
+            {/* ── Lab row ── */}
             <div className="case-card__meta-row">
               <span className="case-card__meta-icon"><IconBuilding /></span>
               <span className="case-card__meta-text">{labName}</span>
             </div>
+
+            {/* ── Practice / dental office row — only rendered when provided ── */}
+            {practiceName && (
+              <div className="case-card__meta-row">
+                <span className="case-card__meta-icon"><IconPractice /></span>
+                <span className="case-card__meta-text">{practiceName}</span>
+              </div>
+            )}
           </div>
 
           <div className="case-card__footer">

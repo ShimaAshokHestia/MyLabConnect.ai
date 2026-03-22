@@ -18,8 +18,8 @@ interface Props {
 const CasePickupCreate: React.FC<Props> = ({ show, onHide, onSuccess }) => {
   const { dsoDoctorId } = useCurrentUser();
 
-  const [labs, setLabs]           = useState<LabLookupItem[]>([]);
-  const [cases, setCases]         = useState<CaseLookupItem[]>([]);
+  const [labs, setLabs] = useState<LabLookupItem[]>([]);
+  const [cases, setCases] = useState<CaseLookupItem[]>([]);
   const [practices, setPractices] = useState<DoctorPracticeItem[]>([]);
   const [loadingPractices, setLoadingPractices] = useState(false);
 
@@ -61,9 +61,9 @@ const CasePickupCreate: React.FC<Props> = ({ show, onHide, onSuccess }) => {
     await CasePickupService.create({
       id: 0,
       labMasterId: Number(data.labMasterId),
-      pickUpDate:         combineDateTime(pickUpDate, pickUpDate),
+      pickUpDate: combineDateTime(pickUpDate, pickUpDate),
       pickUpEarliestTime: combineDateTime(pickUpDate, data.pickUpEarliestTime),
-      pickUpLateTime:     combineDateTime(pickUpDate, data.pickUpLateTime),
+      pickUpLateTime: combineDateTime(pickUpDate, data.pickUpLateTime),
       pickUpAddress: data.pickUpAddressText || String(data.pickUpAddress ?? ""),
       trackingNum: data.trackingNum || "",
       isActive: true,
@@ -82,25 +82,25 @@ const CasePickupCreate: React.FC<Props> = ({ show, onHide, onSuccess }) => {
 
   // ── Column definitions ─────────────────────────────────────────────────────
   const labColumns = [
-    { key: "labName",     label: "Lab Name",     filterType: "text" as const },
-    { key: "labCode",     label: "Code",         filterType: "text" as const },
+    { key: "labName", label: "Lab Name", filterType: "text" as const },
+    { key: "labCode", label: "Code", filterType: "text" as const },
     { key: "displayName", label: "Display Name", filterType: "text" as const },
-    { key: "lmsSystem",   label: "LMS",          filterType: "text" as const },
+    { key: "lmsSystem", label: "LMS", filterType: "text" as const },
   ];
 
   const practiceColumns = [
     { key: "officeName", label: "Office Name", filterType: "text" as const },
-    { key: "officeCode", label: "Code",        filterType: "text" as const },
-    { key: "address",    label: "Address",     filterType: "text" as const },
-    { key: "city",       label: "City",        filterType: "text" as const },
-    { key: "postCode",   label: "Post Code",   filterType: "text" as const },
+    { key: "officeCode", label: "Code", filterType: "text" as const },
+    { key: "address", label: "Address", filterType: "text" as const },
+    { key: "city", label: "City", filterType: "text" as const },
+    { key: "postCode", label: "Post Code", filterType: "text" as const },
   ];
 
   const caseColumns = [
-    { key: "caseId",      label: "Case ID",      filterType: "text" as const },
+    { key: "caseId", label: "Case ID", filterType: "text" as const },
     { key: "patientName", label: "Patient Name", filterType: "text" as const },
-    { key: "doctorName",  label: "Doctor",       filterType: "text" as const },
-    { key: "status",      label: "Status",       filterType: "text" as const },
+    { key: "doctorName", label: "Doctor", filterType: "text" as const },
+    { key: "status", label: "Status", filterType: "text" as const },
   ];
 
   return (

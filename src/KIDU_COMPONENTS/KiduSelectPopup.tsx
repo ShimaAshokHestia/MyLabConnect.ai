@@ -172,6 +172,14 @@ function KiduSelectPopupInner<T extends Record<string, any>>({
   const [showAdd, setShowAdd]         = useState(false);
 
   const searchRef = useRef<HTMLInputElement>(null);
+
+  // ── FIX: guard against Strict Mode double-invoke ──────────────────────────
+  // React 18 Strict Mode mounts → unmounts → remounts every component in dev,
+  // causing useEffect to fire twice. Without this guard, every popup open
+  // triggers two identical API calls. The ref resets to false when show goes
+  // false (popup closed), so the next open always fetches fresh data.
+  const fetchCalledRef = useRef(false);
+
   const isLoading = fetchLoading || externalLoading;
   const activeFilterCount = Object.values(columnFilters).filter(Boolean).length;
 
@@ -202,7 +210,16 @@ function KiduSelectPopupInner<T extends Record<string, any>>({
 
   // ── Fetch / sync data on open ────────────────────────────────────────────
   useEffect(() => {
-    if (!show) return;
+    // When popup closes: reset the fetch guard so next open fetches fresh data
+    if (!show) {
+      fetchCalledRef.current = false;
+      return;
+    }
+
+    // Guard: skip if this open has already triggered a fetch
+    // Prevents the Strict Mode double-invoke from making two identical API calls
+    if (fetchCalledRef.current) return;
+    fetchCalledRef.current = true;
 
     setSearch("");
     setColumnFilters({});

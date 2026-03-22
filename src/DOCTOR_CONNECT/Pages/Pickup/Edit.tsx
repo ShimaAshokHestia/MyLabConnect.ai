@@ -23,7 +23,7 @@ interface Props {
 
 const CasePickupEdit: React.FC<Props> = ({ show, onHide, onSuccess, recordId, rowData }) => {
   const { dsoDoctorId } = useCurrentUser();
-  const [cases, setCases]         = useState<CaseLookupItem[]>([]);
+  const [cases, setCases] = useState<CaseLookupItem[]>([]);
   const [practices, setPractices] = useState<DoctorPracticeItem[]>([]);
 
   // ── Pre-load cases + practices when modal opens ───────────────────────────
@@ -50,17 +50,17 @@ const CasePickupEdit: React.FC<Props> = ({ show, onHide, onSuccess, recordId, ro
         : (rowData?.labMasterName ?? "");
 
     return {
-      id:                        data.id ?? id,
+      id: data.id ?? id,
       labName,
-      pickUpDate:                data.pickUpDate,
-      pickUpEarliestTime:        data.pickUpEarliestTime,
-      pickUpLateTime:            data.pickUpLateTime,
-      pickUpAddress:             data.pickUpAddress,
-      pickUpAddressId:           undefined, // not returned by backend
+      pickUpDate: data.pickUpDate,
+      pickUpEarliestTime: data.pickUpEarliestTime,
+      pickUpLateTime: data.pickUpLateTime,
+      pickUpAddress: data.pickUpAddress,
+      pickUpAddressId: undefined, // not returned by backend
       caseRegistrationMasterIds: data.caseRegistrationMasterIds ?? [],
-      caseLabels:                data.caseLabels ?? [],
-      trackingNum:               data.trackingNum ?? "",
-      isActive:                  data.isActive,
+      caseLabels: data.caseLabels ?? [],
+      trackingNum: data.trackingNum ?? "",
+      isActive: data.isActive,
     };
   };
 
@@ -76,21 +76,21 @@ const CasePickupEdit: React.FC<Props> = ({ show, onHide, onSuccess, recordId, ro
     const current = await CasePickupService.getById(Number(id));
 
     const result = await CasePickupService.update(Number(id), {
-      id:                 Number(id),
-      pickUpDate:         current.pickUpDate,
+      id: Number(id),
+      pickUpDate: current.pickUpDate,
       pickUpEarliestTime: current.pickUpEarliestTime,
-      pickUpLateTime:     current.pickUpLateTime,
-      pickUpAddress:      current.pickUpAddress,
-      labMasterId:        current.labMasterId,
-      trackingNum:        data.trackingNum,
-      isActive:           current.isActive,
-      isDeleted:          false,
-      casePickUpDetails:  data.caseRegistrationMasterIds.map((caseId) => ({
-        id:                       0,
-        casePickUpId:             Number(id),
+      pickUpLateTime: current.pickUpLateTime,
+      pickUpAddress: current.pickUpAddress,
+      labMasterId: current.labMasterId,
+      trackingNum: data.trackingNum,
+      isActive: current.isActive,
+      isDeleted: false,
+      casePickUpDetails: data.caseRegistrationMasterIds.map((caseId) => ({
+        id: 0,
+        casePickUpId: Number(id),
         caseRegistrationMasterId: Number(caseId),
-        isActive:                 true,
-        isDeleted:                false,
+        isActive: true,
+        isDeleted: false,
       })),
     });
 
@@ -100,10 +100,10 @@ const CasePickupEdit: React.FC<Props> = ({ show, onHide, onSuccess, recordId, ro
   };
 
   const caseColumns = [
-    { key: "caseId",      label: "Case ID",      filterType: "text" as const },
+    { key: "caseId", label: "Case ID", filterType: "text" as const },
     { key: "patientName", label: "Patient Name", filterType: "text" as const },
-    { key: "doctorName",  label: "Doctor",       filterType: "text" as const },
-    { key: "status",      label: "Status",       filterType: "text" as const },
+    { key: "doctorName", label: "Doctor", filterType: "text" as const },
+    { key: "status", label: "Status", filterType: "text" as const },
   ];
 
   return (

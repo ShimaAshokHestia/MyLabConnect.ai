@@ -42,7 +42,6 @@ export const appAdminMenuItems: MenuItem[] = [
       { title: 'Doctor', url: '/appadmin-connect/dso/doctor-list', icon: UserCog },
       { title: 'Product Group', url: '/appadmin-connect/dso/productGroup-list', icon: Package },
       { title: 'User Role Creation', url: '/appadmin-connect/dso/user-roles', icon: UserPlus },
-      { title: 'Dental Office', url: '/appadmin-connect/dso/dentalOffice-list', icon: Syringe },
       { title: 'Material', url: '/appadmin-connect/dso/material-list', icon: Box },
     ],
   },

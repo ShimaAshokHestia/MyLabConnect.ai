@@ -87,6 +87,7 @@ export interface KiduCreateModalProps {
   themeColor?: string;
   size?: "sm" | "lg" | "xl";
   centered?: boolean;
+  modalWidth?: string | number;
 }
 
 // ==================== COMPONENT ====================
@@ -110,6 +111,7 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
   themeColor = "#ef0d50",
   size = "lg",
   centered = true,
+  modalWidth,
 }) => {
   // Refs for dropdown and popup reset functions
   const dropdownResetRefs = useRef<{ [key: string]: () => void }>({});
@@ -584,6 +586,7 @@ const KiduCreateModal: React.FC<KiduCreateModalProps> = ({
         keyboard={false}
         contentClassName="kidu-modal-content"
         dialogClassName="kidu-modal-dialog"
+        style={modalWidth ? { "--kidu-modal-max-width": typeof modalWidth === "number" ? `${modalWidth}px` : modalWidth } as React.CSSProperties : undefined}
       >
         <button
           type="button"

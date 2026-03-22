@@ -12,6 +12,7 @@ import FinancialYearList from '../Pages/Settings/Financial Year/List';
 import AdminIndexPage from '../Layout/IndexPage';
 import CaseStatusList from '../Pages/Settings/CaseStatusMaster/List';
 import PipelineMonitorDashboard from '../Pages/Dashboards/trios-dashboard';
+import AdminLabList from '../Pages/DSO Management/Lab/List';
 
 // ── Add page imports here as you build them ────────────────────────
 // import DSOmasterList from '../Pages/Master/List';
@@ -28,6 +29,8 @@ export const adminConnectRoutes = (
     {/* User Management */}
     <Route path="users/user-list"         element={<UserList />} />
     <Route path="users/usertype-list"     element={<UserTypeList />} />
+{/* Dso Management */}
+     <Route path="dso/lab-list"  element={<AdminLabList />} />
 
     {/* Companies */}
     <Route path="companies/company-list"  element={<CompanyList />} />

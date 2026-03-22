@@ -33,6 +33,7 @@ export interface ViewModalProps {
   themeColor?: string;
   size?: "sm" | "lg" | "xl";
   centered?: boolean;
+  modalWidth?: string | number;
   showBadge?: boolean;
   badgeText?: string;
 }
@@ -52,6 +53,7 @@ const KiduViewModal: React.FC<ViewModalProps> = ({
   centered = true,
   showBadge = true,
   badgeText = "Read Only",
+  modalWidth
 }) => {
   const [data, setData] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
@@ -256,6 +258,8 @@ const KiduViewModal: React.FC<ViewModalProps> = ({
         keyboard={true}
         contentClassName="kidu-modal-content"
         dialogClassName="kidu-modal-dialog"
+        style={modalWidth ? { "--kidu-modal-max-width": typeof modalWidth === "number" ? `${modalWidth}px` : modalWidth } as React.CSSProperties : undefined}
+
       >
         {/* ── Floating close button ── */}
         <button

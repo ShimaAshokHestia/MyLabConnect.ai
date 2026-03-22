@@ -30,6 +30,7 @@ const DentalOfficeViewModal: React.FC<Props> = ({ show, onHide, recordId }) => {
   return (
     <KiduViewModal
       show={show}
+      modalWidth={800}
       onHide={onHide}
       title="View Dental Office"
       subtitle="Dental office details"

@@ -13,6 +13,7 @@ import AdminIndexPage from '../Layout/IndexPage';
 import CaseStatusList from '../Pages/Settings/CaseStatusMaster/List';
 import PipelineMonitorDashboard from '../Pages/Dashboards/trios-dashboard';
 import AdminLabList from '../Pages/DSO Management/Lab/List';
+import DentalOfficeAdminList from '../Pages/DSO Management/Dental Office/List';
 
 // ── Add page imports here as you build them ────────────────────────
 // import DSOmasterList from '../Pages/Master/List';
@@ -27,26 +28,28 @@ export const adminConnectRoutes = (
     {/* <Route path="masters/master-list" element={<DSOmasterList />} /> */}
 
     {/* User Management */}
-    <Route path="users/user-list"         element={<UserList />} />
-    <Route path="users/usertype-list"     element={<UserTypeList />} />
-{/* Dso Management */}
-     <Route path="dso/lab-list"  element={<AdminLabList />} />
+    <Route path="users/user-list" element={<UserList />} />
+    <Route path="users/usertype-list" element={<UserTypeList />} />
+    
+    {/* Dso Management */}
+    <Route path="dso/lab-list" element={<AdminLabList />} />
+    <Route path="dso/dentaloffice-list" element={<DentalOfficeAdminList />} />
 
     {/* Companies */}
-    <Route path="companies/company-list"  element={<CompanyList />} />
+    <Route path="companies/company-list" element={<CompanyList />} />
 
     {/* Reports */}
-    <Route path="analytics"                element={<div><h5>Analytics</h5></div>} />
-    <Route path="trios-dashboard"           element={<PipelineMonitorDashboard />} />
-    <Route path="masters/master-list"       element={<DSOmasterList/>}/>
-    <Route path="reports/case-summary"      element={<div><h5>Case Summary</h5></div>} />
-    <Route path="reports/revenue-summary"  element={<div><h5>Revenue Summary</h5></div>} />
-    <Route path="reports/support-tickets"  element={<div><h5>Support Tickets</h5></div>} />
+    <Route path="analytics" element={<div><h5>Analytics</h5></div>} />
+    <Route path="trios-dashboard" element={<PipelineMonitorDashboard />} />
+    <Route path="masters/master-list" element={<DSOmasterList />} />
+    <Route path="reports/case-summary" element={<div><h5>Case Summary</h5></div>} />
+    <Route path="reports/revenue-summary" element={<div><h5>Revenue Summary</h5></div>} />
+    <Route path="reports/support-tickets" element={<div><h5>Support Tickets</h5></div>} />
 
     {/* Settings */}
-    <Route path="settings/financialYear-list" element={<FinancialYearList/>} />
-    <Route path="settings/caseStatus-list" element={<CaseStatusList/>} />
-    
+    <Route path="settings/financialYear-list" element={<FinancialYearList />} />
+    <Route path="settings/caseStatus-list" element={<CaseStatusList />} />
+
     {/* Catch-all */}
     <Route path="*" element={<Navigate to="/appadmin-connect" replace />} />
   </Route>

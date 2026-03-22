@@ -39,7 +39,7 @@ const fields: Field[] = [
     name: "country",
     rules: { type: "text", label: "Country", required: true, maxLength: 50, colWidth: 4 },
   },
-   {
+  {
     name: "dsoZoneId",
     rules: { type: "popup", label: "DSO Zone", required: true, colWidth: 4 },
   },
@@ -76,15 +76,15 @@ interface Props {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-const DentalOfficeEditModal: React.FC<Props> = ({ 
-  show, 
-  onHide, 
-  onSuccess, 
-  recordId 
+const DentalOfficeEditModal: React.FC<Props> = ({
+  show,
+  onHide,
+  onSuccess,
+  recordId
 }) => {
   const { requireDSOMasterId } = useCurrentUser();
   const { handleApiError, assertApiSuccess } = useApiErrorHandler();
-  
+
   // State for popup
   const [showZonePopup, setShowZonePopup] = useState(false);
   const [selectedZone, setSelectedZone] = useState<{ id: number; name: string } | null>(null);
@@ -111,10 +111,10 @@ const DentalOfficeEditModal: React.FC<Props> = ({
   // ── Fetch existing data ───────────────────────────────────────────────────
   const handleFetch = async (id: string | number) => {
     const response = await DentalOfficeService.getById(Number(id));
-    
+
     // Extract the data from response
     const data = response?.value || response?.data || response;
-    
+
     // Set initial zone info for display
     if (data?.dsoZoneId && data?.dsoZoneName) {
       setSelectedZone({
@@ -123,7 +123,7 @@ const DentalOfficeEditModal: React.FC<Props> = ({
       });
       setInitialZoneName(data.dsoZoneName);
     }
-    
+
     return response;
   };
 
@@ -173,7 +173,7 @@ const DentalOfficeEditModal: React.FC<Props> = ({
 
     // 4. Assert success
     await assertApiSuccess(result, "Failed to update Dental Office.");
-    
+
     return result;
   };
 
@@ -204,6 +204,7 @@ const DentalOfficeEditModal: React.FC<Props> = ({
     <>
       <KiduEditModal
         show={show}
+        modalWidth={800}
         onHide={handleModalHide}
         title="Edit Dental Office"
         subtitle="Update dental office details"

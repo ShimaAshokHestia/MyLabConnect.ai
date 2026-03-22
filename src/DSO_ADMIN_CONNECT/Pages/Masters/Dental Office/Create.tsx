@@ -38,7 +38,7 @@ const fields: Field[] = [
     name: "country",
     rules: { type: "text", label: "Country", required: true, maxLength: 50, colWidth: 4 },
   },
-   {
+  {
     name: "dsoZoneId",
     rules: { type: "popup", label: "DSO Zone", required: true, colWidth: 4 },
   },
@@ -74,14 +74,14 @@ interface Props {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-const DentalOfficeCreateModal: React.FC<Props> = ({ 
-  show, 
-  onHide, 
-  onSuccess, 
+const DentalOfficeCreateModal: React.FC<Props> = ({
+  show,
+  onHide,
+  onSuccess,
 }) => {
   const { requireDSOMasterId } = useCurrentUser();
   const { handleApiError, assertApiSuccess } = useApiErrorHandler();
-  
+
   // State for popup
   const [showZonePopup, setShowZonePopup] = useState(false);
   const [selectedZone, setSelectedZone] = useState<{ id: number; name: string } | null>(null);
@@ -149,7 +149,7 @@ const DentalOfficeCreateModal: React.FC<Props> = ({
 
     // 4. Assert success
     await assertApiSuccess(result, "Failed to create Dental Office.");
-    
+
     // Clear selected zone after successful submission
     setSelectedZone(null);
   };
@@ -170,6 +170,7 @@ const DentalOfficeCreateModal: React.FC<Props> = ({
     <>
       <KiduCreateModal
         show={show}
+        modalWidth={800}
         onHide={handleModalHide}
         title="Create Dental Office"
         subtitle="Add a new dental office"

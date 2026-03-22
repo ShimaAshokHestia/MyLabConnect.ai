@@ -38,7 +38,7 @@ export const appAdminMenuItems: MenuItem[] = [
     children: [
       { title: 'Lab Group', url: '/appadmin-connect/dso/labgroup-list', icon: LucideMicroscope },
       { title: 'Lab', url: '/appadmin-connect/dso/lab-list', icon: Microscope },
-      { title: 'Practice', url: '/appadmin-connect/dso/practice-list', icon: Building2 },
+      { title: 'Dental Office', url: '/appadmin-connect/dso/dentaloffice-list', icon: Building2 },
       { title: 'Doctor', url: '/appadmin-connect/dso/doctor-list', icon: UserCog },
       { title: 'Product Group', url: '/appadmin-connect/dso/productGroup-list', icon: Package },
       { title: 'User Role Creation', url: '/appadmin-connect/dso/user-roles', icon: UserPlus },

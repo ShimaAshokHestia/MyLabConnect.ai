@@ -134,7 +134,7 @@ const fields: Field[] = [
    { 
     name: "triosId", 
     rules: { 
-      type: "number", 
+      type: "text", 
       label: "Trios Id", 
       required: false, 
       minLength: 1, 

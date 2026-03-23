@@ -11,10 +11,12 @@ import { useDashboardCases } from "../../DOCTOR_CONNECT/Types/Common/UseDashBoar
 const DsoIndexPage: React.FC = () => {
   const user = AuthService.getUser();
 
+   // Resolve DSO master ID — unchanged
+  const dSOMasterId = user?.dsoMasterId ?? null;
+ 
   const { data, loading, error, refresh } = useDashboardCases({
     role:        "dso",
-    // DSO sees ALL cases under their master ID — no doctor filter
-    dSOMasterId: user?.dsoMasterId ?? null,
+    dSOMasterId,
   });
 
   if (error) {
@@ -51,7 +53,7 @@ const DsoIndexPage: React.FC = () => {
     );
   }
 
-  return <CaseDashboard role="dso" data={data} loading={loading} hideDsoName={true}/>;
+  return <CaseDashboard role="dso" data={data} loading={loading} hideDsoName={true}  dSOMasterId={dSOMasterId}/>;
 };
 
 export default DsoIndexPage;

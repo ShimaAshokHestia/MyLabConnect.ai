@@ -39,6 +39,11 @@ export interface StatusBarProps {
   searchValue?: string;
   /** Called on every keystroke in the search input */
   onSearchChange?: (value: string) => void;
+   // ADDED: view mode toggle props
+  /** Current view mode — 'grid' shows cards, 'list' shows table */
+  viewMode?: 'grid' | 'list';
+  /** Called when the grid/list toggle button is clicked */
+  onViewModeToggle?: () => void;
 }
 
 // ─────────────────────────────────────────────
@@ -130,6 +135,30 @@ const PickupIcon = () => (
   </svg>
 );
 
+// ADDED: Grid icon for grid view toggle
+const GridIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="3" y="3" width="7" height="7" />
+    <rect x="14" y="3" width="7" height="7" />
+    <rect x="3" y="14" width="7" height="7" />
+    <rect x="14" y="14" width="7" height="7" />
+  </svg>
+);
+
+// ADDED: List icon for list view toggle
+const ListIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <line x1="8" y1="6" x2="21" y2="6" />
+    <line x1="8" y1="12" x2="21" y2="12" />
+    <line x1="8" y1="18" x2="21" y2="18" />
+    <line x1="3" y1="6" x2="3.01" y2="6" />
+    <line x1="3" y1="12" x2="3.01" y2="12" />
+    <line x1="3" y1="18" x2="3.01" y2="18" />
+  </svg>
+);
+
 // ─────────────────────────────────────────────
 // Component
 // ─────────────────────────────────────────────
@@ -144,6 +173,9 @@ const StatusBar: React.FC<StatusBarProps> = ({
   onPickupClick,
   searchValue = '',
   onSearchChange,
+   // ADDED: destructure new view mode props with defaults
+  viewMode = 'grid',
+  onViewModeToggle,
 }) => {
   const [internalSearch, setInternalSearch] = React.useState('');
 
@@ -213,6 +245,20 @@ const StatusBar: React.FC<StatusBarProps> = ({
         >
           <PickupIcon />
           <span className="sbar-btn-label">Pickup</span>
+        </button>
+      )}
+
+       {/* ADDED: View mode toggle button — switches between grid cards and list table */}
+      {onViewModeToggle && (
+        <button
+          className={`sbar-action-btn sbar-btn--viewmode${viewMode === 'list' ? ' sbar-btn--viewmode-active' : ''}`}
+          onClick={onViewModeToggle}
+          aria-label={viewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
+          type="button"
+          title={viewMode === 'grid' ? 'List View' : 'Grid View'}
+        >
+          {viewMode === 'grid' ? <ListIcon /> : <GridIcon />}
+          <span className="sbar-btn-label">{viewMode === 'grid' ? 'List' : 'Grid'}</span>
         </button>
       )}
 
